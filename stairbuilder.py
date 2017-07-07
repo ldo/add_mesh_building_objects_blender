@@ -1,12 +1,12 @@
 # Stairs and railing creator script for Blender
-# 
+#
 # Creates a straight-run staircase with railings and stringer
 # All components are optional and can be turned on and off by setting e.g. makeTreads=True or makeTreads=False
 # Current values assume 1 blender unit = 1 metre
-# 
+#
 # Stringer will rest on lower landing and hang from upper landing
 # Railings start on the lowest step and end on the upper landing
-# 
+#
 # Note: I'm not sure how to use recalcNormals so not all normals points ouwards.
 #       Perhaps someone else can contribute this.
 #
@@ -69,7 +69,7 @@ global typ
 global typ_s
 global typ_t
 global rise
-global run               
+global run
 
 # from general.py
 
@@ -81,7 +81,7 @@ class General:
         #identical quads for all objects except stringer
         self.faces=[[0,1,3,2],[0,1,5,4],[0,2,6,4],[4,5,7,6],[2,3,7,6],[1,3,7,5]]
 
-    def Make_mesh(self, verts, faces, name):        
+    def Make_mesh(self, verts, faces, name):
         # Create new mesh
         mesh = bpy.data.meshes.new(name)
 
@@ -108,7 +108,7 @@ class Posts:
         self.d=d #post depth
         self.w=w #post width
         self.wT=wT #tread width
-        self.nP=nP #number of posts 
+        self.nP=nP #number of posts
         self.sp=Vector([(self.x2[0]-self.x1[0])/float(nP+1),0,0]) #spacing between posts
         self.rEnable = rEnable
         self.lEnable = lEnable
@@ -187,7 +187,7 @@ class Rails:
                 j += Vector([0,self.wT-self.wP,0])
             self.G.Make_mesh(coords, self.G.faces, 'rails')
 
-from retainer.py
+# from retainer.py
 
 class Retainers:
     def __init__(self,G,w,h,wP,wT,hR,n, rEnable, lEnable):
@@ -468,7 +468,7 @@ class Stringer:
                     coords.append(coords[j]+Vector([self.run * self.nT, 0, self.rise * self.nT]))
                 self.G.Make_mesh(coords, self.faces3b, 'stringer')
                 offset += self.wT / (self.nS + 1)
-                
+
         return {'FINISHED'}
 
 
@@ -541,7 +541,7 @@ class Stringer:
             self.G.Make_mesh(coords, self.faces3c, 'stringer')
 
         # @TODO Taper = 100%
-        
+
         return {'FINISHED'}
 
 
@@ -613,7 +613,7 @@ class Stringer:
                     coords.append(coords[j]+Vector([self.run * self.nT, 0, self.rise * self.nT]))
                 self.G.Make_mesh(coords, self.faces3b, 'stringer')
                 offset += self.wT / (self.nS + 1)
-                
+
         return {'FINISHED'}
 
 
@@ -680,7 +680,7 @@ class Stringer:
                 i += Vector([0, (self.tO * 2) + self.wT, 0])
 
             self.G.Make_mesh(coords, self.faces4c, 'stringer')
-        
+
         return {'FINISHED'}
 
 # from tread.py
@@ -758,7 +758,7 @@ class Treads:
                 coords.append(Vector([tDepth - inset, -self.o, -self.h + self.tk])) #11
                 for i in range(12):
                     coords.append(coords[i] + Vector([0, self.w + (2 * self.o), 0]))
-            
+
             elif self.typ_t in ["tId3", "tId4", "tId5"]:
                 # Frame:
                 coords.append(Vector([-self.t,-self.o,-self.h]))
@@ -880,7 +880,7 @@ class Treads:
                 self.G.Make_mesh(coords, tId4_faces, 'treads')
         return
 
-            
+
 class stairs(bpy.types.Operator):
     """Add stair objects"""
     bl_idname = "mesh.stairs"
@@ -905,7 +905,7 @@ class stairs(bpy.types.Operator):
     sId1 = ("sId1", "Classic", "Generate a classic style stringer")
     sId2 = ("sId2", "I-Beam", "Generate a steel I-beam stringer")
     sId3 = ("sId3", "C-Beam", "Generate a C-channel style stringer")
-    
+
     typ = EnumProperty(name = "Type",
                        description = "Type of staircase to generate",
                        items = [id1, id2, id3, id4])
@@ -1110,7 +1110,7 @@ class stairs(bpy.types.Operator):
             self.use_original = False
             box.prop(self, 'rEnable')
             box.prop(self, 'lEnable')
-            
+
         # Treads
         box = layout.box()
         box.prop(self, 'make_treads')
@@ -1137,7 +1137,7 @@ class stairs(bpy.types.Operator):
                     box.prop(self, 'tread_sn')
             elif self.typ == "id4":
                 box.prop(self, "tread_slc")
-                    
+
         # Posts
         box = layout.box()
         box.prop(self, 'make_posts')
@@ -1145,7 +1145,7 @@ class stairs(bpy.types.Operator):
             box.prop(self, 'post_d')
             box.prop(self, 'post_w')
             box.prop(self, 'post_n')
-            
+
         # Railings
         box = layout.box()
         box.prop(self, 'make_railings')
@@ -1153,7 +1153,7 @@ class stairs(bpy.types.Operator):
             box.prop(self, 'rail_w')
             box.prop(self, 'rail_t')
             box.prop(self, 'rail_h')
-            
+
         # Retainers
         box = layout.box()
         box.prop(self, 'make_retainers')
@@ -1161,7 +1161,7 @@ class stairs(bpy.types.Operator):
             box.prop(self, 'ret_w')
             box.prop(self, 'ret_h')
             box.prop(self, 'ret_n')
-            
+
         # Stringers
         box = layout.box()
         if self.typ != "id2":
