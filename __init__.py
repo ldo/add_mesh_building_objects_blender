@@ -22,7 +22,7 @@ bl_info = {
     "name": "Building Objects",
     "author": "Multiple Authors",
     "version": (0, 2),
-    "blender": (2, 71, 0),
+    "blender": (2, 78, 0),
     "location": "View3D > Add > Mesh > Cad Objects",
     "description": "Add building object types",
     "warning": "",
@@ -33,11 +33,7 @@ bl_info = {
 import bpy
 from . import add_mesh_balcony
 from . import add_mesh_sove
-from . import add_mesh_window
-from . import add_mesh_beam_builder
-from . import wallfactory
 from . import stairbuilder
-
 
 class INFO_MT_mesh_objects_add(bpy.types.Menu):
     # Define the "mesh objects" menu
@@ -47,16 +43,10 @@ class INFO_MT_mesh_objects_add(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("mesh.add_beam",
-            text="Beam Builder")
         layout.operator("mesh.add_say3d_balcony",
             text="Balcony")
         layout.operator("mesh.add_say3d_sove",
             text="Sove")
-        layout.operator("mesh.add_say3d_pencere2",
-            text="Window")
-        layout.operator("mesh.wall_add",
-            text="Wall Factory")
         layout.operator("mesh.stairs",
             text="Stair Builder")
 
