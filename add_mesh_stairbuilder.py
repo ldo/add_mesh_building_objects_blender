@@ -52,11 +52,13 @@
 import math
 from copy import copy
 import bpy
-from bpy.props import (BoolProperty,
-                       EnumProperty,
-                       IntProperty,
-                       FloatProperty)
-from bpy_extras import object_utils
+from bpy.props import \
+    BoolProperty, \
+    EnumProperty, \
+    IntProperty, \
+    FloatProperty
+from bpy_extras import \
+    object_utils
 from mathutils import \
     Matrix, \
     Vector
@@ -74,6 +76,8 @@ global run
 # from general.py
 
 class General:
+    "object for creating meshes given the verts and faces."
+
     def __init__(self,rise,run,N):
         self.stop=float(N)*Vector([run,0,rise])
         self.slope=rise/run
@@ -99,6 +103,8 @@ class General:
 # from post.py
 
 class Posts:
+    "generates posts for the stairs."
+
     def __init__(self,G,rise,run,d,w,wT,nP,hR,tR, rEnable, lEnable):
         self.G = G #General
         self.rise = rise #Stair rise
@@ -149,6 +155,8 @@ class Posts:
 # from rail.py
 
 class Rails:
+    "generates rails for the stairs."
+
     def __init__(self,G,w,t,h,tT,wP,dP,wT, rEnable, lEnable):
         self.G = G #General
         self.w=w #rail width
@@ -190,6 +198,8 @@ class Rails:
 # from retainer.py
 
 class Retainers:
+    "generates retainers for the stairs."
+
     def __init__(self,G,w,h,wP,wT,hR,n, rEnable, lEnable):
         self.G = G #General
         self.w=w #retainer width
@@ -226,6 +236,8 @@ class Retainers:
 # from stringer.py
 
 class Stringer:
+    "generates stringers for the stairs."
+
     def  __init__(self,G,typ,typ_s,rise,run,w,h,nT,hT,wT,tT,tO,tw,tf,tp,g,
                   nS=1,dis=False,notMulti=True,deg=4):
         self.G = G #General
@@ -687,6 +699,8 @@ class Stringer:
 
 
 class Treads:
+    "generates treads for the stairs."
+
     def __init__(self,G,typ,typ_t,run,w,h,d,r,toe,o,n,tk,sec,sp,sn,deg=4):
         self.G = G #General
         self.typ = typ #Stair type
@@ -882,7 +896,8 @@ class Treads:
 
 
 class stairs(bpy.types.Operator):
-    """Add stair objects"""
+    "actual generation of stairs."
+
     bl_idname = "mesh.stairs"
     bl_label = "Add Stairs"
     bl_options = {'REGISTER', 'UNDO'}
