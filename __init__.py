@@ -35,7 +35,7 @@ bl_info = \
 import bpy
 from . import add_mesh_balcony
 from . import add_mesh_sove
-from . import stairbuilder
+from . import add_mesh_stairbuilder
 
 class INFO_MT_mesh_objects_add(bpy.types.Menu):
     # Define the "mesh objects" menu
