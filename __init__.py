@@ -18,17 +18,19 @@
 # Contributed to by
 # SAYproductions, meta-androcto, jambay, brikbot#
 
-bl_info = {
-    "name": "Building Objects",
-    "author": "Multiple Authors",
-    "version": (0, 2),
-    "blender": (2, 78, 0),
-    "location": "View3D > Add > Mesh > Cad Objects",
-    "description": "Add building object types",
-    "warning": "",
-    "wiki_url": "",
-    "tracker_url": "https://developer.blender.org/T32711",
-    "category": "Add Mesh"}
+bl_info = \
+    {
+        "name" : "Building Objects",
+        "author" : "Multiple Authors",
+        "version" : (0, 3),
+        "blender" : (2, 78, 0),
+        "location" : "View3D > Add > Mesh > Building Objects",
+        "description" : "Add building object types",
+        "warning" : "",
+        "wiki_url" : "",
+        "tracker_url" : "https://developer.blender.org/T32711",
+        "category" : "Add Mesh",
+    }
 
 import bpy
 from . import add_mesh_balcony
@@ -43,33 +45,29 @@ class INFO_MT_mesh_objects_add(bpy.types.Menu):
     def draw(self, context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator("mesh.add_say3d_balcony",
-            text="Balcony")
-        layout.operator("mesh.add_say3d_sove",
-            text="Sove")
-        layout.operator("mesh.stairs",
-            text="Stair Builder")
+        layout.operator("mesh.add_say3d_balcony", text = "Balcony")
+        layout.operator("mesh.add_say3d_sove", text = "Sove")
+        layout.operator("mesh.stairs", text = "Stair Builder")
+    #end draw
 
 
 # Register all operators and panels
 
-# Define "Extras" menu
 def menu_func(self, context):
+    # defines my submenu for add-mesh
     self.layout.menu("INFO_MT_cad_objects_add", icon="PLUGIN")
-
+#end menu_func
 
 def register():
     bpy.utils.register_module(__name__)
-
-    # Add "Extras" menu to the "Add Mesh" menu
     bpy.types.INFO_MT_mesh_add.append(menu_func)
-
+#end register
 
 def unregister():
     bpy.utils.unregister_module(__name__)
-
-    # Remove "Extras" menu from the "Add Mesh" menu.
     bpy.types.INFO_MT_mesh_add.remove(menu_func)
+#end unregister
 
 if __name__ == "__main__":
     register()
+#end if
