@@ -13,7 +13,6 @@
 #-----------------------------------------------------------
 #
 #   @todo:
-#   - global vs. local needs cleaned up.
 #   - Join separate stringer objects and then clean up the mesh.
 #   - Put all objects into a group.
 #   - Generate left/right posts/railings/retainers separately with
