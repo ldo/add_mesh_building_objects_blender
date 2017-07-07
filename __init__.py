@@ -30,25 +30,13 @@ bl_info = {
     "tracker_url": "https://developer.blender.org/T32711",
     "category": "Add Mesh"}
 
-
-if "bpy" in locals():
-    import imp
-    imp.reload(add_mesh_balcony)
-    imp.reload(add_mesh_sove)
-    imp.reload(add_mesh_window)
-    imp.reload(add_mesh_beam_builder)
-    imp.reload(Wallfactory)
-    imp.reload(stairbuilder)
-
-else:
-    from . import add_mesh_balcony
-    from . import add_mesh_sove
-    from . import add_mesh_window
-    from . import add_mesh_beam_builder
-    from . import Wallfactory
-    from . import stairbuilder
-
 import bpy
+from . import add_mesh_balcony
+from . import add_mesh_sove
+from . import add_mesh_window
+from . import add_mesh_beam_builder
+from . import wallfactory
+from . import stairbuilder
 
 
 class INFO_MT_mesh_objects_add(bpy.types.Menu):

@@ -25,14 +25,14 @@
 # This module contains the UI definition, display, and processing (create mesh)
 # functions.
 #
-# The routines to generate the vertices for the wall are found in the "Blocks" module.
+# The routines to generate the vertices for the wall are found in the "blocks" module.
 #
 
 
 import bpy
 import mathutils
 from bpy.props import *
-from .Blocks import *
+from .blocks import *
 #from add_mesh_walls.preset_utils import *
 
 
