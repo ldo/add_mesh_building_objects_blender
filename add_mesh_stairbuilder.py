@@ -77,7 +77,7 @@ class General:
         #identical quads for all objects except stringer
         self.faces=[[0,1,3,2],[0,1,5,4],[0,2,6,4],[4,5,7,6],[2,3,7,6],[1,3,7,5]]
 
-    def Make_mesh(self, verts, faces, name):
+    def make_mesh(self, verts, faces, name):
         # Create new mesh
         mesh = bpy.data.meshes.new(name)
 
@@ -110,9 +110,9 @@ class Posts:
         self.sp=Vector([(self.x2[0]-self.x1[0])/float(nP+1),0,0]) #spacing between posts
         self.rEnable = rEnable
         self.lEnable = lEnable
-        self.Create()
+        self.create()
 
-    def Intersect(self,i,d):
+    def intersect(self,i,d):
         """find intersection point, x, for rail and post"""
         x3=self.x1+i*self.sp+Vector([d,d,d])
         x4=x3+Vector([0,0,self.x2[-1]])
@@ -123,12 +123,12 @@ class Posts:
         mag_cr_ab=(cr_ab * cr_ab)
         return self.x1+a*((c.cross(b).dot(cr_ab))/mag_cr_ab)
 
-    def Create(self):
+    def create(self):
         for i in range(0,self.nP+2,1):
             coords = []
             #intersections with rail
-            coords.append(self.Intersect(i,0.0))
-            coords.append(self.Intersect(i,self.d))
+            coords.append(self.intersect(i,0.0))
+            coords.append(self.intersect(i,self.d))
             #intersections with tread
             coords.append(Vector([self.x1[0]+i*self.sp[0],0,
                                   int(coords[0][0]/self.run)*self.rise]))
@@ -137,12 +137,12 @@ class Posts:
             for j in range(4):
                 coords.append(coords[j]+Vector([0,self.w,0]))
             if self.rEnable:
-                self.G.Make_mesh(coords, self.G.faces, 'posts')
+                self.G.make_mesh(coords, self.G.faces, 'posts')
             if self.lEnable:
                 #make post on other side of steps as well
                 for j in coords:
                     j += Vector([0,self.wT-self.w,0])
-                self.G.Make_mesh(coords, self.G.faces, 'posts')
+                self.G.make_mesh(coords, self.G.faces, 'posts')
 
 # from rail.py
 
@@ -162,9 +162,9 @@ class Rails:
         self.wT=wT #tread width
         self.rEnable = rEnable
         self.lEnable = lEnable
-        self.Create()
+        self.create()
 
-    def Create(self):
+    def create(self):
         #determine offset to include railing toe
         offset=Vector([self.tT,0,self.tT*math.tan(self.G.angle)])
         coords = []
@@ -180,12 +180,12 @@ class Rails:
         for j in coords:
             j += Vector([0,0.5*(-self.w+self.wP),0])
         if self.rEnable:
-            self.G.Make_mesh(coords, self.G.faces, 'rails')
+            self.G.make_mesh(coords, self.G.faces, 'rails')
         if self.lEnable:
             #make rail on other side
             for j in coords:
                 j += Vector([0,self.wT-self.wP,0])
-            self.G.Make_mesh(coords, self.G.faces, 'rails')
+            self.G.make_mesh(coords, self.G.faces, 'rails')
 
 # from retainer.py
 
@@ -203,9 +203,9 @@ class Retainers:
         self.sp=hR/float(n+1) #retainer spacing
         self.rEnable = rEnable
         self.lEnable = lEnable
-        self.Create()
+        self.create()
 
-    def Create(self):
+    def create(self):
         for i in range(self.nR):
             coords = []
             offset=(i+1)*Vector([0,0,self.sp])
@@ -219,12 +219,12 @@ class Retainers:
             for j in coords:
                 j += Vector([0,0.5*(self.wP-self.w),0])
             if self.rEnable:
-                self.G.Make_mesh(coords, self.G.faces, 'retainers')
+                self.G.make_mesh(coords, self.G.faces, 'retainers')
             if self.lEnable:
                 #make retainer on other side
                 for j in coords:
                     j += Vector([0,self.wT-self.wP,0])
-                self.G.Make_mesh(coords,self.G.faces, 'retainers')
+                self.G.make_mesh(coords,self.G.faces, 'retainers')
 
 # from stringer.py
 
@@ -297,10 +297,10 @@ class Stringer:
                       [7,25,26,6],[6,26,27,5],[9,31,30,10],[10,30,29,11],[11,29,28,12],
                       [24,25,30,31],[25,26,29,30],[26,27,28,29],[0,1,16,24],[16,24,31,17],
                       [8,9,31,17],[4,5,27,21],[20,21,27,28],[12,13,20,28]]
-        self.Create()
+        self.create()
 
 
-    def Create(self):
+    def create(self):
         if self.typ == "id1":
             if self.typ_s == "sId1":
                 if self.dis or self.nS == 1:
@@ -320,13 +320,13 @@ class Stringer:
                             coords.append(coords[k]+Vector([0, self.w, 0]))
                         for k in coords:
                             k += j*Vector([self.run, 0, self.rise])
-                        self.G.Make_mesh(coords,self.faces1,'stringer')
+                        self.G.make_mesh(coords,self.faces1,'stringer')
                     if self.dis or self.nS == 1:
                         offset += self.wT / (self.nS + 1)
                     else:
                         offset += (self.wT - self.w) / (self.nS - 1)
             elif self.typ_s == "sId2":
-                self.I_beam()
+                self.i_beam()
         elif self.typ == "id2":
             if self.typ_s == "sId1":
                 coords = []
@@ -340,14 +340,14 @@ class Stringer:
                                       self.nT * self.rise]))
                 for i in range(6):
                     coords.append(coords[i] + Vector([0, self.w, 0]))
-                self.G.Make_mesh(coords, self.faces2, 'stringer')
+                self.G.make_mesh(coords, self.faces2, 'stringer')
                 for i in coords:
                     i += Vector([0, self.w + self.wT, 0])
-                self.G.Make_mesh(coords, self.faces2, 'stringer')
+                self.G.make_mesh(coords, self.faces2, 'stringer')
             elif self.typ_s == "sId2":
-                self.housed_I_beam()
+                self.housed_i_beam()
             elif self.typ_s == "sId3":
-                self.housed_C_beam()
+                self.housed_c_beam()
         elif self.typ == "id3":
             h = (self.rise - self.hT) - self.rise #height of top section
             for i in range(self.nT):
@@ -358,7 +358,7 @@ class Stringer:
                 coords.append(Vector([(i + 1) * self.run,0,h + (i * self.rise)]))
                 for j in range(4):
                     coords.append(coords[j] + Vector([0,self.wT,0]))
-                self.G.Make_mesh(coords, self.G.faces, 'stringer')
+                self.G.make_mesh(coords, self.G.faces, 'stringer')
         elif self.typ == "id4":
             offset = (self.wT / (self.nS + 1)) - (self.w / 2)
             for s in range(self.nS):
@@ -401,12 +401,12 @@ class Stringer:
                                 coords.append((rot * start[v]) + Vector([0, 0, incline]))
                             else:
                                 coords.append((rot * start[v]) + Vector([0, 0, self.rise * i]))
-                    self.G.Make_mesh(coords, tId4_faces, 'treads')
+                    self.G.make_mesh(coords, tId4_faces, 'treads')
 
         return {'FINISHED'}
 
 
-    def I_beam(self):
+    def i_beam(self):
         mid = self.w / 2
         web = self.tw / 2
         # Bottom of the stringer:
@@ -452,7 +452,7 @@ class Stringer:
                         coords[j] = intersect_line_plane(coords[j], coords[j + 16],
                                                          Vector([0, 0, topZ]),
                                                          Vector([0, 0, 1]))
-                self.G.Make_mesh(coords, self.faces3a, 'stringer')
+                self.G.make_mesh(coords, self.faces3a, 'stringer')
 
                 if self.dis or self.nS == 1:
                     offset += self.wT / (self.nS + 1)
@@ -472,13 +472,13 @@ class Stringer:
                 coords.append(Vector([0, offset + self.w,       baseZ]))
                 for j in range(8):
                     coords.append(coords[j]+Vector([self.run * self.nT, 0, self.rise * self.nT]))
-                self.G.Make_mesh(coords, self.faces3b, 'stringer')
+                self.G.make_mesh(coords, self.faces3b, 'stringer')
                 offset += self.wT / (self.nS + 1)
 
         return {'FINISHED'}
 
 
-    def housed_I_beam(self):
+    def housed_i_beam(self):
         webOrth = Vector([self.rise, 0, -self.run]).normalized()
         webHeight = Vector([self.run + self.tT, 0, -self.hT]).project(webOrth).length
         vDelta_1 = self.tf * math.tan(self.G.angle)
@@ -539,19 +539,20 @@ class Stringer:
             for i in range(8):
                 coords.append(coords[i + 48] + Vector([0, self.tw, 0]))
 
-            self.G.Make_mesh(coords, self.faces3c, 'stringer')
+            self.G.make_mesh(coords, self.faces3c, 'stringer')
 
             for i in coords:
                 i += Vector([0, self.wT + self.tw, 0])
 
-            self.G.Make_mesh(coords, self.faces3c, 'stringer')
+            self.G.make_mesh(coords, self.faces3c, 'stringer')
 
         # @TODO Taper = 100%
 
         return {'FINISHED'}
 
 
-    def C_Beam(self):
+    def c_beam(self):
+        # fixme: not used!
         mid = self.w / 2
         web = self.tw / 2
         # Bottom of the stringer:
@@ -597,7 +598,7 @@ class Stringer:
                         coords[j] = intersect_line_plane(coords[j], coords[j + 16],
                                                          Vector([0, 0, topZ]),
                                                          Vector([0, 0, 1]))
-                self.G.Make_mesh(coords, self.faces3a, 'stringer')
+                self.G.make_mesh(coords, self.faces3a, 'stringer')
 
                 if self.dis or self.nS == 1:
                     offset += self.wT / (self.nS + 1)
@@ -617,13 +618,13 @@ class Stringer:
                 coords.append(Vector([0, offset + self.w,       baseZ]))
                 for j in range(8):
                     coords.append(coords[j]+Vector([self.run * self.nT, 0, self.rise * self.nT]))
-                self.G.Make_mesh(coords, self.faces3b, 'stringer')
+                self.G.make_mesh(coords, self.faces3b, 'stringer')
                 offset += self.wT / (self.nS + 1)
 
         return {'FINISHED'}
 
 
-    def housed_C_beam(self):
+    def housed_c_beam(self):
         webOrth = Vector([self.rise, 0, -self.run]).normalized()
         webHeight = Vector([self.run + self.tT, 0, -self.hT]).project(webOrth).length
         vDelta_1 = self.tf * math.tan(self.G.angle)
@@ -676,7 +677,7 @@ class Stringer:
             for i in [0, 7, 6, 5, 12, 11, 10, 9]:
                 coords.append(coords[i] + Vector([0, flange_y + self.tw, 0]))
 
-            self.G.Make_mesh(coords, self.faces4c, 'stringer')
+            self.G.make_mesh(coords, self.faces4c, 'stringer')
 
             for i in range(16):
                 coords[i] += Vector([0, -outer * 2, 0])
@@ -685,7 +686,7 @@ class Stringer:
             for i in coords:
                 i += Vector([0, (self.tO * 2) + self.wT, 0])
 
-            self.G.Make_mesh(coords, self.faces4c, 'stringer')
+            self.G.make_mesh(coords, self.faces4c, 'stringer')
 
         return {'FINISHED'}
 
@@ -727,9 +728,9 @@ class Treads:
                           [2,6,7,3],[2,6,14,10],[11,15,7,3],[11,15,14,10],
                           [0,4,5,1],[0,4,12,8],[9,13,5,1],[9,13,12,8],
                           [4,6,7,5],[4,6,14,12],[13,15,14,12],[13,15,7,5]]
-        self.Create()
+        self.create()
 
-    def Create(self):
+    def create(self):
         # Setup the coordinates:
         coords = []
         coords2 = []
@@ -828,22 +829,22 @@ class Treads:
             # Make the treads:
             for i in range(self.n):
                 if self.typ_t == "tId1":
-                    self.G.Make_mesh(coords,self.G.faces,'treads')
+                    self.G.make_mesh(coords,self.G.faces,'treads')
                 elif self.typ_t == "tId2":
                     temp = []
                     for j in coords:
                         temp.append(copy(j))
                     for j in range(self.sec):
-                        self.G.Make_mesh(temp, self.tId2_faces, 'treads')
+                        self.G.make_mesh(temp, self.tId2_faces, 'treads')
                         for k in temp:
                             k += Vector([depth + self.sp, 0, 0])
                 elif self.typ_t in ["tId3", "tId4", "tId5"]:
-                    self.G.Make_mesh(coords,self.out_faces,'treads')
+                    self.G.make_mesh(coords,self.out_faces,'treads')
                     temp = []
                     for j in coords2:
                         temp.append(copy(j))
                     for j in range(self.sec):
-                        self.G.Make_mesh(temp,self.G.faces,'bars')
+                        self.G.make_mesh(temp,self.G.faces,'bars')
                         for k in temp:
                             k += Vector([offset + self.sp, 0, 0])
                     for j in coords2:
@@ -852,7 +853,7 @@ class Treads:
                     for j in coords3:
                         temp.append(copy(j))
                     for j in range(self.sn):
-                        self.G.Make_mesh(temp,self.G.faces,'crosses')
+                        self.G.make_mesh(temp,self.G.faces,'crosses')
                         for k in temp:
                             k += Vector([0, cW + cross, 0])
                     for j in coords3:
@@ -885,7 +886,7 @@ class Treads:
                     for v in start:
                         coords.append((rot * v) + Vector([0, 0, self.r * i]))
                 tId4_faces.append([k, k + 1, k + 3, k + 2])
-                self.G.Make_mesh(coords, tId4_faces, 'treads')
+                self.G.make_mesh(coords, tId4_faces, 'treads')
         return
 
 
