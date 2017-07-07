@@ -66,13 +66,6 @@ from mathutils.geometry import \
     intersect_line_plane, \
     intersect_line_line
 
-global G
-global typ
-global typ_s
-global typ_t
-global rise
-global run
-
 # from general.py
 
 class General:
@@ -103,7 +96,7 @@ class General:
 # from post.py
 
 class Posts:
-    "generates posts for the stairs."
+    "generates posts for the stairs. These are the vertical elements holding up the railings."
 
     def __init__(self,G,rise,run,d,w,wT,nP,hR,tR, rEnable, lEnable):
         self.G = G #General
@@ -155,7 +148,7 @@ class Posts:
 # from rail.py
 
 class Rails:
-    "generates rails for the stairs."
+    "generates rails for the stairs. These go across the tops of the posts."
 
     def __init__(self,G,w,t,h,tT,wP,dP,wT, rEnable, lEnable):
         self.G = G #General
@@ -198,7 +191,8 @@ class Rails:
 # from retainer.py
 
 class Retainers:
-    "generates retainers for the stairs."
+    "generates retainers for the stairs. These are the additional pieces parallel" \
+    " to, and below, the railings."
 
     def __init__(self,G,w,h,wP,wT,hR,n, rEnable, lEnable):
         self.G = G #General
@@ -236,7 +230,8 @@ class Retainers:
 # from stringer.py
 
 class Stringer:
-    "generates stringers for the stairs."
+    "generates stringers for the stairs. These are the supports that go under" \
+    " the stairs."
 
     def  __init__(self,G,typ,typ_s,rise,run,w,h,nT,hT,wT,tT,tO,tw,tf,tp,g,
                   nS=1,dis=False,notMulti=True,deg=4):
@@ -1207,27 +1202,16 @@ class stairs(bpy.types.Operator):
                     box.prop(self, 'string_tf')
 
         # Tread support:
-##        if self.make_stringer and typ_s in ["sId2", "sId3"]:
+##        if self.make_stringer and self.typ_s in ["sId2", "sId3"]:
 
     def execute(self, context):
-        global G
-        global typ
-        global typ_s
-        global typ_t
-        global rise
-        global run
-        typ = self.typ
-        typ_s = self.typ_s
-        typ_t = self.typ_t
-        rise = self.rise
-        run = self.run
-        G=General(rise,run,self.tread_n)
+        self.G=General(self.rise,self.run,self.tread_n)
         if self.make_treads:
             if typ != "id4":
-                Treads(G,
-                       typ,
-                       typ_t,
-                       run,
+                Treads(self.G,
+                       self.typ,
+                       self.typ_t,
+                       self.run,
                        self.tread_w,
                        self.tread_h,
                        self.run,
@@ -1240,9 +1224,9 @@ class stairs(bpy.types.Operator):
                        self.tread_sp,
                        self.tread_sn)
             else:
-                Treads(G,
-                       typ,
-                       typ_t,
+                Treads(self.G,
+                       self.typ,
+                       self.typ_t,
                        self.deg,
                        self.rad2,
                        self.tread_h,
@@ -1257,9 +1241,9 @@ class stairs(bpy.types.Operator):
                        self.tread_sn,
                        self.tread_slc)
         if self.make_posts and (self.rEnable or self.lEnable):
-            Posts(G,
-                  rise,
-                  run,
+            Posts(self.G,
+                  self.rise,
+                  self.run,
                   self.post_d,
                   self.post_w,
                   self.tread_w,
@@ -1269,7 +1253,7 @@ class stairs(bpy.types.Operator):
                   self.rEnable,
                   self.lEnable)
         if self.make_railings and (self.rEnable or self.lEnable):
-            Rails(G,
+            Rails(self.G,
                   self.rail_w,
                   self.rail_t,
                   self.rail_h,
@@ -1280,7 +1264,7 @@ class stairs(bpy.types.Operator):
                   self.rEnable,
                   self.lEnable)
         if self.make_retainers and (self.rEnable or self.lEnable):
-            Retainers(G,
+            Retainers(self.G,
                       self.ret_w,
                       self.ret_h,
                       self.post_w,
@@ -1290,12 +1274,12 @@ class stairs(bpy.types.Operator):
                       self.rEnable,
                       self.lEnable)
         if self.make_stringer:
-            if typ == "id1" and self.use_original:
-                Stringer(G,
-                         typ,
-                         typ_s,
-                         rise,
-                         run,
+            if self.typ == "id1" and self.use_original:
+                Stringer(self.G,
+                         self.typ,
+                         self.typ_s,
+                         self.rise,
+                         self.run,
                          self.string_w,
                          self.string_h,
                          self.tread_n,
@@ -1307,12 +1291,12 @@ class stairs(bpy.types.Operator):
                          self.string_tf,
                          self.string_tp,
                          not self.string_g)
-            elif typ == "id3":
-                Stringer(G,
-                         typ,
-                         typ_s,
-                         rise,
-                         run,
+            elif self.typ == "id3":
+                Stringer(self.G,
+                         self.typ,
+                         self.typ_s,
+                         self.rise,
+                         self.run,
                          100,
                          self.string_h,
                          self.tread_n,
@@ -1325,11 +1309,11 @@ class stairs(bpy.types.Operator):
                          self.string_tp,
                          not self.string_g,
                          1, False, False)
-            elif typ == "id4":
-                Stringer(G,
-                         typ,
-                         typ_s,
-                         rise,
+            elif self.typ == "id4":
+                Stringer(self.G,
+                         self.typ,
+                         self.typ_s,
+                         self.rise,
                          self.deg,
                          self.string_w,
                          self.string_h,
@@ -1347,11 +1331,11 @@ class stairs(bpy.types.Operator):
                          self.use_original,
                          self.tread_slc)
             else:
-                Stringer(G,
-                         typ,
-                         typ_s,
-                         rise,
-                         run,
+                Stringer(self.G,
+                         self.typ,
+                         self.typ_s,
+                         self.rise,
+                         self.run,
                          self.string_w,
                          self.string_h,
                          self.tread_n,
