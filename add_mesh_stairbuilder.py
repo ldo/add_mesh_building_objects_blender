@@ -74,10 +74,12 @@ class MeshMaker :
     "object for creating meshes given the verts and faces."
 
     def __init__(self, rise, run, N) :
+        # rise -- height of each tread
+        # run -- depth of each tread
+        # N -- number of treads
         self.stop = float(N) * Vector([run, 0, rise])
         self.slope = rise / run
-        self.angle = math.atan(self.slope)
-        #identical quads for all objects except stringer
+        # identical quads for all objects which are parallelpipeds (except stringers and treads)
         self.faces = \
             [
                 [0, 1, 3, 2],
@@ -184,7 +186,7 @@ class Railings :
 
     def create(self) :
         #determine offset to include railing toe
-        offset = Vector([self.tT, 0, self.tT * math.tan(self.mm.angle)])
+        offset = Vector([self.tT, 0, self.tT * self.mm.slope])
         coords = []
         coords.append(self.start - offset)
         coords.append \
@@ -196,7 +198,7 @@ class Railings :
                 Vector([
                     self.dP,
                     0,
-                    self.dP * math.tan(self.mm.angle)
+                    self.dP * self.mm.slope
                 ])
           )
         coords.append(self.start - offset + Vector([0, self.w, 0]))
@@ -209,7 +211,7 @@ class Railings :
                 Vector([
                     self.dP,
                     self.w,
-                    self.dP*math.tan(self.mm.angle)
+                    self.dP * self.mm.slope
                 ])
           )
         for j in range(4) :
@@ -725,7 +727,7 @@ class Stringer :
     def housed_i_beam(self) :
         webOrth = Vector([self.rise, 0, - self.run]).normalized()
         webHeight = Vector([self.run + self.tT, 0, - self.hT]).project(webOrth).length
-        vDelta_1 = self.tf * math.tan(self.mm.angle)
+        vDelta_1 = self.tf * self.mm.slope
         vDelta_2 = self.rise * (self.nT - 1) - (webHeight + self.tf)
         flange_y = (self.w - self.tw) / 2
         front = - self.tT - self.tf
@@ -771,7 +773,7 @@ class Stringer :
                  )[0]
               )
             coords.append(Vector([
-                    (self.run * self.nT) - ((webHeight - self.hT) / math.tan(self.mm.angle)),
+                    (self.run * self.nT) - ((webHeight - self.hT) / self.mm.slope),
                     outer,
                     vDelta_2
                 ]))
@@ -907,7 +909,7 @@ class Stringer :
     def housed_c_beam(self) :
         webOrth = Vector([self.rise, 0, - self.run]).normalized()
         webHeight = Vector([self.run + self.tT, 0, - self.hT]).project(webOrth).length
-        vDelta_1 = self.tf * math.tan(self.mm.angle)
+        vDelta_1 = self.tf * self.mm.slope
         vDelta_2 = (self.rise * (self.nT - 1)) - (webHeight + self.tf)
         flange_y = (self.w - self.tw) / 2
         front = - self.tT - self.tf
@@ -953,7 +955,7 @@ class Stringer :
                 )[0]
               )
             coords.append(Vector([
-                    (self.run * self.nT) - ((webHeight - self.hT) / math.tan(self.mm.angle)),
+                    (self.run * self.nT) - ((webHeight - self.hT) / self.mm.slope),
                     outer,
                     vDelta_2
                 ]))
