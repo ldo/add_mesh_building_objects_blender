@@ -202,6 +202,8 @@ class Railings:
         #end if
     #end create
 
+#end Railings
+
 class Retainers:
     "generates retainers for the stairs. These are the additional pieces parallel" \
     " to, and below, the railings."
@@ -247,7 +249,7 @@ class Retainers:
         #end for
     #end create
 
-#end Railings
+#end Retainers
 
 class Stringer:
     "generates stringers for the stairs. These are the supports that go under" \
@@ -1354,7 +1356,7 @@ class Stairs(bpy.types.Operator):
                   self.lEnable)
         #end if
         if self.make_railings and (self.rEnable or self.lEnable):
-            Railingss(self.mm,
+            Railings(self.mm,
                   self.rail_w,
                   self.rail_t,
                   self.rail_h,
