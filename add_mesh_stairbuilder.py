@@ -119,7 +119,7 @@ class Posts :
         self.create()
     #end __init__
 
-    def intersect(self,i,d) :
+    def intersect(self, i, d) :
         # finds intersection point, x, for rail and post
         x3 = self.x1 + i * self.sp + Vector([d, d, d])
         x4 = x3 + Vector([0, 0, self.x2[-1]])
@@ -132,7 +132,7 @@ class Posts :
     #end intersect
 
     def create(self) :
-        for i in range(0,self.nP+2,1) :
+        for i in range(0, self.nP + 2, 1) :
             coords = []
             #intersections with rail
             coords.append(self.intersect(i, 0.0))
@@ -154,7 +154,7 @@ class Posts :
             if self.lEnable :
                 #make post on other side of steps as well
                 for j in coords :
-                    j += Vector([0, self.wT - self.w,0])
+                    j += Vector([0, self.wT - self.w, 0])
                 #end for
                 self.mm.make_mesh(coords, self.mm.faces, 'posts')
             #end if
@@ -172,7 +172,7 @@ class Railings :
         self.t = t #rail thickness
         self.h = h #rail height
         self.start = Vector([0, 0, self.h - self.t]) #rail start
-        self.stop = mm.stop + Vector([0, 0,self.h - self.t]) #rail stop
+        self.stop = mm.stop + Vector([0, 0, self.h - self.t]) #rail stop
         self.tT = tT #tread toe
         self.wP = wP #post width
         self.dP = dP #post depth
@@ -273,7 +273,7 @@ class Retainers :
                 for j in coords :
                     j += Vector([0, self.wT - self.wP, 0])
                 #end for
-                self.mm.make_mesh(coords,self.mm.faces, 'retainers')
+                self.mm.make_mesh(coords, self.mm.faces, 'retainers')
             #end if
         #end for
     #end create
@@ -284,7 +284,7 @@ class Stringer :
     "generates stringers for the stairs. These are the supports that go under" \
     " the stairs."
 
-    def __init__(self, mm, typ, typ_s, rise, run, w, h, nT, hT, wT, tT, tO, tw, tf,tp,g,
+    def __init__(self, mm, typ, typ_s, rise, run, w, h, nT, hT, wT, tT, tO, tw, tf, tp, g,
                   nS = 1, dis = False, notMulti = True, deg = 4) :
         self.mm = mm #MeshMaker
         self.typ = typ # Stair type
@@ -338,7 +338,7 @@ class Stringer :
                 [1, 2, 5, 3],
                 [3, 4, 5],
                 [6, 7, 8],
-                [7, 8, 11,9],
+                [7, 8, 11, 9],
                 [9, 10, 11],
             ]
         # I-beam stringer (id2 / sId2 / Taper < 100%):
@@ -373,7 +373,7 @@ class Stringer :
                 [18, 19, 26, 27],
                 [19, 20, 21, 22],
                 [19, 22, 23, 26],
-                [23, 24, 25,26],
+                [23, 24, 25, 26],
             ]
         # I-beam stringer (id2 / sId2 / Taper = 100%):
         self.faces3b = \
@@ -391,7 +391,7 @@ class Stringer :
                 [2, 3, 4, 5],
                 [8, 9, 14, 15],
                 [9, 10, 13, 14],
-                [10, 11, 12,13],
+                [10, 11, 12, 13],
             ]
         # I-beam stringer (id3 / sId2 / Taper < 100%):
         self.faces3c = \
@@ -520,7 +520,7 @@ class Stringer :
                         for k in coords :
                             k += j * Vector([self.run, 0, self.rise])
                         #end for
-                        self.mm.make_mesh(coords, self.faces1,'stringer')
+                        self.mm.make_mesh(coords, self.faces1, 'stringer')
                     #end for
                     if self.dis or self.nS == 1 :
                         offset += self.wT / (self.nS + 1)
@@ -1003,7 +1003,7 @@ class Stringer :
 class Treads :
     "generates treads for the stairs."
 
-    def __init__(self,mm,typ,typ_t,run,w,h,d,r,toe,o,n,tk,sec,sp,sn,deg=4) :
+    def __init__(self, mm, typ, typ_t, run, w, h, d, r, toe, o, n, tk, sec, sp, sn, deg = 4) :
         self.mm = mm #MeshMaker
         self.typ = typ #Stair type
         self.typ_t = typ_t #Tread type
@@ -1053,7 +1053,7 @@ class Treads :
             ]
         self.out_faces = \
             [
-                [0 ,2, 3, 1],
+                [0 , 2, 3, 1],
                 [0, 2, 10, 8],
                 [9, 11, 3, 1],
                 [9, 11, 10, 8],
@@ -1221,7 +1221,7 @@ class Treads :
                     #end for
                 #end if
                 for j in coords :
-                    j += Vector([self.d,0,self.r])
+                    j += Vector([self.d, 0, self.r])
                 #end for
             #end if
         # Circular staircase:
@@ -1305,14 +1305,16 @@ class Stairs(bpy.types.Operator) :
       (
         name = "Rise",
         description = "Single tread rise",
-        min = 0.0, max = 1024.0,
+        min = 0.0,
+        max = 1024.0,
         default = 0.20
       )
     run = FloatProperty \
       (
         name = "Run",
         description = "Single tread run",
-        min = 0.0, max = 1024.0,
+        min = 0.0,
+        max = 1024.0,
         default = 0.30
       )
 
@@ -1321,7 +1323,8 @@ class Stairs(bpy.types.Operator) :
       (
         name = "Inner Radius",
         description = "Inner radius for circular staircase",
-        min = 0.0, max = 1024.0,
+        min = 0.0,
+        max = 1024.0,
         soft_max = 10.0,
         default = 0.25
       )
@@ -1329,15 +1332,19 @@ class Stairs(bpy.types.Operator) :
       (
         name = "Outer Radius",
         description = "Outer radius for circular staircase",
-        min = 0.0, max = 1024.0,
-        soft_min = 0.015625, soft_max = 32.0,
+        min = 0.0,
+        max = 1024.0,
+        soft_min = 0.015625,
+        soft_max = 32.0,
         default = 1.0
       )
     deg = FloatProperty \
       (
         name = "Degrees",
         description = "Number of degrees the stairway rotates",
-        min = 0.0, max = 92160.0, step = 5.0,
+        min = 0.0,
+        max = 92160.0,
+        step = 5.0,
         default = 450.0
       )
     center = BoolProperty \
@@ -1358,35 +1365,40 @@ class Stairs(bpy.types.Operator) :
       (
         name = "Tread Width",
         description = "Width of each generated tread",
-        min = 0.0001, max = 1024.0,
+        min = 0.0001,
+        max = 1024.0,
         default = 1.2
       )
     tread_h = FloatProperty \
       (
         name = "Tread Height",
         description = "Height of each generated tread",
-        min = 0.0001, max = 1024.0,
+        min = 0.0001,
+        max = 1024.0,
         default = 0.04
       )
     tread_t = FloatProperty \
       (
         name = "Tread Toe",
         description = "Toe (aka \"nosing\") of each generated tread",
-        min = 0.0, max = 10.0,
+        min = 0.0,
+        max = 10.0,
         default = 0.03
       )
     tread_o = FloatProperty \
       (
         name = "Tread Overhang",
         description = "How much tread \"overhangs\" the sides",
-        min = 0.0, max = 1024.0,
+        min = 0.0,
+        max = 1024.0,
         default = 0.025
       )
     tread_n = IntProperty \
       (
         name = "Number of Treads",
         description = "How many treads to generate",
-        min = 1, max = 1024,
+        min = 1,
+        max = 1024,
         default = 10
       )
     typ_t = EnumProperty \
@@ -1406,21 +1418,24 @@ class Stairs(bpy.types.Operator) :
       (
         name = "Sections",
         description = "Number of sections to use for tread",
-        min = 1, max = 1024,
+        min = 1,
+        max = 1024,
         default = 5
       )
     tread_sp = IntProperty \
       (
         name = "Spacing",
         description = "Total spacing between tread sections as a percentage of total tread width",
-        min = 0, max = 80,
+        min = 0,
+        max = 80,
         default = 5
       )
     tread_sn = IntProperty \
       (
         name = "Crosses",
         description = "Number of cross section supports",
-        min = 2, max = 1024,
+        min = 2,
+        max = 1024,
         default = 4
       )
     #special circular tread properties:
@@ -1428,7 +1443,8 @@ class Stairs(bpy.types.Operator) :
       (
         name = "Slices",
         description = "Number of slices each tread is composed of",
-        min = 1, max = 1024,
+        min = 1,
+        max = 1024,
         soft_max = 16,
         default = 4
       )
@@ -1444,21 +1460,24 @@ class Stairs(bpy.types.Operator) :
       (
         name = "Post Depth",
         description = "Depth of generated posts",
-        min = 0.0001, max = 10.0,
+        min = 0.0001,
+        max = 10.0,
         default = 0.04
       )
     post_w = FloatProperty \
       (
         name = "Post Width",
         description = "Width of generated posts",
-        min = 0.0001, max = 10.0,
+        min = 0.0001,
+        max = 10.0,
         default = 0.04
       )
     post_n = IntProperty \
       (
         name = "Number of Posts",
         description = "Number of posts to generated",
-        min = 1, max = 1024,
+        min = 1,
+        max = 1024,
         default = 5
       )
 
@@ -1473,21 +1492,24 @@ class Stairs(bpy.types.Operator) :
       (
         name = "Railings Width",
         description = "Width of railings to generate",
-        min = 0.0001, max = 10.0,
+        min = 0.0001,
+        max = 10.0,
         default = 0.12
       )
     rail_t = FloatProperty \
       (
         name = "Railings Thickness",
         description = "Thickness of railings to generate",
-        min = 0.0001, max = 10.0,
+        min = 0.0001,
+        max = 10.0,
         default = 0.03
       )
     rail_h = FloatProperty \
       (
         name = "Railings Height",
         description = "Height of railings to generate",
-        min = 0.0001, max = 10.0,
+        min = 0.0001,
+        max = 10.0,
         default = 0.90
       )
 
@@ -1502,21 +1524,24 @@ class Stairs(bpy.types.Operator) :
       (
         name = "Retainer Width",
         description = "Width of generated retainers",
-        min = 0.0001, max = 10.0,
+        min = 0.0001,
+        max = 10.0,
         default = 0.01
       )
     ret_h = FloatProperty \
       (
         name = "Retainer Height",
         description = "Height of generated retainers",
-        min = 0.0001, max = 10.0,
+        min = 0.0001,
+        max = 10.0,
         default = 0.01
       )
     ret_n = IntProperty \
       (
         name = "Number of Retainers",
         description = "Number of retainers to generated",
-        min = 1, max = 1024,
+        min = 1,
+        max = 1024,
         default = 3
       )
 
@@ -1537,7 +1562,8 @@ class Stairs(bpy.types.Operator) :
       (
         name = "Number of Stringers",
         description = "Number of stringers to generate",
-        min = 1, max = 10,
+        min = 1,
+        max = 10,
         default = 1
       )
     string_dis = BoolProperty \
@@ -1550,41 +1576,46 @@ class Stairs(bpy.types.Operator) :
       (
         name = "Stringer width",
         description = "Width of stringer as a percentage of tread width",
-        min = 0.0001, max = 100.0,
+        min = 0.0001,
+        max = 100.0,
         default = 15.0
       )
     string_h = FloatProperty \
       (
         name = "Stringer Height",
         description = "Height of the stringer",
-        min = 0.0001, max = 100.0,
+        min = 0.0001,
+        max = 100.0,
         default = 0.3
       )
     string_tw = FloatProperty \
       (
         name = "Web Thickness",
         description = "Thickness of the beam's web as a percentage of width",
-        min = 0.0001, max = 100.0,
+        min = 0.0001,
+        max = 100.0,
         default = 25.0
       )
     string_tf = FloatProperty \
       (
         name = "Flange Thickness",
         description = "Thickness of the flange",
-        min = 0.0001, max = 100.0,
+        min = 0.0001,
+        max = 100.0,
         default = 0.05
       )
     string_tp = FloatProperty \
       (
         name = "Flange Taper",
         description = "Flange thickness taper as a percentage",
-        min = 0.0, max = 100.0,
+        min = 0.0,
+        max = 100.0,
         default = 0.0
       )
     string_g = BoolProperty \
       (
         name = "Floating",
-        description = "Cut bottom of strigner to be a \"floating\" section",
+        description = "Cut bottom of stringer to be a \"floating\" section",
         default = False
       )
 
@@ -1729,7 +1760,7 @@ class Stairs(bpy.types.Operator) :
     #end draw
 
     def execute(self, context) :
-        self.mm=MeshMaker(self.rise,self.run,self.tread_n)
+        self.mm = MeshMaker(self.rise, self.run, self.tread_n)
         if self.make_treads :
             if typ != "id4" :
                 Treads(self.mm,
