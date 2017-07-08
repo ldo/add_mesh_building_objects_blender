@@ -65,9 +65,11 @@ from mathutils.geometry import \
     intersect_line_plane, \
     intersect_line_line
 
-# from general.py
+#+
+# Building the parts
+#-
 
-class General:
+class MeshMaker :
     "object for creating meshes given the verts and faces."
 
     def __init__(self,rise,run,N):
@@ -76,33 +78,28 @@ class General:
         self.angle=math.atan(self.slope)
         #identical quads for all objects except stringer
         self.faces=[[0,1,3,2],[0,1,5,4],[0,2,6,4],[4,5,7,6],[2,3,7,6],[1,3,7,5]]
+    #end __init__
 
     def make_mesh(self, verts, faces, name):
-        # Create new mesh
+        # MeshMaker, MeshMaker, make me a mesh...
         mesh = bpy.data.meshes.new(name)
-
-        # Make a mesh from a list of verts/edges/faces.
         mesh.from_pydata(verts, [], faces)
-
-        # Set mesh to use auto smoothing:
         mesh.use_auto_smooth = True
-
-        # Update mesh geometry after adding stuff.
         mesh.update()
-
         return object_utils.object_data_add(bpy.context, mesh, operator=None)
+    #end make_mesh
 
-# from post.py
+#end MeshMaker
 
 class Posts:
     "generates posts for the stairs. These are the vertical elements holding up the railings."
 
-    def __init__(self,G,rise,run,d,w,wT,nP,hR,tR, rEnable, lEnable):
-        self.G = G #General
+    def __init__(self,mm,rise,run,d,w,wT,nP,hR,tR, rEnable, lEnable):
+        self.mm = mm #MeshMaker
         self.rise = rise #Stair rise
         self.run = run #Stair run
         self.x1=Vector([0,0,hR-tR]) #rail start
-        self.x2=G.stop+Vector([0,0,hR-tR]) #rail stop
+        self.x2=mm.stop+Vector([0,0,hR-tR]) #rail stop
         self.d=d #post depth
         self.w=w #post width
         self.wT=wT #tread width
@@ -111,6 +108,7 @@ class Posts:
         self.rEnable = rEnable
         self.lEnable = lEnable
         self.create()
+    #end __init__
 
     def intersect(self,i,d):
         """find intersection point, x, for rail and post"""
@@ -122,6 +120,7 @@ class Posts:
         cr_ab=a.cross(b)
         mag_cr_ab=(cr_ab * cr_ab)
         return self.x1+a*((c.cross(b).dot(cr_ab))/mag_cr_ab)
+    #end intersect
 
     def create(self):
         for i in range(0,self.nP+2,1):
@@ -130,32 +129,41 @@ class Posts:
             coords.append(self.intersect(i,0.0))
             coords.append(self.intersect(i,self.d))
             #intersections with tread
-            coords.append(Vector([self.x1[0]+i*self.sp[0],0,
-                                  int(coords[0][0]/self.run)*self.rise]))
+            coords.append(Vector([
+                    self.x1[0]+i*self.sp[0],
+                    0,
+                    int(coords[0][0]/self.run)*self.rise
+                ]))
             coords.append(coords[2]+Vector([self.d,0,0]))
             #inner face
             for j in range(4):
                 coords.append(coords[j]+Vector([0,self.w,0]))
+            #end for
             if self.rEnable:
-                self.G.make_mesh(coords, self.G.faces, 'posts')
+                self.mm.make_mesh(coords, self.mm.faces, 'posts')
+            #end if
             if self.lEnable:
                 #make post on other side of steps as well
                 for j in coords:
                     j += Vector([0,self.wT-self.w,0])
-                self.G.make_mesh(coords, self.G.faces, 'posts')
+                #end for
+                self.mm.make_mesh(coords, self.mm.faces, 'posts')
+            #end if
+        #end for
+    #end create
 
-# from rail.py
+#end Posts
 
-class Rails:
-    "generates rails for the stairs. These go across the tops of the posts."
+class Railings:
+    "generates railings for the stairs. These go across the tops of the posts."
 
-    def __init__(self,G,w,t,h,tT,wP,dP,wT, rEnable, lEnable):
-        self.G = G #General
+    def __init__(self,mm,w,t,h,tT,wP,dP,wT, rEnable, lEnable):
+        self.mm = mm #MeshMaker
         self.w=w #rail width
         self.t=t #rail thickness
         self.h=h #rail height
         self.start=Vector([0,0,self.h-self.t]) #rail start
-        self.stop=G.stop+Vector([0,0,self.h-self.t]) #rail stop
+        self.stop=mm.stop+Vector([0,0,self.h-self.t]) #rail stop
         self.tT=tT #tread toe
         self.wP=wP #post width
         self.dP=dP #post depth
@@ -163,38 +171,43 @@ class Rails:
         self.rEnable = rEnable
         self.lEnable = lEnable
         self.create()
+    #end __init__
 
     def create(self):
         #determine offset to include railing toe
-        offset=Vector([self.tT,0,self.tT*math.tan(self.G.angle)])
+        offset=Vector([self.tT,0,self.tT*math.tan(self.mm.angle)])
         coords = []
         coords.append(self.start-offset)
         coords.append(self.stop+offset+Vector([self.dP,0,
-                                               self.dP*math.tan(self.G.angle)]))
+                                               self.dP*math.tan(self.mm.angle)]))
         coords.append(self.start-offset+Vector([0,self.w,0]))
         coords.append(self.stop+offset+Vector([self.dP,self.w,
-                                               self.dP*math.tan(self.G.angle)]))
+                                               self.dP*math.tan(self.mm.angle)]))
         for j in range(4):
             coords.append(coords[j]+Vector([0,0,self.t]))
+        #end for
         #centre over posts
         for j in coords:
             j += Vector([0,0.5*(-self.w+self.wP),0])
+        #end for
         if self.rEnable:
-            self.G.make_mesh(coords, self.G.faces, 'rails')
+            self.mm.make_mesh(coords, self.mm.faces, 'rails')
+        #end if
         if self.lEnable:
             #make rail on other side
             for j in coords:
                 j += Vector([0,self.wT-self.wP,0])
-            self.G.make_mesh(coords, self.G.faces, 'rails')
-
-# from retainer.py
+            #end for
+            self.mm.make_mesh(coords, self.mm.faces, 'rails')
+        #end if
+    #end create
 
 class Retainers:
     "generates retainers for the stairs. These are the additional pieces parallel" \
     " to, and below, the railings."
 
-    def __init__(self,G,w,h,wP,wT,hR,n, rEnable, lEnable):
-        self.G = G #General
+    def __init__(self,mm,w,h,wP,wT,hR,n, rEnable, lEnable):
+        self.mm = mm #MeshMaker
         self.w=w #retainer width
         self.h=h #retainer height
         self.wP=wP #post width
@@ -204,37 +217,45 @@ class Retainers:
         self.rEnable = rEnable
         self.lEnable = lEnable
         self.create()
+    #end __init__
 
     def create(self):
         for i in range(self.nR):
             coords = []
             offset=(i+1)*Vector([0,0,self.sp])
             coords.append(offset)
-            coords.append(self.G.stop + offset)
+            coords.append(self.mm.stop + offset)
             coords.append(offset + Vector([0,self.w,0]))
-            coords.append(self.G.stop + offset + Vector([0,self.w,0]))
+            coords.append(self.mm.stop + offset + Vector([0,self.w,0]))
             for j in range(4):
                 coords.append(coords[j] + Vector([0,0,self.h]))
+            #end for
             #centre in posts
             for j in coords:
                 j += Vector([0,0.5*(self.wP-self.w),0])
+            #end for
             if self.rEnable:
-                self.G.make_mesh(coords, self.G.faces, 'retainers')
+                self.mm.make_mesh(coords, self.mm.faces, 'retainers')
+            #end if
             if self.lEnable:
                 #make retainer on other side
                 for j in coords:
                     j += Vector([0,self.wT-self.wP,0])
-                self.G.make_mesh(coords,self.G.faces, 'retainers')
+                #end for
+                self.mm.make_mesh(coords,self.mm.faces, 'retainers')
+            #end if
+        #end for
+    #end create
 
-# from stringer.py
+#end Railings
 
 class Stringer:
     "generates stringers for the stairs. These are the supports that go under" \
     " the stairs."
 
-    def  __init__(self,G,typ,typ_s,rise,run,w,h,nT,hT,wT,tT,tO,tw,tf,tp,g,
+    def __init__(self,mm,typ,typ_s,rise,run,w,h,nT,hT,wT,tT,tO,tw,tf,tp,g,
                   nS=1,dis=False,notMulti=True,deg=4):
-        self.G = G #General
+        self.mm = mm #MeshMaker
         self.typ = typ # Stair type
         self.typ_s = typ_s # Stringer type
         self.rise = rise #Stair rise
@@ -243,6 +264,7 @@ class Stringer:
             self.w = w / 100 #stringer width
         else:
             self.w = (wT * (w / 100)) / nS
+        #end if
         self.h = h #stringer height
         self.nT = nT #number of treads
         self.hT = hT #tread height
@@ -298,7 +320,7 @@ class Stringer:
                       [24,25,30,31],[25,26,29,30],[26,27,28,29],[0,1,16,24],[16,24,31,17],
                       [8,9,31,17],[4,5,27,21],[20,21,27,28],[12,13,20,28]]
         self.create()
-
+    #end __init__
 
     def create(self):
         if self.typ == "id1":
@@ -307,6 +329,7 @@ class Stringer:
                     offset = (self.wT / (self.nS + 1)) - (self.w / 2)
                 else:
                     offset = 0
+                #end if
                 for i in range(self.nS):
                     for j in range(self.nT):
                         coords = []
@@ -318,20 +341,26 @@ class Stringer:
                         coords.append(Vector([self.run * 2, offset, 0]))
                         for k in range(6):
                             coords.append(coords[k]+Vector([0, self.w, 0]))
+                        #end for
                         for k in coords:
                             k += j*Vector([self.run, 0, self.rise])
-                        self.G.make_mesh(coords,self.faces1,'stringer')
+                        #end for
+                        self.mm.make_mesh(coords,self.faces1,'stringer')
+                    #end for
                     if self.dis or self.nS == 1:
                         offset += self.wT / (self.nS + 1)
                     else:
                         offset += (self.wT - self.w) / (self.nS - 1)
+                    #end if
+                #end for
             elif self.typ_s == "sId2":
                 self.i_beam()
+            #end if
         elif self.typ == "id2":
             if self.typ_s == "sId1":
                 coords = []
                 coords.append(Vector([-self.tT, -self.w, -self.rise]))
-                coords.append(Vector([self.hT / self.G.slope, -self.w, -self.rise]))
+                coords.append(Vector([self.hT / self.mm.slope, -self.w, -self.rise]))
                 coords.append(Vector([-self.tT, -self.w, 0]))
                 coords.append(Vector([self.nT * self.run, -self.w,
                                       ((self.nT - 1) * self.rise) - self.hT]))
@@ -340,14 +369,17 @@ class Stringer:
                                       self.nT * self.rise]))
                 for i in range(6):
                     coords.append(coords[i] + Vector([0, self.w, 0]))
-                self.G.make_mesh(coords, self.faces2, 'stringer')
+                #end for
+                self.mm.make_mesh(coords, self.faces2, 'stringer')
                 for i in coords:
                     i += Vector([0, self.w + self.wT, 0])
-                self.G.make_mesh(coords, self.faces2, 'stringer')
+                #end for
+                self.mm.make_mesh(coords, self.faces2, 'stringer')
             elif self.typ_s == "sId2":
                 self.housed_i_beam()
             elif self.typ_s == "sId3":
                 self.housed_c_beam()
+            #end if
         elif self.typ == "id3":
             h = (self.rise - self.hT) - self.rise #height of top section
             for i in range(self.nT):
@@ -358,7 +390,9 @@ class Stringer:
                 coords.append(Vector([(i + 1) * self.run,0,h + (i * self.rise)]))
                 for j in range(4):
                     coords.append(coords[j] + Vector([0,self.wT,0]))
-                self.G.make_mesh(coords, self.G.faces, 'stringer')
+                #end for
+                self.mm.make_mesh(coords, self.mm.faces, 'stringer')
+            #end for
         elif self.typ == "id4":
             offset = (self.wT / (self.nS + 1)) - (self.w / 2)
             for s in range(self.nS):
@@ -388,6 +422,8 @@ class Stringer:
                         rot = Matrix.Rotation(((self.d * (j + 1)) / self.deg) + (self.d * i), 3, 'Z')
                         for v in start:
                             coords.append((rot * v) + Vector([0, 0, self.rise * i]))
+                        #end for
+                    #end for
                     for j in range(self.deg):
                         k = ((j + self.deg) * 4) + 4
                         tId4_faces.append([k, k - 4, k - 3, k + 1])
@@ -401,10 +437,15 @@ class Stringer:
                                 coords.append((rot * start[v]) + Vector([0, 0, incline]))
                             else:
                                 coords.append((rot * start[v]) + Vector([0, 0, self.rise * i]))
-                    self.G.make_mesh(coords, tId4_faces, 'treads')
-
+                            #end if
+                        #end for
+                    #end for
+                    self.mm.make_mesh(coords, tId4_faces, 'treads')
+                #end for
+            #end for
+        #end if
         return {'FINISHED'}
-
+    #end create
 
     def i_beam(self):
         mid = self.w / 2
@@ -415,12 +456,11 @@ class Stringer:
         topZ = -self.rise - self.hT
         # Vertical taper amount:
         taper = self.tf * self.tp
-
         if self.dis or self.nS == 1:
             offset = (self.wT / (self.nS + 1)) - mid
         else:
             offset = 0
-
+        #end if
         # taper < 100%:
         if self.tp > 0:
             for i in range(self.nS):
@@ -443,6 +483,7 @@ class Stringer:
                 coords.append(Vector([0, offset + (mid - web),  baseZ]))
                 for j in range(16):
                     coords.append(coords[j]+Vector([self.run * self.nT, 0, self.rise * self.nT]))
+                #end for
                 # If the bottom meets the ground:
                 #   Bottom be flat with the xy plane, but shifted down.
                 #   Either project onto the plane along a vector (hard) or use the built in
@@ -452,12 +493,16 @@ class Stringer:
                         coords[j] = intersect_line_plane(coords[j], coords[j + 16],
                                                          Vector([0, 0, topZ]),
                                                          Vector([0, 0, 1]))
-                self.G.make_mesh(coords, self.faces3a, 'stringer')
+                    #end for
+                #end if
+                self.mm.make_mesh(coords, self.faces3a, 'stringer')
 
                 if self.dis or self.nS == 1:
                     offset += self.wT / (self.nS + 1)
                 else:
                     offset += (self.wT - self.w) / (self.nS - 1)
+                #end if
+            #end for
         # taper = 100%:
         else:
             for i in range(self.nS):
@@ -472,21 +517,22 @@ class Stringer:
                 coords.append(Vector([0, offset + self.w,       baseZ]))
                 for j in range(8):
                     coords.append(coords[j]+Vector([self.run * self.nT, 0, self.rise * self.nT]))
-                self.G.make_mesh(coords, self.faces3b, 'stringer')
+                #end for
+                self.mm.make_mesh(coords, self.faces3b, 'stringer')
                 offset += self.wT / (self.nS + 1)
-
+            #end for
+        #end if
         return {'FINISHED'}
-
+    #end i_beam
 
     def housed_i_beam(self):
         webOrth = Vector([self.rise, 0, -self.run]).normalized()
         webHeight = Vector([self.run + self.tT, 0, -self.hT]).project(webOrth).length
-        vDelta_1 = self.tf * math.tan(self.G.angle)
+        vDelta_1 = self.tf * math.tan(self.mm.angle)
         vDelta_2 = (self.rise * (self.nT - 1)) - (webHeight + self.tf)
         flange_y = (self.w - self.tw) / 2
         front = -self.tT - self.tf
         outer = -self.tO - self.tw - flange_y
-
         coords = []
         if self.tp > 0:
             # Upper-Outer flange:
@@ -509,7 +555,7 @@ class Stringer:
                                               coords[9] - Vector([0, 0, 1]),
                                               Vector([self.run, 0, -self.hT - self.tf]),
                                               Vector([self.run * 2, 0, self.rise - self.hT - self.tf]))[0])
-            coords.append(Vector([(self.run * self.nT) - ((webHeight - self.hT) / math.tan(self.G.angle)),
+            coords.append(Vector([(self.run * self.nT) - ((webHeight - self.hT) / math.tan(self.mm.angle)),
                                   outer, vDelta_2]))
             coords.append(coords[4] - Vector([0, 0, self.tf + webHeight]))
             coords.append(coords[5] - Vector([0, 0, self.tf + webHeight]))
@@ -530,26 +576,27 @@ class Stringer:
             # Upper-Inner flange and lower-inner flange:
             for i in range(16):
                 coords.append(coords[i] + Vector([0, self.w, 0]))
+            #end for
             # Inner web:
             for i in range(8):
                 coords.append(coords[i + 16] + Vector([0, self.tw, 0]))
+            #end for
             # Mid nodes to so faces will be quads:
             for i in [0,7,6,5,9,10,11,12]:
                 coords.append(coords[i] + Vector([0, flange_y, 0]))
+            #end for
             for i in range(8):
                 coords.append(coords[i + 48] + Vector([0, self.tw, 0]))
-
-            self.G.make_mesh(coords, self.faces3c, 'stringer')
-
+            #end for
+            self.mm.make_mesh(coords, self.faces3c, 'stringer')
             for i in coords:
                 i += Vector([0, self.wT + self.tw, 0])
-
-            self.G.make_mesh(coords, self.faces3c, 'stringer')
-
+            #end for
+            self.mm.make_mesh(coords, self.faces3c, 'stringer')
+        #end if
         # @TODO Taper = 100%
-
         return {'FINISHED'}
-
+    #end housed_i_beam
 
     def c_beam(self):
         # fixme: not used!
@@ -561,12 +608,11 @@ class Stringer:
         topZ = -self.rise - self.hT
         # Vertical taper amount:
         taper = self.tf * self.tp
-
         if self.dis or self.nS == 1:
             offset = (self.wT / (self.nS + 1)) - mid
         else:
             offset = 0
-
+        #end if
         # taper < 100%:
         if self.tp > 0:
             for i in range(self.nS):
@@ -589,6 +635,7 @@ class Stringer:
                 coords.append(Vector([0, offset + (mid - web),  baseZ]))
                 for j in range(16):
                     coords.append(coords[j]+Vector([self.run * self.nT, 0, self.rise * self.nT]))
+                #end for
                 # If the bottom meets the ground:
                 #   Bottom be flat with the xy plane, but shifted down.
                 #   Either project onto the plane along a vector (hard) or use the built in
@@ -598,12 +645,15 @@ class Stringer:
                         coords[j] = intersect_line_plane(coords[j], coords[j + 16],
                                                          Vector([0, 0, topZ]),
                                                          Vector([0, 0, 1]))
-                self.G.make_mesh(coords, self.faces3a, 'stringer')
-
+                    #end for
+                #end if
+                self.mm.make_mesh(coords, self.faces3a, 'stringer')
                 if self.dis or self.nS == 1:
                     offset += self.wT / (self.nS + 1)
                 else:
                     offset += (self.wT - self.w) / (self.nS - 1)
+                #end if
+            #end for
         # taper = 100%:
         else:
             for i in range(self.nS):
@@ -618,21 +668,22 @@ class Stringer:
                 coords.append(Vector([0, offset + self.w,       baseZ]))
                 for j in range(8):
                     coords.append(coords[j]+Vector([self.run * self.nT, 0, self.rise * self.nT]))
-                self.G.make_mesh(coords, self.faces3b, 'stringer')
+                #end for
+                self.mm.make_mesh(coords, self.faces3b, 'stringer')
                 offset += self.wT / (self.nS + 1)
-
+            #end for
+        #end if
         return {'FINISHED'}
-
+    #end c_beam
 
     def housed_c_beam(self):
         webOrth = Vector([self.rise, 0, -self.run]).normalized()
         webHeight = Vector([self.run + self.tT, 0, -self.hT]).project(webOrth).length
-        vDelta_1 = self.tf * math.tan(self.G.angle)
+        vDelta_1 = self.tf * math.tan(self.mm.angle)
         vDelta_2 = (self.rise * (self.nT - 1)) - (webHeight + self.tf)
         flange_y = (self.w - self.tw) / 2
         front = -self.tT - self.tf
         outer = -self.tO - self.tw - flange_y
-
         coords = []
         if self.tp > 0:
             # Upper-Outer flange:
@@ -655,7 +706,7 @@ class Stringer:
                                               coords[9] - Vector([0, 0, 1]),
                                               Vector([self.run, 0, -self.hT - self.tf]),
                                               Vector([self.run * 2, 0, self.rise - self.hT - self.tf]))[0])
-            coords.append(Vector([(self.run * self.nT) - ((webHeight - self.hT) / math.tan(self.G.angle)),
+            coords.append(Vector([(self.run * self.nT) - ((webHeight - self.hT) / math.tan(self.mm.angle)),
                                   outer, vDelta_2]))
             coords.append(coords[4] - Vector([0, 0, self.tf + webHeight]))
             coords.append(coords[5] - Vector([0, 0, self.tf + webHeight]))
@@ -676,28 +727,29 @@ class Stringer:
             # Outer corner nodes:
             for i in [0, 7, 6, 5, 12, 11, 10, 9]:
                 coords.append(coords[i] + Vector([0, flange_y + self.tw, 0]))
-
-            self.G.make_mesh(coords, self.faces4c, 'stringer')
-
+            #end for
+            self.mm.make_mesh(coords, self.faces4c, 'stringer')
             for i in range(16):
                 coords[i] += Vector([0, -outer * 2, 0])
+            #end for
             for i in range(8):
                 coords[i + 16] += Vector([0, (-outer - flange_y) * 2, 0])
+            #end for
             for i in coords:
                 i += Vector([0, (self.tO * 2) + self.wT, 0])
-
-            self.G.make_mesh(coords, self.faces4c, 'stringer')
-
+            #end for
+            self.mm.make_mesh(coords, self.faces4c, 'stringer')
+        #end if
         return {'FINISHED'}
+    #end housed_c_beam
 
-# from tread.py
-
+#end Stringer
 
 class Treads:
     "generates treads for the stairs."
 
-    def __init__(self,G,typ,typ_t,run,w,h,d,r,toe,o,n,tk,sec,sp,sn,deg=4):
-        self.G = G #General
+    def __init__(self,mm,typ,typ_t,run,w,h,d,r,toe,o,n,tk,sec,sp,sn,deg=4):
+        self.mm = mm #MeshMaker
         self.typ = typ #Stair type
         self.typ_t = typ_t #Tread type
         self.run = run #Stair run.  Degrees if self.typ == "id4"
@@ -716,6 +768,7 @@ class Treads:
             self.sp=sp/100 #keep % value
         else:
             self.sp=0
+        #end if
         self.sn=sn #number of cross sections
         self.deg = deg #number of section per "slice".  Only applys if self.typ == "id4"
         self.tId2_faces = [[0,1,2,3],[0,3,4,5],[4,5,6,7],[6,7,8,9],[8,9,10,11],
@@ -729,6 +782,7 @@ class Treads:
                           [0,4,5,1],[0,4,12,8],[9,13,5,1],[9,13,12,8],
                           [4,6,7,5],[4,6,14,12],[13,15,14,12],[13,15,7,5]]
         self.create()
+    #end __init__
 
     def create(self):
         # Setup the coordinates:
@@ -748,7 +802,7 @@ class Treads:
                 coords.append(Vector([self.d,self.w + self.o,0]))
                 for i in range(4):
                     coords.append(coords[i]+Vector([0,0,-self.h]))
-
+                #end for
             elif self.typ_t == "tId2":
                 depth = (self.d + self.t - (self.sec - 1) * self.sp) / self.sec
                 inset = depth / 4
@@ -767,7 +821,7 @@ class Treads:
                 coords.append(Vector([tDepth - inset, -self.o, -self.h + self.tk])) #11
                 for i in range(12):
                     coords.append(coords[i] + Vector([0, self.w + (2 * self.o), 0]))
-
+                #end for
             elif self.typ_t in ["tId3", "tId4", "tId5"]:
                 # Frame:
                 coords.append(Vector([-self.t,-self.o,-self.h]))
@@ -779,11 +833,14 @@ class Treads:
                         coords.append(coords[i] + Vector([self.tk,self.tk,0]))
                     else:
                         coords.append(coords[i] + Vector([-self.tk,self.tk,0]))
+                    #end if
+                #end for
                 for i in range(4):
                     coords.append(coords[i] + Vector([0,self.w + self.o,0]))
+                #end for
                 for i in range(4):
                     coords.append(coords[i + 4] + Vector([0,self.w + self.o - (2 * self.tk),0]))
-
+                #end for
                 # Tread sections:
                 if self.typ_t == "tId3":
                     offset = (self.tk * math.sqrt(2)) / 2
@@ -794,8 +851,10 @@ class Treads:
                     coords2.append(Vector([baseX + offset, self.tk - self.o, -self.h]))
                     for i in range(2):
                         coords2.append(coords2[i] + Vector([topset, 0, topset]))
+                    #end for
                     for i in range(4):
                         coords2.append(coords2[i] + Vector([0, (self.w + self.o) - (2 * self.tk), 0]))
+                    #end for
                 elif self.typ_t in ["tId4", "tId5"]:
                     offset = ((self.run + self.t) * self.sp) / (self.sec + 1)
                     topset = (((self.run + self.t) * (1 - self.sp)) - (2 * self.tk)) / self.sec
@@ -807,7 +866,8 @@ class Treads:
                     coords2.append(Vector([baseX + topset, -self.o + self.tk, 0]))
                     for i in range(4):
                         coords2.append(coords2[i] + Vector([0, baseY, 0]))
-
+                    #end for
+                #end if
                 # Tread cross-sections:
                 if self.typ_t in ["tId3", "tId4"]:
                     cW = self.tk
@@ -818,6 +878,7 @@ class Treads:
                     cW = (-2*self.tk + (2*self.o + self.w) * (1 - spacing)) / self.sn
                     self.sp = topset
                     height = -self.h / 2
+                #end if
                 baseY = -self.o + self.tk + cross
                 coords3.append(Vector([-self.t + self.tk, baseY, -self.h]))
                 coords3.append(Vector([self.d - self.tk, baseY, -self.h]))
@@ -825,41 +886,55 @@ class Treads:
                 coords3.append(Vector([self.d - self.tk, baseY, height]))
                 for i in range(4):
                     coords3.append(coords3[i] + Vector([0, cW, 0]))
-
+                #end for
             # Make the treads:
             for i in range(self.n):
                 if self.typ_t == "tId1":
-                    self.G.make_mesh(coords,self.G.faces,'treads')
+                    self.mm.make_mesh(coords,self.mm.faces,'treads')
                 elif self.typ_t == "tId2":
                     temp = []
                     for j in coords:
                         temp.append(copy(j))
+                    #end for
                     for j in range(self.sec):
-                        self.G.make_mesh(temp, self.tId2_faces, 'treads')
+                        self.mm.make_mesh(temp, self.tId2_faces, 'treads')
                         for k in temp:
                             k += Vector([depth + self.sp, 0, 0])
+                        #end for
+                    #end for
                 elif self.typ_t in ["tId3", "tId4", "tId5"]:
-                    self.G.make_mesh(coords,self.out_faces,'treads')
+                    self.mm.make_mesh(coords,self.out_faces,'treads')
                     temp = []
                     for j in coords2:
                         temp.append(copy(j))
+                    #end for
                     for j in range(self.sec):
-                        self.G.make_mesh(temp,self.G.faces,'bars')
+                        self.mm.make_mesh(temp,self.mm.faces,'bars')
                         for k in temp:
                             k += Vector([offset + self.sp, 0, 0])
+                        #end for
+                    #end for
                     for j in coords2:
                         j += Vector([self.d, 0, self.r])
+                    #end for
                     temp = []
                     for j in coords3:
                         temp.append(copy(j))
+                    #end for
                     for j in range(self.sn):
-                        self.G.make_mesh(temp,self.G.faces,'crosses')
+                        self.mm.make_mesh(temp,self.mm.faces,'crosses')
                         for k in temp:
                             k += Vector([0, cW + cross, 0])
+                        #end for
+                    #end for
                     for j in coords3:
                         j += Vector([self.d, 0, self.r])
+                    #end for
+                #end if
                 for j in coords:
                     j += Vector([self.d,0,self.r])
+                #end for
+            #end if
         # Circular staircase:
         elif self.typ in ["id4"]:
             start = [Vector([0, -self.o, 0]), Vector([0, -self.o, -self.h]),
@@ -885,12 +960,21 @@ class Treads:
                     rot = Matrix.Rotation(((self.d * j) / self.deg) + (self.d * i), 3, 'Z')
                     for v in start:
                         coords.append((rot * v) + Vector([0, 0, self.r * i]))
+                    #end for
+                #end for
                 tId4_faces.append([k, k + 1, k + 3, k + 2])
-                self.G.make_mesh(coords, tId4_faces, 'treads')
-        return
+                self.mm.make_mesh(coords, tId4_faces, 'treads')
+            #end for
+        #end if
+    #end create
 
+#end Treads
 
-class stairs(bpy.types.Operator):
+#+
+# Putting it all together
+#-
+
+class Stairs(bpy.types.Operator):
     "actual generation of stairs."
 
     bl_idname = "mesh.stairs"
@@ -1111,16 +1195,18 @@ class stairs(bpy.types.Operator):
             box.prop(self, 'rad1')
             box.prop(self, 'rad2')
             box.prop(self, 'center')
+        #end if
         if self.typ == "id1":
             box.prop(self, 'use_original')
             if not self.use_original:
                 box.prop(self, 'rEnable')
                 box.prop(self, 'lEnable')
+            #end if
         else:
             self.use_original = False
             box.prop(self, 'rEnable')
             box.prop(self, 'lEnable')
-
+        #end if
         # Treads
         box = layout.box()
         box.prop(self, 'make_treads')
@@ -1129,25 +1215,31 @@ class stairs(bpy.types.Operator):
                 box.prop(self, 'typ_t')
             else:
                 self.typ_t = "tId1"
+            #end if
             if self.typ != "id4":
                 box.prop(self, 'tread_w')
+            #end if
             box.prop(self, 'tread_h')
             box.prop(self, 'tread_t')
             if self.typ not in ["id2", "id4"]:
                 box.prop(self, 'tread_o')
             else:
                 self.tread_o = 0.0
+            #end if
             box.prop(self, 'tread_n')
             if self.typ_t != "tId1":
                 box.prop(self, 'tread_tk')
                 box.prop(self, 'tread_sec')
                 if self.tread_sec > 1 and self.typ_t not in ["tId3", "tId4"]:
                     box.prop(self, 'tread_sp')
+                #end if
                 if self.typ_t in ["tId3", "tId4", "tId5"]:
                     box.prop(self, 'tread_sn')
+                #end if
             elif self.typ == "id4":
                 box.prop(self, "tread_slc")
-
+            #end if
+        #end if
         # Posts
         box = layout.box()
         box.prop(self, 'make_posts')
@@ -1155,7 +1247,7 @@ class stairs(bpy.types.Operator):
             box.prop(self, 'post_d')
             box.prop(self, 'post_w')
             box.prop(self, 'post_n')
-
+        #end if
         # Railings
         box = layout.box()
         box.prop(self, 'make_railings')
@@ -1163,7 +1255,7 @@ class stairs(bpy.types.Operator):
             box.prop(self, 'rail_w')
             box.prop(self, 'rail_t')
             box.prop(self, 'rail_h')
-
+        #end if
         # Retainers
         box = layout.box()
         box.prop(self, 'make_retainers')
@@ -1171,18 +1263,20 @@ class stairs(bpy.types.Operator):
             box.prop(self, 'ret_w')
             box.prop(self, 'ret_h')
             box.prop(self, 'ret_n')
-
+        #end if
         # Stringers
         box = layout.box()
         if self.typ != "id2":
             box.prop(self, 'make_stringer')
         else:
             self.make_stringer = True
+        #end if
         if self.make_stringer:
             if not self.use_original:
                 box.prop(self, 'typ_s')
             else:
                 self.typ_s = "sId1"
+            #end if
             box.prop(self, 'string_w')
             if self.typ == "id1":
                 if self.typ_s == "sId1" and not self.use_original:
@@ -1196,19 +1290,23 @@ class stairs(bpy.types.Operator):
                     box.prop(self, 'string_tf')
                     box.prop(self, 'string_tp')
                     box.prop(self, 'string_g')
+                #end if
             elif self.typ == "id2":
                 if self.typ_s in ["sId2", "sId3"]:
                     box.prop(self, 'string_tw')
                     box.prop(self, 'string_tf')
-
+                #end if
+            #end if
+        #end if
         # Tread support:
 ##        if self.make_stringer and self.typ_s in ["sId2", "sId3"]:
+    #end draw
 
     def execute(self, context):
-        self.G=General(self.rise,self.run,self.tread_n)
+        self.mm=MeshMaker(self.rise,self.run,self.tread_n)
         if self.make_treads:
             if typ != "id4":
-                Treads(self.G,
+                Treads(self.mm,
                        self.typ,
                        self.typ_t,
                        self.run,
@@ -1224,7 +1322,7 @@ class stairs(bpy.types.Operator):
                        self.tread_sp,
                        self.tread_sn)
             else:
-                Treads(self.G,
+                Treads(self.mm,
                        self.typ,
                        self.typ_t,
                        self.deg,
@@ -1240,8 +1338,10 @@ class stairs(bpy.types.Operator):
                        self.tread_sp,
                        self.tread_sn,
                        self.tread_slc)
+            #end if
+        #end if
         if self.make_posts and (self.rEnable or self.lEnable):
-            Posts(self.G,
+            Posts(self.mm,
                   self.rise,
                   self.run,
                   self.post_d,
@@ -1252,8 +1352,9 @@ class stairs(bpy.types.Operator):
                   self.rail_t,
                   self.rEnable,
                   self.lEnable)
+        #end if
         if self.make_railings and (self.rEnable or self.lEnable):
-            Rails(self.G,
+            Railingss(self.mm,
                   self.rail_w,
                   self.rail_t,
                   self.rail_h,
@@ -1263,8 +1364,9 @@ class stairs(bpy.types.Operator):
                   self.tread_w,
                   self.rEnable,
                   self.lEnable)
+        #end if
         if self.make_retainers and (self.rEnable or self.lEnable):
-            Retainers(self.G,
+            Retainers(self.mm,
                       self.ret_w,
                       self.ret_h,
                       self.post_w,
@@ -1273,9 +1375,10 @@ class stairs(bpy.types.Operator):
                       self.ret_n,
                       self.rEnable,
                       self.lEnable)
+        #end if
         if self.make_stringer:
             if self.typ == "id1" and self.use_original:
-                Stringer(self.G,
+                Stringer(self.mm,
                          self.typ,
                          self.typ_s,
                          self.rise,
@@ -1292,7 +1395,7 @@ class stairs(bpy.types.Operator):
                          self.string_tp,
                          not self.string_g)
             elif self.typ == "id3":
-                Stringer(self.G,
+                Stringer(self.mm,
                          self.typ,
                          self.typ_s,
                          self.rise,
@@ -1310,7 +1413,7 @@ class stairs(bpy.types.Operator):
                          not self.string_g,
                          1, False, False)
             elif self.typ == "id4":
-                Stringer(self.G,
+                Stringer(self.mm,
                          self.typ,
                          self.typ_s,
                          self.rise,
@@ -1331,7 +1434,7 @@ class stairs(bpy.types.Operator):
                          self.use_original,
                          self.tread_slc)
             else:
-                Stringer(self.G,
+                Stringer(self.mm,
                          self.typ,
                          self.typ_s,
                          self.rise,
@@ -1350,4 +1453,9 @@ class stairs(bpy.types.Operator):
                          self.string_n,
                          self.string_dis,
                          self.use_original)
+            #end if
+        #end if
         return {'FINISHED'}
+    #end execute
+
+#end Stairs
