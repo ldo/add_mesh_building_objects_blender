@@ -1770,7 +1770,7 @@ class Stairs(bpy.types.Operator) :
     def execute(self, context) :
         self.mm = MeshMaker(self.rise, self.run, self.tread_n)
         if self.make_treads :
-            if typ != "id4" :
+            if self.typ != "id4" :
                 Treads(self.mm,
                        self.typ,
                        self.typ_t,
