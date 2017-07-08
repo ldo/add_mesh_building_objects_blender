@@ -312,7 +312,7 @@ class Stringer :
         self.tO = tO #Tread overhang. Inner radius if self.typ == "id4"
         self.tw = self.w * (tw / 100) #stringer web thickness
         self.tf = tf #stringer flange thickness
-        self.tp = 1 - (tp / 100) #stringer flange taper
+        self.tp = 1 - tp / 100 #stringer flange taper
         self.g = g #does stringer intersect the ground?
         self.nS = nS #number of stringers
         self.dis = dis #Use distributed stringers
@@ -509,7 +509,7 @@ class Stringer :
         if self.typ == "id1" :
             if self.typ_s == "sId1" :
                 if self.dis or self.nS == 1 :
-                    offset = (self.wT / (self.nS + 1)) - (self.w / 2)
+                    offset = self.wT / (self.nS + 1) - self.w / 2
                 else :
                     offset = 0
                 #end if
@@ -548,11 +548,11 @@ class Stringer :
                 coords.append(Vector([
                         self.nT * self.run,
                         - self.w,
-                        ((self.nT - 1) * self.rise) - self.hT
+                        (self.nT - 1) * self.rise - self.hT
                     ]))
                 coords.append(Vector([self.nT * self.run, - self.w, self.nT * self.rise]))
                 coords.append(Vector([
-                        (self.nT * self.run) - self.tT,
+                        self.nT * self.run - self.tT,
                         - self.w,
                         self.nT * self.rise
                     ]))
@@ -575,17 +575,17 @@ class Stringer :
                 coords = []
                 coords.append(Vector([i * self.run, 0, - self.rise]))
                 coords.append(Vector([(i + 1) * self.run, 0, - self.rise]))
-                coords.append(Vector([i * self.run, 0, h + (i * self.rise)]))
-                coords.append(Vector([(i + 1) * self.run, 0, h + (i * self.rise)]))
+                coords.append(Vector([i * self.run, 0, h + i * self.rise]))
+                coords.append(Vector([(i + 1) * self.run, 0, h + i * self.rise]))
                 for j in range(4) :
                     coords.append(coords[j] + Vector([0, self.wT, 0]))
                 #end for
                 self.mm.make_ppd_mesh(coords, 'stringer')
             #end for
         elif self.typ == "id4" :
-            offset = (self.wT / (self.nS + 1)) - (self.w / 2)
+            offset = self.wT / (self.nS + 1) - self.w / 2
             for s in range(self.nS) :
-                base = self.tO + (offset * (s + 1))
+                base = self.tO + offset * (s + 1)
                 start = \
                     [
                         Vector([0, -base, - self.hT]),
@@ -599,26 +599,26 @@ class Stringer :
                     # Base faces.  Should be able to append more sections :
                     tId4_faces = [[0, 1, 3, 2]]
                     t_inner = Matrix.Rotation(self.d * i, 3, 'Z')
-                    coords.append((t_inner * start[0]) + Vector([0, 0, self.rise * i]))
-                    coords.append((t_inner * start[1]) + Vector([0, 0, self.rise * i]))
+                    coords.append(t_inner * start[0] + Vector([0, 0, self.rise * i]))
+                    coords.append(t_inner * start[1] + Vector([0, 0, self.rise * i]))
                     t_outer = Matrix.Rotation(self.d * i, 3, 'Z')
-                    coords.append((t_outer * start[2]) + Vector([0, 0, self.rise * i]))
-                    coords.append((t_outer * start[3]) + Vector([0, 0, self.rise * i]))
+                    coords.append(t_outer * start[2] + Vector([0, 0, self.rise * i]))
+                    coords.append(t_outer * start[3] + Vector([0, 0, self.rise * i]))
                     k = 0
                     for j in range(self.deg) :
-                        k = (j * 4) + 4
+                        k = j * 4 + 4
                         tId4_faces.append([k, k - 4, k - 3, k + 1])
                         tId4_faces.append([k - 2, k - 1, k + 3, k + 2])
                         tId4_faces.append([k + 1, k - 3, k - 1, k + 3])
                         tId4_faces.append([k, k - 4, k - 2, k + 2])
                         rot = Matrix.Rotation \
                           (
-                            ((self.d * (j + 1)) / self.deg) + (self.d * i),
+                            self.d * (j + 1) / self.deg + self.d * i,
                             3,
                             'Z'
                           )
                         for v in start :
-                            coords.append((rot * v) + Vector([0, 0, self.rise * i]))
+                            coords.append(rot * v + Vector([0, 0, self.rise * i]))
                         #end for
                     #end for
                     for j in range(self.deg) :
@@ -629,16 +629,16 @@ class Stringer :
                         tId4_faces.append([k, k - 4, k - 2, k + 2])
                         rot = Matrix.Rotation \
                           (
-                            ((self.d * ((j + self.deg) + 1)) / self.deg) + (self.d * i),
+                            self.d * (j + self.deg + 1) / self.deg + self.d * i,
                             3,
                             'Z'
                           )
                         for v in range(4) :
                             if v in [1, 3] :
-                                incline = (self.rise * i) + (self.rise / self.deg) * (j + 1)
-                                coords.append((rot * start[v]) + Vector([0, 0, incline]))
+                                incline = self.rise * i + self.rise / self.deg * (j + 1)
+                                coords.append(rot * start[v] + Vector([0, 0, incline]))
                             else :
-                                coords.append((rot * start[v]) + Vector([0, 0, self.rise * i]))
+                                coords.append(rot * start[v] + Vector([0, 0, self.rise * i]))
                             #end if
                         #end for
                     #end for
@@ -659,7 +659,7 @@ class Stringer :
         # Vertical taper amount:
         taper = self.tf * self.tp
         if self.dis or self.nS == 1 :
-            offset = (self.wT / (self.nS + 1)) - mid
+            offset = self.wT / (self.nS + 1) - mid
         else :
             offset = 0
         #end if
@@ -745,7 +745,7 @@ class Stringer :
             coords.append(Vector([- self.tT, outer, - self.rise]))
             coords.append(Vector([- self.tT, outer, 0]))
             coords.append(Vector([
-                    (self.run * (self.nT - 1)) - self.tT,
+                    self.run * (self.nT - 1) - self.tT,
                     outer,
                     self.rise * (self.nT - 1)
                 ]))
@@ -757,12 +757,12 @@ class Stringer :
             coords.append(Vector([
                     self.run * self.nT,
                     outer,
-                    (self.rise * (self.nT - 1)) + self.tf
+                    self.rise * (self.nT - 1) + self.tf
                 ]))
             coords.append(Vector([
-                    (self.run * (self.nT - 1)) - self.tT,
+                    self.run * (self.nT - 1) - self.tT,
                     outer,
-                    (self.rise * (self.nT - 1)) + self.tf
+                    self.rise * (self.nT - 1) + self.tf
                 ]))
             coords.append(Vector([front, outer, self.tf - vDelta_1]))
             # Lower-Outer flange:
@@ -779,7 +779,7 @@ class Stringer :
                  )[0]
               )
             coords.append(Vector([
-                    (self.run * self.nT) - ((webHeight - self.hT) / self.mm.slope),
+                    self.run * self.nT - (webHeight - self.hT) / self.mm.slope,
                     outer,
                     vDelta_2
                 ]))
@@ -841,7 +841,7 @@ class Stringer :
         # Vertical taper amount:
         taper = self.tf * self.tp
         if self.dis or self.nS == 1 :
-            offset = (self.wT / (self.nS + 1)) - mid
+            offset = self.wT / (self.nS + 1) - mid
         else :
             offset = 0
         #end if
@@ -916,7 +916,7 @@ class Stringer :
         webOrth = Vector([self.rise, 0, - self.run]).normalized()
         webHeight = Vector([self.run + self.tT, 0, - self.hT]).project(webOrth).length
         vDelta_1 = self.tf * self.mm.slope
-        vDelta_2 = (self.rise * (self.nT - 1)) - (webHeight + self.tf)
+        vDelta_2 = self.rise * (self.nT - 1) - (webHeight + self.tf)
         flange_y = (self.w - self.tw) / 2
         front = - self.tT - self.tf
         outer = - self.tO - self.tw - flange_y
@@ -927,7 +927,7 @@ class Stringer :
             coords.append(Vector([- self.tT, outer, - self.rise]))
             coords.append(Vector([- self.tT, outer, 0]))
             coords.append(Vector([
-                    (self.run * (self.nT - 1)) - self.tT,
+                    self.run * (self.nT - 1) - self.tT,
                     outer,
                     self.rise * (self.nT - 1)
                 ]))
@@ -939,12 +939,12 @@ class Stringer :
             coords.append(Vector([
                     self.run * self.nT,
                     outer,
-                    (self.rise * (self.nT - 1)) + self.tf
+                    self.rise * (self.nT - 1) + self.tf
                 ]))
             coords.append(Vector([
-                    (self.run * (self.nT - 1)) - self.tT,
+                    self.run * (self.nT - 1) - self.tT,
                     outer,
-                    (self.rise * (self.nT - 1)) + self.tf
+                    self.rise * (self.nT - 1) + self.tf
                 ]))
             coords.append(Vector([front, outer, self.tf - vDelta_1]))
             # Lower-Outer flange:
@@ -961,7 +961,7 @@ class Stringer :
                 )[0]
               )
             coords.append(Vector([
-                    (self.run * self.nT) - ((webHeight - self.hT) / self.mm.slope),
+                    self.run * self.nT - (webHeight - self.hT) / self.mm.slope,
                     outer,
                     vDelta_2
                 ]))
@@ -999,7 +999,7 @@ class Stringer :
                 coords[i + 16] += Vector([0, (- outer - flange_y) * 2, 0])
             #end for
             for i in coords :
-                i += Vector([0, (self.tO * 2) + self.wT, 0])
+                i += Vector([0, self.tO * 2 + self.wT, 0])
             #end for
             self.mm.make_mesh(coords, self.faces4c, 'stringer')
         #end if
@@ -1117,7 +1117,7 @@ class Treads :
                 coords.append(Vector([tDepth - inset, - self.o, - self.h]))           #10
                 coords.append(Vector([tDepth - inset, - self.o, - self.h + self.tk])) #11
                 for i in range(12) :
-                    coords.append(coords[i] + Vector([0, self.w + (2 * self.o), 0]))
+                    coords.append(coords[i] + Vector([0, self.w + 2 * self.o, 0]))
                 #end for
             elif self.typ_t in ["tId3", "tId4", "tId5"] :
                 # Frame:
@@ -1136,13 +1136,13 @@ class Treads :
                     coords.append(coords[i] + Vector([0, self.w + self.o, 0]))
                 #end for
                 for i in range(4) :
-                    coords.append(coords[i + 4] + Vector([0, self.w + self.o - (2 * self.tk), 0]))
+                    coords.append(coords[i + 4] + Vector([0, self.w + self.o - 2 * self.tk, 0]))
                 #end for
                 # Tread sections:
                 if self.typ_t == "tId3" :
                     offset = (self.tk * math.sqrt(2)) / 2
                     topset = self.h - offset
-                    self.sp = ((self.d + self.t - (2 * self.tk)) - (offset * (self.sec) + topset)) / (self.sec + 1)
+                    self.sp = ((self.d + self.t - 2 * self.tk) - (offset * self.sec + topset)) / (self.sec + 1)
                     baseX = - self.t + self.sp + self.tk
                     coords2.append(Vector([baseX, self.tk - self.o, offset - self.h]))
                     coords2.append(Vector([baseX + offset, self.tk - self.o, - self.h]))
@@ -1150,11 +1150,11 @@ class Treads :
                         coords2.append(coords2[i] + Vector([topset, 0, topset]))
                     #end for
                     for i in range(4) :
-                        coords2.append(coords2[i] + Vector([0, (self.w + self.o) - (2 * self.tk), 0]))
+                        coords2.append(coords2[i] + Vector([0, (self.w + self.o) - 2 * self.tk, 0]))
                     #end for
                 elif self.typ_t in ["tId4", "tId5"] :
                     offset = ((self.run + self.t) * self.sp) / (self.sec + 1)
-                    topset = (((self.run + self.t) * (1 - self.sp)) - (2 * self.tk)) / self.sec
+                    topset = ((self.run + self.t) * (1 - self.sp) - 2 * self.tk) / self.sec
                     baseX = - self.t + self.tk + offset
                     baseY = self.w + self.o - 2 * self.tk
                     coords2.append(Vector([baseX, - self.o + self.tk, - self.h / 2]))
@@ -1168,7 +1168,7 @@ class Treads :
                 # Tread cross-sections:
                 if self.typ_t in ["tId3", "tId4"] :
                     cW = self.tk
-                    cross = (self.w + (2 * self.o) - (self.sn + 2) * self.tk) / (self.sn + 1)
+                    cross = (self.w + 2 * self.o - (self.sn + 2) * self.tk) / (self.sn + 1)
                 else : # tId5
                     spacing = self.sp ** (1 / 4)
                     cross = ((2 * self.o + self.w) * spacing) / (self.sn + 1)
@@ -1246,15 +1246,15 @@ class Treads :
                 coords = []
                 # Base faces.  Should be able to append more sections:
                 tId4_faces = [[0, 1, 3, 2]]
-                t_inner = Matrix.Rotation((- self.t / self.o) + (self.d * i), 3, 'Z')
-                coords.append((t_inner * start[0]) + Vector([0, 0, self.r * i]))
-                coords.append((t_inner * start[1]) + Vector([0, 0, self.r * i]))
-                t_outer = Matrix.Rotation((- self.t / self.w) + (self.d * i), 3, 'Z')
-                coords.append((t_outer * start[2]) + Vector([0, 0, self.r * i]))
-                coords.append((t_outer * start[3]) + Vector([0, 0, self.r * i]))
+                t_inner = Matrix.Rotation(- self.t / self.o + self.d * i, 3, 'Z')
+                coords.append(t_inner * start[0] + Vector([0, 0, self.r * i]))
+                coords.append(t_inner * start[1] + Vector([0, 0, self.r * i]))
+                t_outer = Matrix.Rotation(- self.t / self.w + self.d * i, 3, 'Z')
+                coords.append(t_outer * start[2] + Vector([0, 0, self.r * i]))
+                coords.append(t_outer * start[3] + Vector([0, 0, self.r * i]))
                 k = 0
                 for j in range(self.deg + 1) :
-                    k = (j * 4) + 4
+                    k = j * 4 + 4
                     tId4_faces.append([k, k - 4, k - 3, k + 1])
                     tId4_faces.append([k - 2, k - 1, k + 3, k + 2])
                     tId4_faces.append([k + 1, k - 3, k - 1, k + 3])
