@@ -100,6 +100,12 @@ class MeshMaker :
         return object_utils.object_data_add(bpy.context, mesh, operator = None)
     #end make_mesh
 
+    def make_ppd_mesh(self, verts, names) :
+        # special case of make_mesh for parallellipiped shapes
+        assert len(verts) == 8
+        self.make_mesh(verts, self.faces, name)
+    #end make_ppd_mesh
+
 #end MeshMaker
 
 class Posts :
@@ -151,14 +157,14 @@ class Posts :
                 coords.append(coords[j] + Vector([0, self.w, 0]))
             #end for
             if self.rEnable :
-                self.mm.make_mesh(coords, self.mm.faces, 'posts')
+                self.mm.make_ppd_mesh(coords, 'posts')
             #end if
             if self.lEnable :
                 #make post on other side of steps as well
                 for j in coords :
                     j += Vector([0, self.wT - self.w, 0])
                 #end for
-                self.mm.make_mesh(coords, self.mm.faces, 'posts')
+                self.mm.make_ppd_mesh(coords, 'posts')
             #end if
         #end for
     #end create
@@ -222,14 +228,14 @@ class Railings :
             j += Vector([0, 0.5 * (- self.w + self.wP), 0])
         #end for
         if self.rEnable :
-            self.mm.make_mesh(coords, self.mm.faces, 'rails')
+            self.mm.make_ppd_mesh(coords, 'rails')
         #end if
         if self.lEnable :
             #make rail on other side
             for j in coords :
                 j += Vector([0, self.wT - self.wP, 0])
             #end for
-            self.mm.make_mesh(coords, self.mm.faces, 'rails')
+            self.mm.make_ppd_mesh(coords, 'rails')
         #end if
     #end create
 
@@ -268,14 +274,14 @@ class Retainers :
                 j += Vector([0, 0.5 * (self.wP - self.w), 0])
             #end for
             if self.rEnable :
-                self.mm.make_mesh(coords, self.mm.faces, 'retainers')
+                self.mm.make_ppd_mesh(coords, 'retainers')
             #end if
             if self.lEnable :
                 #make retainer on other side
                 for j in coords :
                     j += Vector([0, self.wT - self.wP, 0])
                 #end for
-                self.mm.make_mesh(coords, self.mm.faces, 'retainers')
+                self.mm.make_ppd_mesh(coords, 'retainers')
             #end if
         #end for
     #end create
@@ -574,7 +580,7 @@ class Stringer :
                 for j in range(4) :
                     coords.append(coords[j] + Vector([0, self.wT, 0]))
                 #end for
-                self.mm.make_mesh(coords, self.mm.faces, 'stringer')
+                self.mm.make_ppd_mesh(coords, 'stringer')
             #end for
         elif self.typ == "id4" :
             offset = (self.wT / (self.nS + 1)) - (self.w / 2)
@@ -1181,7 +1187,7 @@ class Treads :
             # Make the treads:
             for i in range(self.n) :
                 if self.typ_t == "tId1" :
-                    self.mm.make_mesh(coords, self.mm.faces, 'treads')
+                    self.mm.make_ppd_mesh(coords, 'treads')
                 elif self.typ_t == "tId2" :
                     temp = []
                     for j in coords :
@@ -1200,7 +1206,7 @@ class Treads :
                         temp.append(copy(j))
                     #end for
                     for j in range(self.sec) :
-                        self.mm.make_mesh(temp, self.mm.faces, 'bars')
+                        self.mm.make_ppd_mesh(temp, 'bars')
                         for k in temp :
                             k += Vector([offset + self.sp, 0, 0])
                         #end for
@@ -1213,7 +1219,7 @@ class Treads :
                         temp.append(copy(j))
                     #end for
                     for j in range(self.sn) :
-                        self.mm.make_mesh(temp, self.mm.faces, 'crosses')
+                        self.mm.make_ppd_mesh(temp, 'crosses')
                         for k in temp :
                             k += Vector([0, cW + cross, 0])
                         #end for
