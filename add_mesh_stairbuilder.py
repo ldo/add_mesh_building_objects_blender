@@ -49,6 +49,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import math
+import enum
 from copy import \
     copy
 import bpy
@@ -67,8 +68,60 @@ from mathutils.geometry import \
     intersect_line_line
 
 #+
+# Useful stuff
+#-
+
+class EnumPropItems(enum.Enum) :
+    "base class for enumerations that can be passed to Blender’s EnumProperty" \
+    " to construct a menu of the enumeration values. Subclasses need only contain" \
+    " one or more enumeration item definitions in the form\n" \
+    "\n" \
+    "    «name» = («title», «description»)\n" \
+    "\n" \
+    " in order for the all_items() method to return a tuple of tuples that can be" \
+    " passed directly to EnumProperty."
+
+    def __init__(self, label, description) :
+        self._value_ = (label, description)
+        self.label = label
+        self.description = description
+    #end __init__
+
+    @classmethod
+    def all_items(celf) :
+        return \
+            tuple((item.name, item.label, item.description) for item in celf.__members__.values())
+    #end all_items
+
+#end EnumPropItems
+
+#+
 # Building the parts
 #-
+
+class STAIRTYPE(EnumPropItems) :
+    "overall types of stairs."
+    id1 = ("Freestanding", "Generate a freestanding staircase.")
+    id2 = ("Housed-Open", "Generate a housed-open staircase.")
+    id3 = ("Box", "Generate a box staircase.")
+    id4 = ("Circular", "Generate a circular or spiral staircase.")
+#end STAIRTYPE
+
+class TREADTYPE(EnumPropItems) :
+    "types of stair treads."
+    tId1 = ("Classic", "Generate wooden style treads")
+    tId2 = ("Basic Steel", "Generate common steel style treads")
+    tId3 = ("Bar 1", "Generate bar/slat steel treads")
+    tId4 = ("Bar 2", "Generate bar-grating steel treads")
+    tId5 = ("Bar 3", "Generate bar-support steel treads")
+#end TREADTYPE
+
+class STRINGERTYPE(EnumPropItems) :
+    "types of stair stringers."
+    sId1 = ("Classic", "Generate a classic style stringer")
+    sId2 = ("I-Beam", "Generate a steel I-beam stringer")
+    sId3 = ("C-Beam", "Generate a C-channel style stringer")
+#end STRINGERTYPE
 
 class MeshMaker :
     "object for creating meshes given the verts and faces."
@@ -298,7 +351,7 @@ class Stringer :
         self.typ = typ # Stair type
         self.typ_s = typ_s # Stringer type
         self.rise = rise #Stair rise
-        self.run = run #Stair run. Degrees if self.typ == "id4"
+        self.run = run #Stair run. Degrees if self.typ == STAIRTYPE.id4
         if notMulti :
             self.w = w / 100 #stringer width
         else :
@@ -309,15 +362,15 @@ class Stringer :
         self.hT = hT #tread height
         self.wT = wT #tread width
         self.tT = tT #tread toe
-        self.tO = tO #Tread overhang. Inner radius if self.typ == "id4"
+        self.tO = tO #Tread overhang. Inner radius if self.typ == STAIRTYPE.id4
         self.tw = self.w * (tw / 100) #stringer web thickness
         self.tf = tf #stringer flange thickness
         self.tp = 1 - tp / 100 #stringer flange taper
         self.g = g #does stringer intersect the ground?
         self.nS = nS #number of stringers
         self.dis = dis #Use distributed stringers
-        self.deg = deg #number of sections per "slice". Only applys if self.typ == "id4"
-        # Default stringer object (classic / sId1):
+        self.deg = deg #number of sections per "slice". Only applys if self.typ == STAIRTYPE.id4
+        # Default stringer object (classic / STRINGERTYPE.sId1):
         self.faces1 = \
             [
                 [0, 1, 3, 2],
@@ -349,7 +402,7 @@ class Stringer :
                 [7, 8, 11, 9],
                 [9, 10, 11],
             ]
-        # I-beam stringer (id2 / sId2 / Taper < 100%):
+        # I-beam stringer (STAIRTYPE.id2 / STRINGERTYPE.sId2 / Taper < 100%):
         self.faces3a = \
             [
                 [0, 1, 17, 16],
@@ -383,7 +436,7 @@ class Stringer :
                 [19, 22, 23, 26],
                 [23, 24, 25, 26],
             ]
-        # I-beam stringer (id2 / sId2 / Taper = 100%):
+        # I-beam stringer (STAIRTYPE.id2 / STRINGERTYPE.sId2 / Taper = 100%):
         self.faces3b = \
             [
                 [0, 1, 9, 8],
@@ -401,7 +454,7 @@ class Stringer :
                 [9, 10, 13, 14],
                 [10, 11, 12, 13],
             ]
-        # I-beam stringer (id3 / sId2 / Taper < 100%):
+        # I-beam stringer (STAIRTYPE.id3 / STRINGERTYPE.sId2 / Taper < 100%):
         self.faces3c = \
             [
                 [0, 1, 2, 7],
@@ -468,7 +521,7 @@ class Stringer :
                 [28, 45, 59, 29],
                 [4, 5, 51, 21],
             ]
-        # C-beam stringer (id3 / sId3 / Taper < 100%):
+        # C-beam stringer (STAIRTYPE.id3 / STRINGERTYPE.sId3 / Taper < 100%):
         self.faces4c = \
             [
                 [0, 1, 2, 7],
@@ -506,8 +559,8 @@ class Stringer :
     #end __init__
 
     def create(self) :
-        if self.typ == "id1" :
-            if self.typ_s == "sId1" :
+        if self.typ == STAIRTYPE.id1 :
+            if self.typ_s == STRINGERTYPE.sId1 :
                 if self.dis or self.nS == 1 :
                     offset = self.wT / (self.nS + 1) - self.w / 2
                 else :
@@ -536,11 +589,11 @@ class Stringer :
                         offset += (self.wT - self.w) / (self.nS - 1)
                     #end if
                 #end for
-            elif self.typ_s == "sId2" :
+            elif self.typ_s == STRINGERTYPE.sId2 :
                 self.i_beam()
             #end if
-        elif self.typ == "id2" :
-            if self.typ_s == "sId1" :
+        elif self.typ == STAIRTYPE.id2 :
+            if self.typ_s == STRINGERTYPE.sId1 :
                 coords = []
                 coords.append(Vector([- self.tT, - self.w, - self.rise]))
                 coords.append(Vector([self.hT / self.mm.slope, - self.w, - self.rise]))
@@ -564,12 +617,12 @@ class Stringer :
                     i += Vector([0, self.w + self.wT, 0])
                 #end for
                 self.mm.make_mesh(coords, self.faces2, 'stringer')
-            elif self.typ_s == "sId2" :
+            elif self.typ_s == STRINGERTYPE.sId2 :
                 self.housed_i_beam()
-            elif self.typ_s == "sId3" :
+            elif self.typ_s == STRINGERTYPE.sId3 :
                 self.housed_c_beam()
             #end if
-        elif self.typ == "id3" :
+        elif self.typ == STAIRTYPE.id3 :
             h = (self.rise - self.hT) - self.rise #height of top section
             for i in range(self.nT) :
                 coords = []
@@ -582,7 +635,7 @@ class Stringer :
                 #end for
                 self.mm.make_ppd_mesh(coords, 'stringer')
             #end for
-        elif self.typ == "id4" :
+        elif self.typ == STAIRTYPE.id4 :
             offset = self.wT / (self.nS + 1) - self.w / 2
             for s in range(self.nS) :
                 base = self.tO + offset * (s + 1)
@@ -1015,25 +1068,25 @@ class Treads :
         self.mm = mm #MeshMaker
         self.typ = typ #Stair type
         self.typ_t = typ_t #Tread type
-        self.run = run #Stair run.  Degrees if self.typ == "id4"
-        self.w = w #tread width.  Is outer radius if self.typ == "id4"
+        self.run = run #Stair run.  Degrees if self.typ == STAIRTYPE.id4
+        self.w = w #tread width.  Is outer radius if self.typ == STAIRTYPE.id4
         self.h = h #tread height
-        self.d = d #tread run.  Ignore for now if self.typ == "id4"
+        self.d = d #tread run.  Ignore for now if self.typ == STAIRTYPE.id4
         self.r = r #tread rise
         self.t = toe #tread nosing
-        self.o = o #tread side overhang.  Is inner radius if self.typ == "id4"
+        self.o = o #tread side overhang.  Is inner radius if self.typ == STAIRTYPE.id4
         self.n = n #number of treads
         self.tk = tk #thickness of tread metal
         self.sec = sec #metal sections for tread
-        if sec != 1 and typ_t not in ["tId4", "tId5"] :
+        if sec != 1 and typ_t not in [TREADTYPE.tId4, TREADTYPE.tId5] :
             self.sp=((d + toe) * (sp / 100)) / (sec - 1) #spacing between sections (% of depth)
-        elif typ_t in ["tId4", "tId5"] :
+        elif typ_t in [TREADTYPE.tId4, TREADTYPE.tId5] :
             self.sp = sp / 100 #keep % value
         else :
             self.sp = 0
         #end if
         self.sn = sn #number of cross sections
-        self.deg = deg #number of section per "slice".  Only applys if self.typ == "id4"
+        self.deg = deg #number of section per "slice".  Only applys if self.typ == STAIRTYPE.id4
         self.tId2_faces = \
             [
                 [0, 1, 2, 3],
@@ -1091,8 +1144,8 @@ class Treads :
         depth = 0
         offset = 0
         height = 0
-        if self.typ in ["id1", "id2", "id3"] :
-            if self.typ_t == "tId1" :
+        if self.typ in [STAIRTYPE.id1, STAIRTYPE.id2, STAIRTYPE.id3] :
+            if self.typ_t == TREADTYPE.tId1 :
                 coords.append(Vector([- self.t, - self.o, 0]))
                 coords.append(Vector([self.d, - self.o, 0]))
                 coords.append(Vector([- self.t, self.w + self.o, 0]))
@@ -1100,7 +1153,7 @@ class Treads :
                 for i in range(4) :
                     coords.append(coords[i] + Vector([0, 0, - self.h]))
                 #end for
-            elif self.typ_t == "tId2" :
+            elif self.typ_t == TREADTYPE.tId2 :
                 depth = (self.d + self.t - (self.sec - 1) * self.sp) / self.sec
                 inset = depth / 4
                 tDepth = depth - self.t
@@ -1119,7 +1172,7 @@ class Treads :
                 for i in range(12) :
                     coords.append(coords[i] + Vector([0, self.w + 2 * self.o, 0]))
                 #end for
-            elif self.typ_t in ["tId3", "tId4", "tId5"] :
+            elif self.typ_t in [TREADTYPE.tId3, TREADTYPE.tId4, TREADTYPE.tId5] :
                 # Frame:
                 coords.append(Vector([- self.t, - self.o, - self.h]))
                 coords.append(Vector([self.d, - self.o, - self.h]))
@@ -1139,7 +1192,7 @@ class Treads :
                     coords.append(coords[i + 4] + Vector([0, self.w + self.o - 2 * self.tk, 0]))
                 #end for
                 # Tread sections:
-                if self.typ_t == "tId3" :
+                if self.typ_t == TREADTYPE.tId3 :
                     offset = (self.tk * math.sqrt(2)) / 2
                     topset = self.h - offset
                     self.sp = ((self.d + self.t - 2 * self.tk) - (offset * self.sec + topset)) / (self.sec + 1)
@@ -1152,7 +1205,7 @@ class Treads :
                     for i in range(4) :
                         coords2.append(coords2[i] + Vector([0, (self.w + self.o) - 2 * self.tk, 0]))
                     #end for
-                elif self.typ_t in ["tId4", "tId5"] :
+                elif self.typ_t in [TREADTYPE.tId4, TREADTYPE.tId5] :
                     offset = ((self.run + self.t) * self.sp) / (self.sec + 1)
                     topset = ((self.run + self.t) * (1 - self.sp) - 2 * self.tk) / self.sec
                     baseX = - self.t + self.tk + offset
@@ -1166,10 +1219,10 @@ class Treads :
                     #end for
                 #end if
                 # Tread cross-sections:
-                if self.typ_t in ["tId3", "tId4"] :
+                if self.typ_t in [TREADTYPE.tId3, TREADTYPE.tId4] :
                     cW = self.tk
                     cross = (self.w + 2 * self.o - (self.sn + 2) * self.tk) / (self.sn + 1)
-                else : # tId5
+                else : # TREADTYPE.tId5
                     spacing = self.sp ** (1 / 4)
                     cross = ((2 * self.o + self.w) * spacing) / (self.sn + 1)
                     cW = (- 2 * self.tk + (2 * self.o + self.w) * (1 - spacing)) / self.sn
@@ -1186,9 +1239,9 @@ class Treads :
                 #end for
             # Make the treads:
             for i in range(self.n) :
-                if self.typ_t == "tId1" :
+                if self.typ_t == TREADTYPE.tId1 :
                     self.mm.make_ppd_mesh(coords, 'treads')
-                elif self.typ_t == "tId2" :
+                elif self.typ_t == TREADTYPE.tId2 :
                     temp = []
                     for j in coords :
                         temp.append(copy(j))
@@ -1199,7 +1252,7 @@ class Treads :
                             k += Vector([depth + self.sp, 0, 0])
                         #end for
                     #end for
-                elif self.typ_t in ["tId3", "tId4", "tId5"] :
+                elif self.typ_t in [TREADTYPE.tId3, TREADTYPE.tId4, TREADTYPE.tId5] :
                     self.mm.make_mesh(coords, self.out_faces, 'treads')
                     temp = []
                     for j in coords2 :
@@ -1233,7 +1286,7 @@ class Treads :
                 #end for
             #end if
         # Circular staircase:
-        elif self.typ in ["id4"] :
+        elif self.typ == TREADTYPE.id4 :
             start = \
                 [
                     Vector([0, - self.o, 0]),
@@ -1284,29 +1337,11 @@ class Stairs(bpy.types.Operator) :
     bl_options = {'REGISTER', 'UNDO'}
     bl_description = "Add stairs"
 
-    # Stair types for enum:
-    id1 = ("id1", "Freestanding", "Generate a freestanding staircase.")
-    id2 = ("id2", "Housed-Open", "Generate a housed-open staircase.")
-    id3 = ("id3", "Box", "Generate a box staircase.")
-    id4 = ("id4", "Circular", "Generate a circular or spiral staircase.")
-
-    # Tread types for enum:
-    tId1 = ("tId1", "Classic", "Generate wooden style treads")
-    tId2 = ("tId2", "Basic Steel", "Generate common steel style treads")
-    tId3 = ("tId3", "Bar 1", "Generate bar/slat steel treads")
-    tId4 = ("tId4", "Bar 2", "Generate bar-grating steel treads")
-    tId5 = ("tId5", "Bar 3", "Generate bar-support steel treads")
-
-    # Stringer types for enum:
-    sId1 = ("sId1", "Classic", "Generate a classic style stringer")
-    sId2 = ("sId2", "I-Beam", "Generate a steel I-beam stringer")
-    sId3 = ("sId3", "C-Beam", "Generate a C-channel style stringer")
-
     typ = EnumProperty \
       (
         name = "Type",
         description = "Type of staircase to generate",
-        items = [id1, id2, id3, id4]
+        items = STAIRTYPE.all_items()
       )
 
     rise = FloatProperty \
@@ -1413,7 +1448,7 @@ class Stairs(bpy.types.Operator) :
       (
         name = "Tread Type",
         description = "Type/style of treads to generate",
-        items = [tId1, tId2, tId3, tId4, tId5]
+        items = TREADTYPE.all_items()
       )
     tread_tk = FloatProperty \
       (
@@ -1564,7 +1599,7 @@ class Stairs(bpy.types.Operator) :
       (
         name = "Stringer Type",
         description = "Type/style of stringer to generate",
-        items = [sId1, sId2, sId3]
+        items = STRINGERTYPE.all_items()
       )
     string_n = IntProperty \
       (
@@ -1653,7 +1688,7 @@ class Stairs(bpy.types.Operator) :
         box.prop(self, 'typ')
         box = layout.box()
         box.prop(self, 'rise')
-        if self.typ != "id4" :
+        if self.typ != STAIRTYPE.id4 :
             box.prop(self, 'run')
         else :
             box.prop(self, 'deg')
@@ -1661,7 +1696,7 @@ class Stairs(bpy.types.Operator) :
             box.prop(self, 'rad2')
             box.prop(self, 'center')
         #end if
-        if self.typ == "id1" :
+        if self.typ == STAIRTYPE.id1 :
             box.prop(self, 'use_original')
             if not self.use_original :
                 box.prop(self, 'rEnable')
@@ -1676,32 +1711,32 @@ class Stairs(bpy.types.Operator) :
         box = layout.box()
         box.prop(self, 'make_treads')
         if self.make_treads :
-            if not self.use_original and self.typ != "id4" :
+            if not self.use_original and self.typ != STAIRTYPE.id4 :
                 box.prop(self, 'typ_t')
             else :
-                self.typ_t = "tId1"
+                self.typ_t = TREADTYPE.tId1
             #end if
-            if self.typ != "id4" :
+            if self.typ != STAIRTYPE.id4 :
                 box.prop(self, 'tread_w')
             #end if
             box.prop(self, 'tread_h')
             box.prop(self, 'tread_t')
-            if self.typ not in ["id2", "id4"] :
+            if self.typ not in [STAIRTYPE.id2, STAIRTYPE.id4] :
                 box.prop(self, 'tread_o')
             else :
                 self.tread_o = 0.0
             #end if
             box.prop(self, 'tread_n')
-            if self.typ_t != "tId1" :
+            if self.typ_t != TREADTYPE.tId1 :
                 box.prop(self, 'tread_tk')
                 box.prop(self, 'tread_sec')
-                if self.tread_sec > 1 and self.typ_t not in ["tId3", "tId4"] :
+                if self.tread_sec > 1 and self.typ_t not in [TREADTYPE.tId3, TREADTYPE.tId4] :
                     box.prop(self, 'tread_sp')
                 #end if
-                if self.typ_t in ["tId3", "tId4", "tId5"] :
+                if self.typ_t in [TREADTYPE.tId3, TREADTYPE.tId4, TREADTYPE.tId5] :
                     box.prop(self, 'tread_sn')
                 #end if
-            elif self.typ == "id4" :
+            elif self.typ == STAIRTYPE.id4 :
                 box.prop(self, "tread_slc")
             #end if
         #end if
@@ -1731,7 +1766,7 @@ class Stairs(bpy.types.Operator) :
         #end if
         # Stringers
         box = layout.box()
-        if self.typ != "id2" :
+        if self.typ != STAIRTYPE.id2 :
             box.prop(self, 'make_stringer')
         else :
             self.make_stringer = True
@@ -1740,14 +1775,14 @@ class Stairs(bpy.types.Operator) :
             if not self.use_original :
                 box.prop(self, 'typ_s')
             else :
-                self.typ_s = "sId1"
+                self.typ_s = STRINGERTYPE.sId1
             #end if
             box.prop(self, 'string_w')
-            if self.typ == "id1" :
-                if self.typ_s == "sId1" and not self.use_original :
+            if self.typ == STAIRTYPE.id1 :
+                if self.typ_s == STRINGERTYPE.sId1 and not self.use_original :
                     box.prop(self, 'string_n')
                     box.prop(self, 'string_dis')
-                elif self.typ_s in ["sId2", "sId3"] :
+                elif self.typ_s in [STRINGERTYPE.sId2, STRINGERTYPE.sId3] :
                     box.prop(self, 'string_n')
                     box.prop(self, 'string_dis')
                     box.prop(self, 'string_h')
@@ -1756,21 +1791,24 @@ class Stairs(bpy.types.Operator) :
                     box.prop(self, 'string_tp')
                     box.prop(self, 'string_g')
                 #end if
-            elif self.typ == "id2" :
-                if self.typ_s in ["sId2", "sId3"] :
+            elif self.typ == STAIRTYPE.id2 :
+                if self.typ_s in [STRINGERTYPE.sId2, STRINGERTYPE.sId3] :
                     box.prop(self, 'string_tw')
                     box.prop(self, 'string_tf')
                 #end if
             #end if
         #end if
         # Tread support:
-##        if self.make_stringer and self.typ_s in ["sId2", "sId3"] :
+##        if self.make_stringer and self.typ_s in [STRINGERTYPE.sId2, STRINGERTYPE.sId3] :
     #end draw
 
     def execute(self, context) :
         self.mm = MeshMaker(self.rise, self.run, self.tread_n)
+        self.typ = STAIRTYPE[self.typ]
+        self.typ_s = STRINGERTYPE[self.typ_s]
+        self.typ_t = TREADTYPE[self.typ_t]
         if self.make_treads :
-            if self.typ != "id4" :
+            if self.typ != STAIRTYPE.id4 :
                 Treads(self.mm,
                        self.typ,
                        self.typ_t,
@@ -1842,7 +1880,7 @@ class Stairs(bpy.types.Operator) :
                       self.lEnable)
         #end if
         if self.make_stringer :
-            if self.typ == "id1" and self.use_original :
+            if self.typ == STAIRTYPE.id1 and self.use_original :
                 Stringer(self.mm,
                          self.typ,
                          self.typ_s,
@@ -1859,7 +1897,7 @@ class Stairs(bpy.types.Operator) :
                          self.string_tf,
                          self.string_tp,
                          not self.string_g)
-            elif self.typ == "id3" :
+            elif self.typ == STAIRTYPE.id3 :
                 Stringer(self.mm,
                          self.typ,
                          self.typ_s,
@@ -1877,7 +1915,7 @@ class Stairs(bpy.types.Operator) :
                          self.string_tp,
                          not self.string_g,
                          1, False, False)
-            elif self.typ == "id4" :
+            elif self.typ == STAIRTYPE.id4 :
                 Stringer(self.mm,
                          self.typ,
                          self.typ_s,
