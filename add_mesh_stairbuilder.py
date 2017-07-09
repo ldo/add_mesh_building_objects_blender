@@ -779,7 +779,6 @@ class Stringer :
                 offset += self.wT / (self.nS + 1)
             #end for
         #end if
-        return {'FINISHED'}
     #end i_beam
 
     def housed_i_beam(self) :
@@ -879,7 +878,6 @@ class Stringer :
             self.mm.make_mesh(coords, self.faces3c, 'stringer')
         #end if
         # @TODO Taper = 100%
-        return {'FINISHED'}
     #end housed_i_beam
 
     def c_beam(self) :
@@ -961,7 +959,6 @@ class Stringer :
                 offset += self.wT / (self.nS + 1)
             #end for
         #end if
-        return {'FINISHED'}
     #end c_beam
 
     def housed_c_beam(self) :
@@ -1055,7 +1052,6 @@ class Stringer :
             #end for
             self.mm.make_mesh(coords, self.faces4c, 'stringer')
         #end if
-        return {'FINISHED'}
     #end housed_c_beam
 
 #end Stringer
