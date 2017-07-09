@@ -1079,8 +1079,8 @@ class Treads :
         self.tk = tk #thickness of tread metal
         self.sec = sec #metal sections for tread
         if sec != 1 and typ_t not in [TREADTYPE.tId4, TREADTYPE.tId5] :
-            self.sp=((d + toe) * (sp / 100)) / (sec - 1) #spacing between sections (% of depth)
         elif typ_t in [TREADTYPE.tId4, TREADTYPE.tId5] :
+            self.sp = (d + toe) * (sp / 100) / (sec - 1) #spacing between sections (% of depth)
             self.sp = sp / 100 #keep % value
         else :
             self.sp = 0
