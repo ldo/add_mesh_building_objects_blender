@@ -1286,7 +1286,7 @@ class Treads :
                 #end for
             #end if
         # Circular staircase:
-        elif self.typ == TREADTYPE.id4 :
+        elif self.typ == STAIRTYPE.id4 :
             start = \
                 [
                     Vector([0, - self.o, 0]),
