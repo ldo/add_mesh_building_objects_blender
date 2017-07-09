@@ -699,7 +699,6 @@ class Stringer :
                 #end for
             #end for
         #end if
-        return {'FINISHED'}
     #end create
 
     def i_beam(self) :
