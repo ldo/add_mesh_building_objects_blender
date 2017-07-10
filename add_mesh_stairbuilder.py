@@ -700,7 +700,7 @@ class Stringer :
                             #end if
                         #end for
                     #end for
-                    self.mm.make_mesh(coords, bar_2_faces, 'treads')
+                    self.mm.make_mesh(coords, bar_2_faces, 'stringer')
                 #end for
             #end for
         #end if
