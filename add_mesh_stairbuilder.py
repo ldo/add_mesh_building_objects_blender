@@ -60,6 +60,7 @@ from bpy.props import \
     FloatProperty
 from bpy_extras import \
     object_utils
+import mathutils
 from mathutils import \
     Matrix
 from mathutils.geometry import \
@@ -155,7 +156,7 @@ class MeshMaker :
         return object_utils.object_data_add(bpy.context, mesh, operator = None)
     #end make_mesh
 
-    def make_ppd_mesh(self, verts, names) :
+    def make_ppd_mesh(self, verts, name) :
         # special case of make_mesh for parallellipiped shapes
         assert len(verts) == 8
         self.make_mesh(verts, self.faces, name)
@@ -170,13 +171,13 @@ class Posts :
         self.mm = mm #MeshMaker
         self.rise = rise #Stair rise
         self.run = run #Stair run
-        self.x1 = vec0, 0, hR - tR) #rail start
+        self.x1 = vec(0, 0, hR - tR) #rail start
         self.x2 = mm.stop + vec(0, 0, hR - tR) #rail stop
         self.d = d #post depth
         self.w = w #post width
         self.wT = wT #tread width
         self.nP = nP #number of posts
-        self.sp = vec(self.x2[0] - self.x1[0]) / float(nP + 1), 0, 0) #spacing between posts
+        self.sp = vec((self.x2[0] - self.x1[0]) / float(nP + 1), 0, 0) #spacing between posts
         self.rEnable = rEnable
         self.lEnable = lEnable
         self.create()
@@ -1805,14 +1806,14 @@ class Stairs(bpy.types.Operator) :
     def execute(self, context) :
         self.mm = MeshMaker(self.rise, self.run, self.tread_n)
         # convert strings to enums
-        self.stair_type = STAIRTYPE[self.stair_type]
-        self.stringer_type = STRINGERTYPE[self.stringer_type]
-        self.tread_type = TREADTYPE[self.tread_type]
+        stair_type = STAIRTYPE[self.stair_type]
+        stringer_type = STRINGERTYPE[self.stringer_type]
+        tread_type = TREADTYPE[self.tread_type]
         if self.make_treads :
             if self.stair_type != STAIRTYPE.CIRCULAR :
                 Treads(self.mm,
-                       self.stair_type,
-                       self.tread_type,
+                       stair_type,
+                       tread_type,
                        self.run,
                        self.tread_w,
                        self.tread_h,
@@ -1827,8 +1828,8 @@ class Stairs(bpy.types.Operator) :
                        self.tread_sn)
             else :
                 Treads(self.mm,
-                       self.stair_type,
-                       self.tread_type,
+                       stair_type,
+                       tread_type,
                        self.deg,
                        self.rad2,
                        self.tread_h,
@@ -1881,10 +1882,10 @@ class Stairs(bpy.types.Operator) :
                       self.lEnable)
         #end if
         if self.make_stringer :
-            if self.stair_type == STAIRTYPE.FREESTANDING and self.use_original :
+            if stair_type == STAIRTYPE.FREESTANDING and self.use_original :
                 Stringer(self.mm,
-                         self.stair_type,
-                         self.stringer_type,
+                         stair_type,
+                         stringer_type,
                          self.rise,
                          self.run,
                          self.string_w,
@@ -1898,10 +1899,10 @@ class Stairs(bpy.types.Operator) :
                          self.string_tf,
                          self.string_tp,
                          not self.string_g)
-            elif self.stair_type == STAIRTYPE.BOX :
+            elif stair_type == STAIRTYPE.BOX :
                 Stringer(self.mm,
-                         self.stair_type,
-                         self.stringer_type,
+                         stair_type,
+                         stringer_type,
                          self.rise,
                          self.run,
                          100,
@@ -1916,10 +1917,10 @@ class Stairs(bpy.types.Operator) :
                          self.string_tp,
                          not self.string_g,
                          1, False, False)
-            elif self.stair_type == STAIRTYPE.CIRCULAR :
+            elif stair_type == STAIRTYPE.CIRCULAR :
                 Stringer(self.mm,
-                         self.stair_type,
-                         self.stringer_type,
+                         stair_type,
+                         stringer_type,
                          self.rise,
                          self.deg,
                          self.string_w,
@@ -1939,8 +1940,8 @@ class Stairs(bpy.types.Operator) :
                          self.tread_slc)
             else :
                 Stringer(self.mm,
-                         self.stair_type,
-                         self.stringer_type,
+                         stair_type,
+                         stringer_type,
                          self.rise,
                          self.run,
                          self.string_w,
