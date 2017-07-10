@@ -1689,7 +1689,7 @@ class Stairs(bpy.types.Operator) :
         box.prop(self, 'stair_type')
         box = layout.box()
         box.prop(self, 'rise')
-        if self.stair_type != STAIRTYPE.CIRCULAR :
+        if self.stair_type != STAIRTYPE.CIRCULAR.name :
             box.prop(self, 'run')
         else :
             box.prop(self, 'deg')
@@ -1697,7 +1697,7 @@ class Stairs(bpy.types.Operator) :
             box.prop(self, 'rad2')
             box.prop(self, 'center')
         #end if
-        if self.stair_type == STAIRTYPE.FREESTANDING :
+        if self.stair_type == STAIRTYPE.FREESTANDING.name :
             box.prop(self, 'use_original')
             if not self.use_original :
                 box.prop(self, 'rEnable')
@@ -1712,32 +1712,32 @@ class Stairs(bpy.types.Operator) :
         box = layout.box()
         box.prop(self, 'make_treads')
         if self.make_treads :
-            if not self.use_original and self.stair_type != STAIRTYPE.CIRCULAR :
+            if not self.use_original and self.stair_type != STAIRTYPE.CIRCULAR.name :
                 box.prop(self, 'tread_type')
             else :
-                self.tread_type = TREADTYPE.CLASSIC
+                self.tread_type = TREADTYPE.CLASSIC.name
             #end if
-            if self.stair_type != STAIRTYPE.CIRCULAR :
+            if self.stair_type != STAIRTYPE.CIRCULAR.name :
                 box.prop(self, 'tread_w')
             #end if
             box.prop(self, 'tread_h')
             box.prop(self, 'tread_t')
-            if self.stair_type not in [STAIRTYPE.HOUSED_OPEN, STAIRTYPE.CIRCULAR] :
+            if self.stair_type not in [STAIRTYPE.HOUSED_OPEN.name, STAIRTYPE.CIRCULAR.name] :
                 box.prop(self, 'tread_o')
             else :
                 self.tread_o = 0.0
             #end if
             box.prop(self, 'tread_n')
-            if self.tread_type != TREADTYPE.CLASSIC :
+            if self.tread_type != TREADTYPE.CLASSIC.name :
                 box.prop(self, 'tread_tk')
                 box.prop(self, 'tread_sec')
-                if self.tread_sec > 1 and self.tread_type not in [TREADTYPE.BAR_1, TREADTYPE.BAR_2] :
+                if self.tread_sec > 1 and self.tread_type not in [TREADTYPE.BAR_1.name, TREADTYPE.BAR_2.name] :
                     box.prop(self, 'tread_sp')
                 #end if
-                if self.tread_type in [TREADTYPE.BAR_1, TREADTYPE.BAR_2, TREADTYPE.BAR_3] :
+                if self.tread_type in [TREADTYPE.BAR_1.name, TREADTYPE.BAR_2.name, TREADTYPE.BAR_3.name] :
                     box.prop(self, 'tread_sn')
                 #end if
-            elif self.stair_type == STAIRTYPE.CIRCULAR :
+            elif self.stair_type == STAIRTYPE.CIRCULAR.name :
                 box.prop(self, "tread_slc")
             #end if
         #end if
@@ -1767,7 +1767,7 @@ class Stairs(bpy.types.Operator) :
         #end if
         # Stringers
         box = layout.box()
-        if self.stair_type != STAIRTYPE.HOUSED_OPEN :
+        if self.stair_type != STAIRTYPE.HOUSED_OPEN.name :
             box.prop(self, 'make_stringer')
         else :
             self.make_stringer = True
@@ -1776,14 +1776,14 @@ class Stairs(bpy.types.Operator) :
             if not self.use_original :
                 box.prop(self, 'stringer_type')
             else :
-                self.stringer_type = STRINGERTYPE.CLASSIC
+                self.stringer_type = STRINGERTYPE.CLASSIC.name
             #end if
             box.prop(self, 'string_w')
-            if self.stair_type == STAIRTYPE.FREESTANDING :
-                if self.stringer_type == STRINGERTYPE.CLASSIC and not self.use_original :
+            if self.stair_type == STAIRTYPE.FREESTANDING.name :
+                if self.stringer_type == STRINGERTYPE.CLASSIC.name and not self.use_original :
                     box.prop(self, 'string_n')
                     box.prop(self, 'string_dis')
-                elif self.stringer_type in [STRINGERTYPE.I_BEAM, STRINGERTYPE.C_BEAM] :
+                elif self.stringer_type in [STRINGERTYPE.I_BEAM.name, STRINGERTYPE.C_BEAM.name] :
                     box.prop(self, 'string_n')
                     box.prop(self, 'string_dis')
                     box.prop(self, 'string_h')
@@ -1792,15 +1792,15 @@ class Stairs(bpy.types.Operator) :
                     box.prop(self, 'string_tp')
                     box.prop(self, 'string_g')
                 #end if
-            elif self.stair_type == STAIRTYPE.HOUSED_OPEN :
-                if self.stringer_type in [STRINGERTYPE.I_BEAM, STRINGERTYPE.C_BEAM] :
+            elif self.stair_type == STAIRTYPE.HOUSED_OPEN.name :
+                if self.stringer_type in [STRINGERTYPE.I_BEAM.name, STRINGERTYPE.C_BEAM.name] :
                     box.prop(self, 'string_tw')
                     box.prop(self, 'string_tf')
                 #end if
             #end if
         #end if
         # Tread support:
-##        if self.make_stringer and self.stringer_type in [STRINGERTYPE.I_BEAM, STRINGERTYPE.C_BEAM] :
+##        if self.make_stringer and self.stringer_type in [STRINGERTYPE.I_BEAM.name, STRINGERTYPE.C_BEAM.name] :
     #end draw
 
     def execute(self, context) :
@@ -1810,7 +1810,7 @@ class Stairs(bpy.types.Operator) :
         stringer_type = STRINGERTYPE[self.stringer_type]
         tread_type = TREADTYPE[self.tread_type]
         if self.make_treads :
-            if self.stair_type != STAIRTYPE.CIRCULAR :
+            if stair_type != STAIRTYPE.CIRCULAR :
                 Treads(self.mm,
                        stair_type,
                        tread_type,
