@@ -61,8 +61,7 @@ from bpy.props import \
 from bpy_extras import \
     object_utils
 from mathutils import \
-    Matrix, \
-    Vector
+    Matrix
 from mathutils.geometry import \
     intersect_line_plane, \
     intersect_line_line
@@ -70,6 +69,9 @@ from mathutils.geometry import \
 #+
 # Useful stuff
 #-
+
+vec = lambda x, y, z : mathutils.Vector([x, y, z])
+  # save some extra brackets
 
 class EnumPropItems(enum.Enum) :
     "base class for enumerations that can be passed to Blender’s EnumProperty" \
@@ -130,7 +132,7 @@ class MeshMaker :
         # rise -- height of each tread
         # run -- depth of each tread
         # N -- number of treads
-        self.stop = float(N) * Vector([run, 0, rise])
+        self.stop = float(N) * vec(run, 0, rise)
         self.slope = rise / run
         # identical quads for all objects which are parallelpipeds (except stringers and treads)
         self.faces = \
@@ -168,13 +170,13 @@ class Posts :
         self.mm = mm #MeshMaker
         self.rise = rise #Stair rise
         self.run = run #Stair run
-        self.x1 = Vector([0, 0, hR - tR]) #rail start
-        self.x2 = mm.stop + Vector([0, 0, hR - tR]) #rail stop
+        self.x1 = vec0, 0, hR - tR) #rail start
+        self.x2 = mm.stop + vec(0, 0, hR - tR) #rail stop
         self.d = d #post depth
         self.w = w #post width
         self.wT = wT #tread width
         self.nP = nP #number of posts
-        self.sp = Vector([(self.x2[0] - self.x1[0]) / float(nP + 1), 0, 0]) #spacing between posts
+        self.sp = vec(self.x2[0] - self.x1[0]) / float(nP + 1), 0, 0) #spacing between posts
         self.rEnable = rEnable
         self.lEnable = lEnable
         self.create()
@@ -182,8 +184,8 @@ class Posts :
 
     def intersect(self, i, d) :
         # finds intersection point, x, for rail and post
-        x3 = self.x1 + i * self.sp + Vector([d, d, d])
-        x4 = x3 + Vector([0, 0, self.x2[-1]])
+        x3 = self.x1 + i * self.sp + vec(d, d, d)
+        x4 = x3 + vec(0, 0, self.x2[-1])
         a = self.x2 - self.x1
         b = x4 - x3
         c = x3 - self.x1
@@ -199,15 +201,15 @@ class Posts :
             coords.append(self.intersect(i, 0.0))
             coords.append(self.intersect(i, self.d))
             #intersections with tread
-            coords.append(Vector([
+            coords.append(vec(
                     self.x1[0] + i * self.sp[0],
                     0,
                     int(coords[0][0] / self.run) * self.rise
-                ]))
-            coords.append(coords[2] + Vector([self.d, 0, 0]))
+                ))
+            coords.append(coords[2] + vec(self.d, 0, 0))
             #inner face
             for j in range(4) :
-                coords.append(coords[j] + Vector([0, self.w, 0]))
+                coords.append(coords[j] + vec(0, self.w, 0))
             #end for
             if self.rEnable :
                 self.mm.make_ppd_mesh(coords, 'posts')
@@ -215,7 +217,7 @@ class Posts :
             if self.lEnable :
                 #make post on other side of steps as well
                 for j in coords :
-                    j += Vector([0, self.wT - self.w, 0])
+                    j += vec(0, self.wT - self.w, 0)
                 #end for
                 self.mm.make_ppd_mesh(coords, 'posts')
             #end if
@@ -232,8 +234,8 @@ class Railings :
         self.w = w #rail width
         self.t = t #rail thickness
         self.h = h #rail height
-        self.start = Vector([0, 0, self.h - self.t]) #rail start
-        self.stop = mm.stop + Vector([0, 0, self.h - self.t]) #rail stop
+        self.start = vec(0, 0, self.h - self.t) #rail start
+        self.stop = mm.stop + vec(0, 0, self.h - self.t) #rail stop
         self.tT = tT #tread toe
         self.wP = wP #post width
         self.dP = dP #post depth
@@ -245,7 +247,7 @@ class Railings :
 
     def create(self) :
         #determine offset to include railing toe
-        offset = Vector([self.tT, 0, self.tT * self.mm.slope])
+        offset = vec(self.tT, 0, self.tT * self.mm.slope)
         coords = []
         coords.append(self.start - offset)
         coords.append \
@@ -254,31 +256,33 @@ class Railings :
             +
                 offset
             +
-                Vector([
+                vec
+                  (
                     self.dP,
                     0,
                     self.dP * self.mm.slope
-                ])
+                  )
           )
-        coords.append(self.start - offset + Vector([0, self.w, 0]))
+        coords.append(self.start - offset + vec(0, self.w, 0))
         coords.append \
           (
                 self.stop
             +
                 offset
             +
-                Vector([
+                vec
+                  (
                     self.dP,
                     self.w,
                     self.dP * self.mm.slope
-                ])
+                  )
           )
         for j in range(4) :
-            coords.append(coords[j] + Vector([0, 0, self.t]))
+            coords.append(coords[j] + vec(0, 0, self.t))
         #end for
         #centre over posts
         for j in coords :
-            j += Vector([0, 0.5 * (- self.w + self.wP), 0])
+            j += vec(0, 0.5 * (- self.w + self.wP), 0)
         #end for
         if self.rEnable :
             self.mm.make_ppd_mesh(coords, 'rails')
@@ -286,7 +290,7 @@ class Railings :
         if self.lEnable :
             #make rail on other side
             for j in coords :
-                j += Vector([0, self.wT - self.wP, 0])
+                j += vec(0, self.wT - self.wP, 0)
             #end for
             self.mm.make_ppd_mesh(coords, 'rails')
         #end if
@@ -314,17 +318,17 @@ class Retainers :
     def create(self) :
         for i in range(self.nR) :
             coords = []
-            offset = (i + 1) * Vector([0, 0, self.sp])
+            offset = (i + 1) * vec(0, 0, self.sp)
             coords.append(offset)
             coords.append(self.mm.stop + offset)
-            coords.append(offset + Vector([0, self.w, 0]))
-            coords.append(self.mm.stop + offset + Vector([0, self.w, 0]))
+            coords.append(offset + vec(0, self.w, 0))
+            coords.append(self.mm.stop + offset + vec(0, self.w, 0))
             for j in range(4) :
-                coords.append(coords[j] + Vector([0, 0, self.h]))
+                coords.append(coords[j] + vec(0, 0, self.h))
             #end for
             #centre in posts
             for j in coords :
-                j += Vector([0, 0.5 * (self.wP - self.w), 0])
+                j += vec(0, 0.5 * (self.wP - self.w), 0)
             #end for
             if self.rEnable :
                 self.mm.make_ppd_mesh(coords, 'retainers')
@@ -332,7 +336,7 @@ class Retainers :
             if self.lEnable :
                 #make retainer on other side
                 for j in coords :
-                    j += Vector([0, self.wT - self.wP, 0])
+                    j += vec(0, self.wT - self.wP, 0)
                 #end for
                 self.mm.make_ppd_mesh(coords, 'retainers')
             #end if
@@ -569,17 +573,17 @@ class Stringer :
                 for i in range(self.nS) :
                     for j in range(self.nT) :
                         coords = []
-                        coords.append(Vector([0, offset, - self.rise]))
-                        coords.append(Vector([self.run, offset, - self.rise]))
-                        coords.append(Vector([0, offset, - self.hT]))
-                        coords.append(Vector([self.run, offset, - self.hT]))
-                        coords.append(Vector([self.run, offset, 0]))
-                        coords.append(Vector([self.run * 2, offset, 0]))
+                        coords.append(vec(0, offset, - self.rise))
+                        coords.append(vec(self.run, offset, - self.rise))
+                        coords.append(vec(0, offset, - self.hT))
+                        coords.append(vec(self.run, offset, - self.hT))
+                        coords.append(vec(self.run, offset, 0))
+                        coords.append(vec(self.run * 2, offset, 0))
                         for k in range(6) :
-                            coords.append(coords[k] + Vector([0, self.w, 0]))
+                            coords.append(coords[k] + vec(0, self.w, 0))
                         #end for
                         for k in coords :
-                            k += j * Vector([self.run, 0, self.rise])
+                            k += j * vec(self.run, 0, self.rise)
                         #end for
                         self.mm.make_mesh(coords, self.faces1, 'stringer')
                     #end for
@@ -595,26 +599,26 @@ class Stringer :
         elif self.stair_type == STAIRTYPE.HOUSED_OPEN :
             if self.stringer_type == STRINGERTYPE.CLASSIC :
                 coords = []
-                coords.append(Vector([- self.tT, - self.w, - self.rise]))
-                coords.append(Vector([self.hT / self.mm.slope, - self.w, - self.rise]))
-                coords.append(Vector([- self.tT, - self.w, 0]))
-                coords.append(Vector([
+                coords.append(vec(- self.tT, - self.w, - self.rise))
+                coords.append(vec(self.hT / self.mm.slope, - self.w, - self.rise))
+                coords.append(vec(- self.tT, - self.w, 0))
+                coords.append(vec(
                         self.nT * self.run,
                         - self.w,
                         (self.nT - 1) * self.rise - self.hT
-                    ]))
-                coords.append(Vector([self.nT * self.run, - self.w, self.nT * self.rise]))
-                coords.append(Vector([
+                    ))
+                coords.append(vec(self.nT * self.run, - self.w, self.nT * self.rise))
+                coords.append(vec(
                         self.nT * self.run - self.tT,
                         - self.w,
                         self.nT * self.rise
-                    ]))
+                    ))
                 for i in range(6) :
-                    coords.append(coords[i] + Vector([0, self.w, 0]))
+                    coords.append(coords[i] + vec(0, self.w, 0))
                 #end for
                 self.mm.make_mesh(coords, self.faces2, 'stringer')
                 for i in coords :
-                    i += Vector([0, self.w + self.wT, 0])
+                    i += vec(0, self.w + self.wT, 0)
                 #end for
                 self.mm.make_mesh(coords, self.faces2, 'stringer')
             elif self.stringer_type == STRINGERTYPE.I_BEAM :
@@ -626,12 +630,12 @@ class Stringer :
             h = (self.rise - self.hT) - self.rise #height of top section
             for i in range(self.nT) :
                 coords = []
-                coords.append(Vector([i * self.run, 0, - self.rise]))
-                coords.append(Vector([(i + 1) * self.run, 0, - self.rise]))
-                coords.append(Vector([i * self.run, 0, h + i * self.rise]))
-                coords.append(Vector([(i + 1) * self.run, 0, h + i * self.rise]))
+                coords.append(vec(i * self.run, 0, - self.rise))
+                coords.append(vec((i + 1) * self.run, 0, - self.rise))
+                coords.append(vec(i * self.run, 0, h + i * self.rise))
+                coords.append(vec((i + 1) * self.run, 0, h + i * self.rise))
                 for j in range(4) :
-                    coords.append(coords[j] + Vector([0, self.wT, 0]))
+                    coords.append(coords[j] + vec(0, self.wT, 0))
                 #end for
                 self.mm.make_ppd_mesh(coords, 'stringer')
             #end for
@@ -641,10 +645,10 @@ class Stringer :
                 base = self.tO + offset * (s + 1)
                 start = \
                     [
-                        Vector([0, -base, - self.hT]),
-                        Vector([0, -base, - self.hT - self.rise]),
-                        Vector([0, -base - self.w, - self.hT]),
-                        Vector([0, -base - self.w, - self.hT - self.rise]),
+                        vec(0, - base, - self.hT),
+                        vec(0, - base, - self.hT - self.rise),
+                        vec(0, - base - self.w, - self.hT),
+                        vec(0, - base - self.w, - self.hT - self.rise),
                     ]
                 self.d = math.radians(self.run) / self.nT
                 for i in range(self.nT) :
@@ -652,11 +656,11 @@ class Stringer :
                     # Base faces.  Should be able to append more sections :
                     bar_2_faces = [[0, 1, 3, 2]]
                     t_inner = Matrix.Rotation(self.d * i, 3, 'Z')
-                    coords.append(t_inner * start[0] + Vector([0, 0, self.rise * i]))
-                    coords.append(t_inner * start[1] + Vector([0, 0, self.rise * i]))
+                    coords.append(t_inner * start[0] + vec(0, 0, self.rise * i))
+                    coords.append(t_inner * start[1] + vec(0, 0, self.rise * i))
                     t_outer = Matrix.Rotation(self.d * i, 3, 'Z')
-                    coords.append(t_outer * start[2] + Vector([0, 0, self.rise * i]))
-                    coords.append(t_outer * start[3] + Vector([0, 0, self.rise * i]))
+                    coords.append(t_outer * start[2] + vec(0, 0, self.rise * i))
+                    coords.append(t_outer * start[3] + vec(0, 0, self.rise * i))
                     k = 0
                     for j in range(self.deg) :
                         k = j * 4 + 4
@@ -671,7 +675,7 @@ class Stringer :
                             'Z'
                           )
                         for v in start :
-                            coords.append(rot * v + Vector([0, 0, self.rise * i]))
+                            coords.append(rot * v + vec(0, 0, self.rise * i))
                         #end for
                     #end for
                     for j in range(self.deg) :
@@ -689,9 +693,9 @@ class Stringer :
                         for v in range(4) :
                             if v in [1, 3] :
                                 incline = self.rise * i + self.rise / self.deg * (j + 1)
-                                coords.append(rot * start[v] + Vector([0, 0, incline]))
+                                coords.append(rot * start[v] + vec(0, 0, incline))
                             else :
-                                coords.append(rot * start[v] + Vector([0, 0, self.rise * i]))
+                                coords.append(rot * start[v] + vec(0, 0, self.rise * i))
                             #end if
                         #end for
                     #end for
@@ -719,24 +723,24 @@ class Stringer :
         if self.tp > 0 :
             for i in range(self.nS) :
                 coords = []
-                coords.append(Vector([0, offset,                baseZ]))
-                coords.append(Vector([0, offset,                baseZ + taper]))
-                coords.append(Vector([0, offset + (mid - web),  baseZ + self.tf]))
-                coords.append(Vector([0, offset + (mid - web),  topZ - self.tf]))
-                coords.append(Vector([0, offset,                topZ - taper]))
-                coords.append(Vector([0, offset,                topZ]))
-                coords.append(Vector([0, offset + (mid - web),  topZ]))
-                coords.append(Vector([0, offset + (mid + web),  topZ]))
-                coords.append(Vector([0, offset + self.w,       topZ]))
-                coords.append(Vector([0, offset + self.w,       topZ - taper]))
-                coords.append(Vector([0, offset + (mid + web),  topZ - self.tf]))
-                coords.append(Vector([0, offset + (mid + web),  baseZ + self.tf]))
-                coords.append(Vector([0, offset + self.w,       baseZ + taper]))
-                coords.append(Vector([0, offset + self.w,       baseZ]))
-                coords.append(Vector([0, offset + (mid + web),  baseZ]))
-                coords.append(Vector([0, offset + (mid - web),  baseZ]))
+                coords.append(vec(0, offset,                baseZ))
+                coords.append(vec(0, offset,                baseZ + taper))
+                coords.append(vec(0, offset + (mid - web),  baseZ + self.tf))
+                coords.append(vec(0, offset + (mid - web),  topZ - self.tf))
+                coords.append(vec(0, offset,                topZ - taper))
+                coords.append(vec(0, offset,                topZ))
+                coords.append(vec(0, offset + (mid - web),  topZ))
+                coords.append(vec(0, offset + (mid + web),  topZ))
+                coords.append(vec(0, offset + self.w,       topZ))
+                coords.append(vec(0, offset + self.w,       topZ - taper))
+                coords.append(vec(0, offset + (mid + web),  topZ - self.tf))
+                coords.append(vec(0, offset + (mid + web),  baseZ + self.tf))
+                coords.append(vec(0, offset + self.w,       baseZ + taper))
+                coords.append(vec(0, offset + self.w,       baseZ))
+                coords.append(vec(0, offset + (mid + web),  baseZ))
+                coords.append(vec(0, offset + (mid - web),  baseZ))
                 for j in range(16) :
-                    coords.append(coords[j]+Vector([self.run * self.nT, 0, self.rise * self.nT]))
+                    coords.append(coords[j]+vec(self.run * self.nT, 0, self.rise * self.nT))
                 #end for
                 # If the bottom meets the ground:
                 #   Bottom be flat with the xy plane, but shifted down.
@@ -748,8 +752,8 @@ class Stringer :
                           (
                             coords[j],
                             coords[j + 16],
-                            Vector([0, 0, topZ]),
-                            Vector([0, 0, 1])
+                            vec(0, 0, topZ),
+                            vec(0, 0, 1)
                           )
                     #end for
                 #end if
@@ -764,16 +768,16 @@ class Stringer :
         else :
             for i in range(self.nS) :
                 coords = []
-                coords.append(Vector([0, offset,                baseZ]))
-                coords.append(Vector([0, offset + (mid - web),  baseZ + self.tf]))
-                coords.append(Vector([0, offset + (mid - web),  topZ - self.tf]))
-                coords.append(Vector([0, offset,                topZ]))
-                coords.append(Vector([0, offset + self.w,       topZ]))
-                coords.append(Vector([0, offset + (mid + web),  topZ - self.tf]))
-                coords.append(Vector([0, offset + (mid + web),  baseZ + self.tf]))
-                coords.append(Vector([0, offset + self.w,       baseZ]))
+                coords.append(vec(0, offset,                baseZ))
+                coords.append(vec(0, offset + (mid - web),  baseZ + self.tf))
+                coords.append(vec(0, offset + (mid - web),  topZ - self.tf))
+                coords.append(vec(0, offset,                topZ))
+                coords.append(vec(0, offset + self.w,       topZ))
+                coords.append(vec(0, offset + (mid + web),  topZ - self.tf))
+                coords.append(vec(0, offset + (mid + web),  baseZ + self.tf))
+                coords.append(vec(0, offset + self.w,       baseZ))
                 for j in range(8) :
-                    coords.append(coords[j] + Vector([self.run * self.nT, 0, self.rise * self.nT]))
+                    coords.append(coords[j] + vec(self.run * self.nT, 0, self.rise * self.nT))
                 #end for
                 self.mm.make_mesh(coords, self.faces3b, 'stringer')
                 offset += self.wT / (self.nS + 1)
@@ -782,8 +786,8 @@ class Stringer :
     #end i_beam
 
     def housed_i_beam(self) :
-        webOrth = Vector([self.rise, 0, - self.run]).normalized()
-        webHeight = Vector([self.run + self.tT, 0, - self.hT]).project(webOrth).length
+        webOrth = vec(self.rise, 0, - self.run).normalized()
+        webHeight = vec(self.run + self.tT, 0, - self.hT).project(webOrth).length
         vDelta_1 = self.tf * self.mm.slope
         vDelta_2 = self.rise * (self.nT - 1) - (webHeight + self.tf)
         flange_y = (self.w - self.tw) / 2
@@ -792,88 +796,88 @@ class Stringer :
         coords = []
         if self.tp > 0 :
             # Upper-Outer flange:
-            coords.append(Vector([front, outer, - self.rise]))
-            coords.append(Vector([- self.tT, outer, - self.rise]))
-            coords.append(Vector([- self.tT, outer, 0]))
-            coords.append(Vector([
+            coords.append(vec(front, outer, - self.rise))
+            coords.append(vec(- self.tT, outer, - self.rise))
+            coords.append(vec(- self.tT, outer, 0))
+            coords.append(vec(
                     self.run * (self.nT - 1) - self.tT,
                     outer,
                     self.rise * (self.nT - 1)
-                ]))
-            coords.append(Vector([
+                ))
+            coords.append(vec(
                     self.run * self.nT,
                     outer,
                     self.rise * (self.nT - 1)
-                ]))
-            coords.append(Vector([
+                ))
+            coords.append(vec(
                     self.run * self.nT,
                     outer,
                     self.rise * (self.nT - 1) + self.tf
-                ]))
-            coords.append(Vector([
+                ))
+            coords.append(vec(
                     self.run * (self.nT - 1) - self.tT,
                     outer,
                     self.rise * (self.nT - 1) + self.tf
-                ]))
-            coords.append(Vector([front, outer, self.tf - vDelta_1]))
+                ))
+            coords.append(vec(front, outer, self.tf - vDelta_1))
             # Lower-Outer flange:
-            coords.append(coords[0] + Vector([self.tf + webHeight, 0, 0]))
-            coords.append(coords[1] + Vector([self.tf + webHeight, 0, 0]))
+            coords.append(coords[0] + vec(self.tf + webHeight, 0, 0))
+            coords.append(coords[1] + vec(self.tf + webHeight, 0, 0))
             coords.append \
               (
                 intersect_line_line
                   (
                     coords[9],
-                    coords[9] - Vector([0, 0, 1]),
-                    Vector([self.run, 0, - self.hT - self.tf]),
-                    Vector([self.run * 2, 0, self.rise - self.hT - self.tf])
+                    coords[9] - vec(0, 0, 1),
+                    vec(self.run, 0, - self.hT - self.tf),
+                    vec(self.run * 2, 0, self.rise - self.hT - self.tf)
                  )[0]
               )
-            coords.append(Vector([
+            coords.append(vec(
                     self.run * self.nT - (webHeight - self.hT) / self.mm.slope,
                     outer,
                     vDelta_2
-                ]))
-            coords.append(coords[4] - Vector([0, 0, self.tf + webHeight]))
-            coords.append(coords[5] - Vector([0, 0, self.tf + webHeight]))
-            coords.append(coords[11] + Vector([0, 0, self.tf]))
+                ))
+            coords.append(coords[4] - vec(0, 0, self.tf + webHeight))
+            coords.append(coords[5] - vec(0, 0, self.tf + webHeight))
+            coords.append(coords[11] + vec(0, 0, self.tf))
             coords.append \
               (
                   intersect_line_line
                     (
                       coords[8],
-                      coords[8] - Vector([0, 0, 1]),
-                      Vector([self.run, 0, - self.hT]),
-                      Vector([self.run * 2, 0, self.rise - self.hT])
+                      coords[8] - vec(0, 0, 1),
+                      vec(self.run, 0, - self.hT),
+                      vec(self.run * 2, 0, self.rise - self.hT)
                     )[0]
               )
             # Outer web:
-            coords.append(coords[1] + Vector([0, flange_y, 0]))
-            coords.append(coords[8] + Vector([0, flange_y, 0]))
-            coords.append(coords[15] + Vector([0, flange_y, 0]))
-            coords.append(coords[14] + Vector([0, flange_y, 0]))
-            coords.append(coords[13] + Vector([0, flange_y, 0]))
-            coords.append(coords[4] + Vector([0, flange_y, 0]))
-            coords.append(coords[3] + Vector([0, flange_y, 0]))
-            coords.append(coords[2] + Vector([0, flange_y, 0]))
+            coords.append(coords[1] + vec(0, flange_y, 0))
+            coords.append(coords[8] + vec(0, flange_y, 0))
+            coords.append(coords[15] + vec(0, flange_y, 0))
+            coords.append(coords[14] + vec(0, flange_y, 0))
+            coords.append(coords[13] + vec(0, flange_y, 0))
+            coords.append(coords[4] + vec(0, flange_y, 0))
+            coords.append(coords[3] + vec(0, flange_y, 0))
+            coords.append(coords[2] + vec(0, flange_y, 0))
             # Upper-Inner flange and lower-inner flange:
             for i in range(16) :
-                coords.append(coords[i] + Vector([0, self.w, 0]))
+                coords.append(coords[i] + vec(0, self.w, 0))
             #end for
             # Inner web:
             for i in range(8) :
-                coords.append(coords[i + 16] + Vector([0, self.tw, 0]))
+                coords.append(coords[i + 16] + vec(0, self.tw, 0))
             #end for
             # Mid nodes to so faces will be quads:
             for i in [0, 7, 6, 5, 9, 10, 11, 12] :
-                coords.append(coords[i] + Vector([0, flange_y, 0]))
+                coords.append(coords[i] + vec(0, flange_y, 0))
             #end for
             for i in range(8) :
-                coords.append(coords[i + 48] + Vector([0, self.tw, 0]))
+                coords.append(coords[i + 48] + vec(0, self.tw, 0))
             #end for
             self.mm.make_mesh(coords, self.faces3c, 'stringer')
             for i in coords :
-                i += Vector([0, self.wT + self.tw, 0])
+                i += vec(0, self.wT + self.tw, 0)
             #end for
             self.mm.make_mesh(coords, self.faces3c, 'stringer')
         #end if
@@ -899,24 +903,24 @@ class Stringer :
         if self.tp > 0 :
             for i in range(self.nS) :
                 coords = []
-                coords.append(Vector([0, offset,                baseZ]))
-                coords.append(Vector([0, offset,                baseZ + taper]))
-                coords.append(Vector([0, offset + (mid - web),  baseZ + self.tf]))
-                coords.append(Vector([0, offset + (mid - web),  topZ - self.tf]))
-                coords.append(Vector([0, offset,                topZ - taper]))
-                coords.append(Vector([0, offset,                topZ]))
-                coords.append(Vector([0, offset + (mid - web),  topZ]))
-                coords.append(Vector([0, offset + (mid + web),  topZ]))
-                coords.append(Vector([0, offset + self.w,       topZ]))
-                coords.append(Vector([0, offset + self.w,       topZ - taper]))
-                coords.append(Vector([0, offset + (mid + web),  topZ - self.tf]))
-                coords.append(Vector([0, offset + (mid + web),  baseZ + self.tf]))
-                coords.append(Vector([0, offset + self.w,       baseZ + taper]))
-                coords.append(Vector([0, offset + self.w,       baseZ]))
-                coords.append(Vector([0, offset + (mid + web),  baseZ]))
-                coords.append(Vector([0, offset + (mid - web),  baseZ]))
+                coords.append(vec(0, offset,                baseZ))
+                coords.append(vec(0, offset,                baseZ + taper))
+                coords.append(vec(0, offset + (mid - web),  baseZ + self.tf))
+                coords.append(vec(0, offset + (mid - web),  topZ - self.tf))
+                coords.append(vec(0, offset,                topZ - taper))
+                coords.append(vec(0, offset,                topZ))
+                coords.append(vec(0, offset + (mid - web),  topZ))
+                coords.append(vec(0, offset + (mid + web),  topZ))
+                coords.append(vec(0, offset + self.w,       topZ))
+                coords.append(vec(0, offset + self.w,       topZ - taper))
+                coords.append(vec(0, offset + (mid + web),  topZ - self.tf))
+                coords.append(vec(0, offset + (mid + web),  baseZ + self.tf))
+                coords.append(vec(0, offset + self.w,       baseZ + taper))
+                coords.append(vec(0, offset + self.w,       baseZ))
+                coords.append(vec(0, offset + (mid + web),  baseZ))
+                coords.append(vec(0, offset + (mid - web),  baseZ))
                 for j in range(16) :
-                    coords.append(coords[j] + Vector([self.run * self.nT, 0, self.rise * self.nT]))
+                    coords.append(coords[j] + vec(self.run * self.nT, 0, self.rise * self.nT))
                 #end for
                 # If the bottom meets the ground:
                 #   Bottom be flat with the xy plane, but shifted down.
@@ -928,8 +932,8 @@ class Stringer :
                           (
                             coords[j],
                             coords[j + 16],
-                            Vector([0, 0, topZ]),
-                            Vector([0, 0, 1])
+                            vec(0, 0, topZ),
+                            vec(0, 0, 1)
                           )
                     #end for
                 #end if
@@ -944,16 +948,16 @@ class Stringer :
         else :
             for i in range(self.nS) :
                 coords = []
-                coords.append(Vector([0, offset,                baseZ]))
-                coords.append(Vector([0, offset + (mid - web),  baseZ + self.tf]))
-                coords.append(Vector([0, offset + (mid - web),  topZ - self.tf]))
-                coords.append(Vector([0, offset,                topZ]))
-                coords.append(Vector([0, offset + self.w,       topZ]))
-                coords.append(Vector([0, offset + (mid + web),  topZ - self.tf]))
-                coords.append(Vector([0, offset + (mid + web),  baseZ + self.tf]))
-                coords.append(Vector([0, offset + self.w,       baseZ]))
+                coords.append(vec(0, offset,                baseZ))
+                coords.append(vec(0, offset + (mid - web),  baseZ + self.tf))
+                coords.append(vec(0, offset + (mid - web),  topZ - self.tf))
+                coords.append(vec(0, offset,                topZ))
+                coords.append(vec(0, offset + self.w,       topZ))
+                coords.append(vec(0, offset + (mid + web),  topZ - self.tf))
+                coords.append(vec(0, offset + (mid + web),  baseZ + self.tf))
+                coords.append(vec(0, offset + self.w,       baseZ))
                 for j in range(8) :
-                    coords.append(coords[j] + Vector([self.run * self.nT, 0, self.rise * self.nT]))
+                    coords.append(coords[j] + vec(self.run * self.nT, 0, self.rise * self.nT))
                 #end for
                 self.mm.make_mesh(coords, self.faces3b, 'stringer')
                 offset += self.wT / (self.nS + 1)
@@ -962,8 +966,8 @@ class Stringer :
     #end c_beam
 
     def housed_c_beam(self) :
-        webOrth = Vector([self.rise, 0, - self.run]).normalized()
-        webHeight = Vector([self.run + self.tT, 0, - self.hT]).project(webOrth).length
+        webOrth = vec(self.rise, 0, - self.run).normalized()
+        webHeight = vec(self.run + self.tT, 0, - self.hT).project(webOrth).length
         vDelta_1 = self.tf * self.mm.slope
         vDelta_2 = self.rise * (self.nT - 1) - (webHeight + self.tf)
         flange_y = (self.w - self.tw) / 2
@@ -972,83 +976,83 @@ class Stringer :
         coords = []
         if self.tp > 0 :
             # Upper-Outer flange:
-            coords.append(Vector([front, outer, - self.rise]))
-            coords.append(Vector([- self.tT, outer, - self.rise]))
-            coords.append(Vector([- self.tT, outer, 0]))
-            coords.append(Vector([
+            coords.append(vec(front, outer, - self.rise))
+            coords.append(vec(- self.tT, outer, - self.rise))
+            coords.append(vec(- self.tT, outer, 0))
+            coords.append(vec(
                     self.run * (self.nT - 1) - self.tT,
                     outer,
                     self.rise * (self.nT - 1)
-                ]))
-            coords.append(Vector([
+                ))
+            coords.append(vec(
                     self.run * self.nT,
                     outer,
                     self.rise * (self.nT - 1)
-                ]))
-            coords.append(Vector([
+                ))
+            coords.append(vec(
                     self.run * self.nT,
                     outer,
                     self.rise * (self.nT - 1) + self.tf
-                ]))
-            coords.append(Vector([
+                ))
+            coords.append(vec(
                     self.run * (self.nT - 1) - self.tT,
                     outer,
                     self.rise * (self.nT - 1) + self.tf
-                ]))
-            coords.append(Vector([front, outer, self.tf - vDelta_1]))
+                ))
+            coords.append(vec(front, outer, self.tf - vDelta_1))
             # Lower-Outer flange:
-            coords.append(coords[0] + Vector([self.tf + webHeight, 0, 0]))
-            coords.append(coords[1] + Vector([self.tf + webHeight, 0, 0]))
+            coords.append(coords[0] + vec(self.tf + webHeight, 0, 0))
+            coords.append(coords[1] + vec(self.tf + webHeight, 0, 0))
             coords.append \
               (
                 intersect_line_line
                   (
                     coords[9],
-                    coords[9] - Vector([0, 0, 1]),
-                    Vector([self.run, 0, - self.hT - self.tf]),
-                    Vector([self.run * 2, 0, self.rise - self.hT - self.tf])
+                    coords[9] - vec(0, 0, 1),
+                    vec(self.run, 0, - self.hT - self.tf),
+                    vec(self.run * 2, 0, self.rise - self.hT - self.tf)
                 )[0]
               )
-            coords.append(Vector([
+            coords.append(vec(
                     self.run * self.nT - (webHeight - self.hT) / self.mm.slope,
                     outer,
                     vDelta_2
-                ]))
-            coords.append(coords[4] - Vector([0, 0, self.tf + webHeight]))
-            coords.append(coords[5] - Vector([0, 0, self.tf + webHeight]))
-            coords.append(coords[11] + Vector([0, 0, self.tf]))
+                ))
+            coords.append(coords[4] - vec(0, 0, self.tf + webHeight))
+            coords.append(coords[5] - vec(0, 0, self.tf + webHeight))
+            coords.append(coords[11] + vec(0, 0, self.tf))
             coords.append \
               (
                 intersect_line_line
                   (
                     coords[8],
-                    coords[8] - Vector([0, 0, 1]),
-                    Vector([self.run, 0, - self.hT]),
-                    Vector([self.run * 2, 0, self.rise - self.hT])
+                    coords[8] - vec(0, 0, 1),
+                    vec(self.run, 0, - self.hT),
+                    vec(self.run * 2, 0, self.rise - self.hT)
                   )[0]
               )
             # Outer web:
-            coords.append(coords[1] + Vector([0, flange_y, 0]))
-            coords.append(coords[8] + Vector([0, flange_y, 0]))
-            coords.append(coords[15] + Vector([0, flange_y, 0]))
-            coords.append(coords[14] + Vector([0, flange_y, 0]))
-            coords.append(coords[13] + Vector([0, flange_y, 0]))
-            coords.append(coords[4] + Vector([0, flange_y, 0]))
-            coords.append(coords[3] + Vector([0, flange_y, 0]))
-            coords.append(coords[2] + Vector([0, flange_y, 0]))
+            coords.append(coords[1] + vec(0, flange_y, 0))
+            coords.append(coords[8] + vec(0, flange_y, 0))
+            coords.append(coords[15] + vec(0, flange_y, 0))
+            coords.append(coords[14] + vec(0, flange_y, 0))
+            coords.append(coords[13] + vec(0, flange_y, 0))
+            coords.append(coords[4] + vec(0, flange_y, 0))
+            coords.append(coords[3] + vec(0, flange_y, 0))
+            coords.append(coords[2] + vec(0, flange_y, 0))
             # Outer corner nodes:
             for i in [0, 7, 6, 5, 12, 11, 10, 9] :
-                coords.append(coords[i] + Vector([0, flange_y + self.tw, 0]))
+                coords.append(coords[i] + vec(0, flange_y + self.tw, 0))
             #end for
             self.mm.make_mesh(coords, self.faces4c, 'stringer')
             for i in range(16) :
-                coords[i] += Vector([0, - outer * 2, 0])
+                coords[i] += vec(0, - outer * 2, 0)
             #end for
             for i in range(8) :
-                coords[i + 16] += Vector([0, (- outer - flange_y) * 2, 0])
+                coords[i + 16] += vec(0, (- outer - flange_y) * 2, 0)
             #end for
             for i in coords :
-                i += Vector([0, self.tO * 2 + self.wT, 0])
+                i += vec(0, self.tO * 2 + self.wT, 0)
             #end for
             self.mm.make_mesh(coords, self.faces4c, 'stringer')
         #end if
@@ -1141,50 +1145,50 @@ class Treads :
         height = 0
         if self.stair_type in [STAIRTYPE.FREESTANDING, STAIRTYPE.HOUSED_OPEN, STAIRTYPE.BOX] :
             if self.tread_type == TREADTYPE.CLASSIC :
-                coords.append(Vector([- self.t, - self.o, 0]))
-                coords.append(Vector([self.d, - self.o, 0]))
-                coords.append(Vector([- self.t, self.w + self.o, 0]))
-                coords.append(Vector([self.d, self.w + self.o, 0]))
+                coords.append(vec(- self.t, - self.o, 0))
+                coords.append(vec(self.d, - self.o, 0))
+                coords.append(vec(- self.t, self.w + self.o, 0))
+                coords.append(vec(self.d, self.w + self.o, 0))
                 for i in range(4) :
-                    coords.append(coords[i] + Vector([0, 0, - self.h]))
+                    coords.append(coords[i] + vec(0, 0, - self.h))
                 #end for
             elif self.tread_type == TREADTYPE.BASIC_STEEL :
                 depth = (self.d + self.t - (self.sec - 1) * self.sp) / self.sec
                 inset = depth / 4
                 tDepth = depth - self.t
-                coords.append(Vector([- self.t, - self.o, - self.h]))                          #0
-                coords.append(Vector([inset - self.t, - self.o, - self.h]))           #1
-                coords.append(Vector([inset - self.t, - self.o, - self.h + self.tk])) #2
-                coords.append(Vector([self.tk - self.t, - self.o, - self.h + self.tk]))       #3
-                coords.append(Vector([self.tk - self.t, - self.o, - self.tk]))                #4
-                coords.append(Vector([- self.t, - self.o, 0]))                                #5
-                coords.append(Vector([tDepth, - self.o, 0]))                                 #6
-                coords.append(Vector([tDepth - self.tk, - self.o, - self.tk]))                #7
-                coords.append(Vector([tDepth - self.tk, - self.o, self.tk - self.h]))        #8
-                coords.append(Vector([tDepth, - self.o, - self.h]))                           #9
-                coords.append(Vector([tDepth - inset, - self.o, - self.h]))           #10
-                coords.append(Vector([tDepth - inset, - self.o, - self.h + self.tk])) #11
+                coords.append(vec(- self.t, - self.o, - self.h))                          #0
+                coords.append(vec(inset - self.t, - self.o, - self.h))           #1
+                coords.append(vec(inset - self.t, - self.o, - self.h + self.tk)) #2
+                coords.append(vec(self.tk - self.t, - self.o, - self.h + self.tk))       #3
+                coords.append(vec(self.tk - self.t, - self.o, - self.tk))                #4
+                coords.append(vec(- self.t, - self.o, 0))                                #5
+                coords.append(vec(tDepth, - self.o, 0))                                 #6
+                coords.append(vec(tDepth - self.tk, - self.o, - self.tk))                #7
+                coords.append(vec(tDepth - self.tk, - self.o, self.tk - self.h))        #8
+                coords.append(vec(tDepth, - self.o, - self.h))                           #9
+                coords.append(vec(tDepth - inset, - self.o, - self.h))           #10
+                coords.append(vec(tDepth - inset, - self.o, - self.h + self.tk)) #11
                 for i in range(12) :
-                    coords.append(coords[i] + Vector([0, self.w + 2 * self.o, 0]))
+                    coords.append(coords[i] + vec(0, self.w + 2 * self.o, 0))
                 #end for
             elif self.tread_type in [TREADTYPE.BAR_1, TREADTYPE.BAR_2, TREADTYPE.BAR_3] :
                 # Frame:
-                coords.append(Vector([- self.t, - self.o, - self.h]))
-                coords.append(Vector([self.d, - self.o, - self.h]))
-                coords.append(Vector([- self.t, - self.o, 0]))
-                coords.append(Vector([self.d, - self.o, 0]))
+                coords.append(vec(- self.t, - self.o, - self.h))
+                coords.append(vec(self.d, - self.o, - self.h))
+                coords.append(vec(- self.t, - self.o, 0))
+                coords.append(vec(self.d, - self.o, 0))
                 for i in range(4) :
                     if i % 2 == 0 :
-                        coords.append(coords[i] + Vector([self.tk, self.tk, 0]))
+                        coords.append(coords[i] + vec(self.tk, self.tk, 0))
                     else :
-                        coords.append(coords[i] + Vector([ - self.tk, self.tk, 0]))
+                        coords.append(coords[i] + vec(- self.tk, self.tk, 0))
                     #end if
                 #end for
                 for i in range(4) :
-                    coords.append(coords[i] + Vector([0, self.w + self.o, 0]))
+                    coords.append(coords[i] + vec(0, self.w + self.o, 0))
                 #end for
                 for i in range(4) :
-                    coords.append(coords[i + 4] + Vector([0, self.w + self.o - 2 * self.tk, 0]))
+                    coords.append(coords[i + 4] + vec(0, self.w + self.o - 2 * self.tk, 0))
                 #end for
                 # Tread sections:
                 if self.tread_type == TREADTYPE.BAR_1 :
@@ -1192,25 +1196,25 @@ class Treads :
                     topset = self.h - offset
                     self.sp = ((self.d + self.t - 2 * self.tk) - (offset * self.sec + topset)) / (self.sec + 1)
                     baseX = - self.t + self.sp + self.tk
-                    coords2.append(Vector([baseX, self.tk - self.o, offset - self.h]))
-                    coords2.append(Vector([baseX + offset, self.tk - self.o, - self.h]))
+                    coords2.append(vec(baseX, self.tk - self.o, offset - self.h))
+                    coords2.append(vec(baseX + offset, self.tk - self.o, - self.h))
                     for i in range(2) :
-                        coords2.append(coords2[i] + Vector([topset, 0, topset]))
+                        coords2.append(coords2[i] + vec(topset, 0, topset))
                     #end for
                     for i in range(4) :
-                        coords2.append(coords2[i] + Vector([0, (self.w + self.o) - 2 * self.tk, 0]))
+                        coords2.append(coords2[i] + vec(0, (self.w + self.o) - 2 * self.tk, 0))
                     #end for
                 elif self.tread_type in [TREADTYPE.BAR_2, TREADTYPE.BAR_3] :
                     offset = ((self.run + self.t) * self.sp) / (self.sec + 1)
                     topset = ((self.run + self.t) * (1 - self.sp) - 2 * self.tk) / self.sec
                     baseX = - self.t + self.tk + offset
                     baseY = self.w + self.o - 2 * self.tk
-                    coords2.append(Vector([baseX, - self.o + self.tk, - self.h / 2]))
-                    coords2.append(Vector([baseX + topset, - self.o + self.tk, - self.h / 2]))
-                    coords2.append(Vector([baseX, - self.o + self.tk, 0]))
-                    coords2.append(Vector([baseX + topset, - self.o + self.tk, 0]))
+                    coords2.append(vec(baseX, - self.o + self.tk, - self.h / 2))
+                    coords2.append(vec(baseX + topset, - self.o + self.tk, - self.h / 2))
+                    coords2.append(vec(baseX, - self.o + self.tk, 0))
+                    coords2.append(vec(baseX + topset, - self.o + self.tk, 0))
                     for i in range(4) :
-                        coords2.append(coords2[i] + Vector([0, baseY, 0]))
+                        coords2.append(coords2[i] + vec(0, baseY, 0))
                     #end for
                 #end if
                 # Tread cross-sections:
@@ -1225,13 +1229,14 @@ class Treads :
                     height = - self.h / 2
                 #end if
                 baseY = - self.o + self.tk + cross
-                coords3.append(Vector([- self.t + self.tk, baseY, - self.h]))
-                coords3.append(Vector([self.d - self.tk, baseY, - self.h]))
-                coords3.append(Vector([- self.t + self.tk, baseY, height]))
-                coords3.append(Vector([self.d - self.tk, baseY, height]))
+                coords3.append(vec(- self.t + self.tk, baseY, - self.h))
+                coords3.append(vec(self.d - self.tk, baseY, - self.h))
+                coords3.append(vec(- self.t + self.tk, baseY, height))
+                coords3.append(vec(self.d - self.tk, baseY, height))
                 for i in range(4) :
-                    coords3.append(coords3[i] + Vector([0, cW, 0]))
+                    coords3.append(coords3[i] + vec(0, cW, 0))
                 #end for
+            #end if
             # Make the treads:
             for i in range(self.n) :
                 if self.tread_type == TREADTYPE.CLASSIC :
@@ -1244,7 +1249,7 @@ class Treads :
                     for j in range(self.sec) :
                         self.mm.make_mesh(temp, self.basic_steel_faces, 'treads')
                         for k in temp :
-                            k += Vector([depth + self.sp, 0, 0])
+                            k += vec(depth + self.sp, 0, 0)
                         #end for
                     #end for
                 elif self.tread_type in [TREADTYPE.BAR_1, TREADTYPE.BAR_2, TREADTYPE.BAR_3] :
@@ -1256,11 +1261,11 @@ class Treads :
                     for j in range(self.sec) :
                         self.mm.make_ppd_mesh(temp, 'bars')
                         for k in temp :
-                            k += Vector([offset + self.sp, 0, 0])
+                            k += vec(offset + self.sp, 0, 0)
                         #end for
                     #end for
                     for j in coords2 :
-                        j += Vector([self.d, 0, self.r])
+                        j += vec(self.d, 0, self.r)
                     #end for
                     temp = []
                     for j in coords3 :
@@ -1269,25 +1274,25 @@ class Treads :
                     for j in range(self.sn) :
                         self.mm.make_ppd_mesh(temp, 'crosses')
                         for k in temp :
-                            k += Vector([0, cW + cross, 0])
+                            k += vec(0, cW + cross, 0)
                         #end for
                     #end for
                     for j in coords3 :
-                        j += Vector([self.d, 0, self.r])
+                        j += vec(self.d, 0, self.r)
                     #end for
                 #end if
                 for j in coords :
-                    j += Vector([self.d, 0, self.r])
+                    j += vec(self.d, 0, self.r)
                 #end for
             #end if
         # Circular staircase:
         elif self.stair_type == STAIRTYPE.CIRCULAR :
             start = \
                 [
-                    Vector([0, - self.o, 0]),
-                    Vector([0, - self.o, - self.h]),
-                    Vector([0, - self.w, 0]),
-                    Vector([0, - self.w, - self.h]),
+                    vec(0, - self.o, 0),
+                    vec(0, - self.o, - self.h),
+                    vec(0, - self.w, 0),
+                    vec(0, - self.w, - self.h),
                 ]
             self.d = math.radians(self.run) / self.n
             for i in range(self.n) :
@@ -1295,11 +1300,11 @@ class Treads :
                 # Base faces.  Should be able to append more sections:
                 bar_2_faces = [[0, 1, 3, 2]]
                 t_inner = Matrix.Rotation(- self.t / self.o + self.d * i, 3, 'Z')
-                coords.append(t_inner * start[0] + Vector([0, 0, self.r * i]))
-                coords.append(t_inner * start[1] + Vector([0, 0, self.r * i]))
+                coords.append(t_inner * start[0] + vec(0, 0, self.r * i))
+                coords.append(t_inner * start[1] + vec(0, 0, self.r * i))
                 t_outer = Matrix.Rotation(- self.t / self.w + self.d * i, 3, 'Z')
-                coords.append(t_outer * start[2] + Vector([0, 0, self.r * i]))
-                coords.append(t_outer * start[3] + Vector([0, 0, self.r * i]))
+                coords.append(t_outer * start[2] + vec(0, 0, self.r * i))
+                coords.append(t_outer * start[3] + vec(0, 0, self.r * i))
                 k = 0
                 for j in range(self.deg + 1) :
                     k = j * 4 + 4
@@ -1309,7 +1314,7 @@ class Treads :
                     bar_2_faces.append([k, k - 4, k - 2, k + 2])
                     rot = Matrix.Rotation(self.d * j / self.deg + self.d * i, 3, 'Z')
                     for v in start :
-                        coords.append(rot * v + Vector([0, 0, self.r * i]))
+                        coords.append(rot * v + vec(0, 0, self.r * i))
                     #end for
                 #end for
                 bar_2_faces.append([k, k + 1, k + 3, k + 2])
