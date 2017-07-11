@@ -32,6 +32,7 @@
 #  Stairbuilder is for quick stair generation.
 #  Copyright (C) 2010  Nick van Adium
 #  Copyright (C) 2011  Paul Marshall
+#  Copyright (C) 2017 Lawrence D'Oliveiro
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
