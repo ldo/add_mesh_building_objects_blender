@@ -1660,38 +1660,44 @@ class Stairs(bpy.types.Operator) :
         tread_type = TREADTYPE[self.tread_type]
         if self.make_treads :
             if stair_type != STAIRTYPE.CIRCULAR :
-                treads(mm,
-                       stair_type,
-                       tread_type,
-                       self.run,
-                       self.tread_w,
-                       self.tread_h,
-                       self.run,
-                       self.rise,
-                       self.tread_t,
-                       self.tread_o,
-                       self.tread_n,
-                       self.tread_tk,
-                       self.tread_sec,
-                       self.tread_sp,
-                       self.tread_sn)
+                treads \
+                  (
+                    mm = mm,
+                    stair_type = stair_type,
+                    tread_type = tread_type,
+                    stair_run = self.run,
+                    w = self.tread_w,
+                    tread_height = self.tread_h,
+                    tread_run = self.run,
+                    tread_rise = self.rise,
+                    tread_toe = self.tread_t,
+                    o = self.tread_o,
+                    nr_treads = self.tread_n,
+                    tread_metal_thickness = self.tread_tk,
+                    nr_tread_sections = self.tread_sec,
+                    spacing = self.tread_sp,
+                    nr_cross_sections = self.tread_sn
+                  )
             else :
-                treads(mm,
-                       stair_type,
-                       tread_type,
-                       self.deg,
-                       self.rad2,
-                       self.tread_h,
-                       self.run,
-                       self.rise,
-                       self.tread_t,
-                       self.rad1,
-                       self.tread_n,
-                       self.tread_tk,
-                       self.tread_sec,
-                       self.tread_sp,
-                       self.tread_sn,
-                       self.tread_slc)
+                treads \
+                  (
+                    mm = mm,
+                    stair_type = stair_type,
+                    tread_type = tread_type,
+                    stair_run = self.deg,
+                    w = self.rad2,
+                    tread_height = self.tread_h,
+                    tread_run = self.run,
+                    tread_rise = self.rise,
+                    tread_toe = self.tread_t,
+                    o = self.rad1,
+                    nr_treads = self.tread_n,
+                    tread_metal_thickness = self.tread_tk,
+                    nr_tread_sections = self.tread_sec,
+                    spacing = self.tread_sp,
+                    nr_cross_sections = self.tread_sn,
+                    nr_sections_per_slice = self.tread_slc
+                  )
             #end if
         #end if
         if self.make_posts and (self.rEnable or self.lEnable) :
