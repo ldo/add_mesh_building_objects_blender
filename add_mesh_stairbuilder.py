@@ -165,12 +165,12 @@ class MeshMaker :
 
 #end MeshMaker
 
-def posts(mm, rise, stair_run, post_depth, post_width, tread_width, nr_posts, hR, tR, rEnable, lEnable) :
+def posts(mm, rise, stair_run, post_depth, post_width, tread_width, nr_posts, rail_height, rail_thickness, rEnable, lEnable) :
     "generates posts for the stairs. These are the vertical elements holding up the railings."
     # TODO: STAIRTYPE.CIRCULAR
 
-    x1 = vec(0, 0, hR - tR) #rail start
-    x2 = mm.stop + vec(0, 0, hR - tR) #rail stop
+    x1 = vec(0, 0, rail_height - rail_thickness) #rail start
+    x2 = mm.stop + vec(0, 0, rail_height - rail_thickness) #rail stop
     post_spacing = vec((x2[0] - x1[0]) / float(nr_posts + 1), 0, 0) #spacing between posts
 
     def intersect(i, d) :
@@ -272,11 +272,11 @@ def railings(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width,
     #end if
 #end railings
 
-def retainers(mm, retainer_width, retainer_height, post_width, tread_width, hR, nr_retainers, rEnable, lEnable) :
+def retainers(mm, retainer_width, retainer_height, post_width, tread_width, rail_height, nr_retainers, rEnable, lEnable) :
     "generates retainers for the stairs. These are the additional pieces parallel" \
     " to, and below, the railings."
 
-    retainer_spacing = hR / float(nr_retainers + 1)
+    retainer_spacing = rail_height / float(nr_retainers + 1)
 
     for i in range(nr_retainers) :
         coords = []
@@ -1776,118 +1776,141 @@ class Stairs(bpy.types.Operator) :
             #end if
         #end if
         if self.make_posts and (self.rEnable or self.lEnable) :
-            posts(mm,
-                  self.rise,
-                  self.run,
-                  self.post_d,
-                  self.post_w,
-                  self.tread_w,
-                  self.post_n,
-                  self.rail_h,
-                  self.rail_t,
-                  self.rEnable,
-                  self.lEnable)
+            posts \
+              (
+                mm = mm,
+                rise = self.rise,
+                stair_run = self.run,
+                post_depth = self.post_d,
+                post_width = self.post_w,
+                tread_width = self.tread_w,
+                nr_posts = self.post_n,
+                rail_height = self.rail_h,
+                rail_thickness = self.rail_t,
+                rEnable = self.rEnable,
+                lEnable = self.lEnable
+              )
         #end if
         if self.make_railings and (self.rEnable or self.lEnable) :
-            railings(mm,
-                  self.rail_w,
-                  self.rail_t,
-                  self.rail_h,
-                  self.tread_t,
-                  self.post_w,
-                  self.post_d,
-                  self.tread_w,
-                  self.rEnable,
-                  self.lEnable)
+            railings \
+              (
+                mm = mm,
+                rail_width = self.rail_w,
+                rail_thickness = self.rail_t,
+                rail_height = self.rail_h,
+                tread_toe = self.tread_t,
+                post_width = self.post_w,
+                post_depth = self.post_d,
+                tread_width = self.tread_w,
+                rEnable = self.rEnable,
+                lEnable = self.lEnable
+              )
         #end if
         if self.make_retainers and (self.rEnable or self.lEnable) :
-            retainers(mm,
-                      self.ret_w,
-                      self.ret_h,
-                      self.post_w,
-                      self.tread_w,
-                      self.rail_h,
-                      self.ret_n,
-                      self.rEnable,
-                      self.lEnable)
+            retainers \
+              (
+                mm = mm,
+                retainer_width = self.ret_w,
+                retainer_height = self.ret_h,
+                post_width = self.post_w,
+                tread_width = self.tread_w,
+                rail_height = self.rail_h,
+                nr_retainers = self.ret_n,
+                rEnable = self.rEnable,
+                lEnable = self.lEnable
+              )
         #end if
         if self.make_stringer :
             if stair_type == STAIRTYPE.FREESTANDING and self.use_original :
-                stringer(mm,
-                         stair_type,
-                         stringer_type,
-                         self.rise,
-                         self.run,
-                         self.string_w,
-                         self.string_h,
-                         self.tread_n,
-                         self.tread_h,
-                         self.tread_w,
-                         self.tread_t,
-                         self.tread_o,
-                         self.string_tw,
-                         self.string_tf,
-                         self.string_tp,
-                         not self.string_g)
+                stringer \
+                  (
+                    mm = mm,
+                    stair_type = stair_type,
+                    stringer_type = stringer_type,
+                    stair_rise = self.rise,
+                    stair_run = self.run,
+                    w = self.string_w,
+                    stringer_height = self.string_h,
+                    nr_treads = self.tread_n,
+                    tread_height = self.tread_h,
+                    tread_width = self.tread_w,
+                    tread_toe = self.tread_t,
+                    tread_overhang = self.tread_o,
+                    tw = self.string_tw,
+                    stringer_flange_thickness = self.string_tf,
+                    tp = self.string_tp,
+                    stringer_intersects_ground = not self.string_g
+                  )
             elif stair_type == STAIRTYPE.BOX :
-                stringer(mm,
-                         stair_type,
-                         stringer_type,
-                         self.rise,
-                         self.run,
-                         100,
-                         self.string_h,
-                         self.tread_n,
-                         self.tread_h,
-                         self.tread_w,
-                         self.tread_t,
-                         self.tread_o,
-                         self.string_tw,
-                         self.string_tf,
-                         self.string_tp,
-                         not self.string_g,
-                         1, False, False)
+                stringer \
+                  (
+                    mm = mm,
+                    stair_type = stair_type,
+                    stringer_type = stringer_type,
+                    stair_rise = self.rise,
+                    stair_run = self.run,
+                    w = 100,
+                    stringer_height = self.string_h,
+                    nr_treads = self.tread_n,
+                    tread_height = self.tread_h,
+                    tread_width = self.tread_w,
+                    tread_toe = self.tread_t,
+                    tread_overhang = self.tread_o,
+                    tw = self.string_tw,
+                    stringer_flange_thickness = self.string_tf,
+                    tp = self.string_tp,
+                    stringer_intersects_ground = not self.string_g,
+                    nr_stringers = 1,
+                    distributed_stringers = False,
+                    notMulti = False
+                  )
             elif stair_type == STAIRTYPE.CIRCULAR :
-                stringer(mm,
-                         stair_type,
-                         stringer_type,
-                         self.rise,
-                         self.deg,
-                         self.string_w,
-                         self.string_h,
-                         self.tread_n,
-                         self.tread_h,
-                         self.rad2 - self.rad1,
-                         self.tread_t,
-                         self.rad1,
-                         self.string_tw,
-                         self.string_tf,
-                         self.string_tp,
-                         not self.string_g,
-                         self.string_n,
-                         self.string_dis,
-                         self.use_original,
-                         self.tread_slc)
+                stringer \
+                  (
+                    mm = mm,
+                    stair_type = stair_type,
+                    stringer_type = stringer_type,
+                    stair_rise = self.rise,
+                    stair_run = self.deg,
+                    w = self.string_w,
+                    stringer_height = self.string_h,
+                    nr_treads = self.tread_n,
+                    tread_height = self.tread_h,
+                    tread_width = self.rad2 - self.rad1,
+                    tread_toe = self.tread_t,
+                    tread_overhang = self.rad1,
+                    tw = self.string_tw,
+                    stringer_flange_thickness = self.string_tf,
+                    tp = self.string_tp,
+                    stringer_intersects_ground = not self.string_g,
+                    nr_stringers = self.string_n,
+                    distributed_stringers = self.string_dis,
+                    notMulti = self.use_original,
+                    sections_per_slice = self.tread_slc
+                  )
             else :
-                stringer(mm,
-                         stair_type,
-                         stringer_type,
-                         self.rise,
-                         self.run,
-                         self.string_w,
-                         self.string_h,
-                         self.tread_n,
-                         self.tread_h,
-                         self.tread_w,
-                         self.tread_t,
-                         self.tread_o,
-                         self.string_tw,
-                         self.string_tf,
-                         self.string_tp,
-                         not self.string_g,
-                         self.string_n,
-                         self.string_dis,
-                         self.use_original)
+                stringer \
+                  (
+                    mm = mm,
+                    stair_type = stair_type,
+                    stringer_type = stringer_type,
+                    stair_rise = self.rise,
+                    stair_run = self.run,
+                    w = self.string_w,
+                    stringer_height = self.string_h,
+                    nr_treads = self.tread_n,
+                    tread_height = self.tread_h,
+                    tread_width = self.tread_w,
+                    tread_toe = self.tread_t,
+                    tread_overhang = self.tread_o,
+                    tw = self.string_tw,
+                    stringer_flange_thickness = self.string_tf,
+                    tp = self.string_tp,
+                    stringer_intersects_ground = not self.string_g,
+                    nr_stringers = self.string_n,
+                    distributed_stringers = self.string_dis,
+                    notMulti = self.use_original
+                  )
             #end if
         #end if
         return {'FINISHED'}
