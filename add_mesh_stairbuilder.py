@@ -684,87 +684,6 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
         # @TODO Taper = 100%
     #end housed_i_beam
 
-    def c_beam() :
-        # fixme: not used!
-        mid = stringer_width / 2
-        web = stringer_web_thickness / 2
-        # Bottom of the stringer:
-        baseZ = - stair_rise - tread_height - stringer_height
-        # Top of the strigner:
-        topZ = - stair_rise - tread_height
-        # Vertical taper amount:
-        taper = stringer_flange_thickness * stringer_flange_taper
-        if distributed_stringers or nr_stringers == 1 :
-            offset = tread_width / (nr_stringers + 1) - mid
-        else :
-            offset = 0
-        #end if
-        # taper < 100%:
-        if stringer_flange_taper > 0 :
-            for i in range(nr_stringers) :
-                coords = []
-                coords.append(vec(0, offset,                baseZ))
-                coords.append(vec(0, offset,                baseZ + taper))
-                coords.append(vec(0, offset + (mid - web),  baseZ + stringer_flange_thickness))
-                coords.append(vec(0, offset + (mid - web),  topZ - stringer_flange_thickness))
-                coords.append(vec(0, offset,                topZ - taper))
-                coords.append(vec(0, offset,                topZ))
-                coords.append(vec(0, offset + (mid - web),  topZ))
-                coords.append(vec(0, offset + (mid + web),  topZ))
-                coords.append(vec(0, offset + stringer_width,       topZ))
-                coords.append(vec(0, offset + stringer_width,       topZ - taper))
-                coords.append(vec(0, offset + (mid + web),  topZ - stringer_flange_thickness))
-                coords.append(vec(0, offset + (mid + web),  baseZ + stringer_flange_thickness))
-                coords.append(vec(0, offset + stringer_width,       baseZ + taper))
-                coords.append(vec(0, offset + stringer_width,       baseZ))
-                coords.append(vec(0, offset + (mid + web),  baseZ))
-                coords.append(vec(0, offset + (mid - web),  baseZ))
-                for j in range(16) :
-                    coords.append(coords[j] + vec(stair_run * nr_treads, 0, stair_rise * nr_treads))
-                #end for
-                # If the bottom meets the ground:
-                #   Bottom be flat with the xy plane, but shifted down.
-                #   Either project onto the plane along a vector (hard) or use the built in
-                #       interest found in mathutils.geometry (easy).  Using intersect:
-                if stringer_intersects_ground :
-                    for j in range(16) :
-                        coords[j] = intersect_line_plane \
-                          (
-                            coords[j],
-                            coords[j + 16],
-                            vec(0, 0, topZ),
-                            vec(0, 0, 1)
-                          )
-                    #end for
-                #end if
-                mm.make_mesh(coords, faces3a, 'stringer')
-                if distributed_stringers or nr_stringers == 1 :
-                    offset += tread_width / (nr_stringers + 1)
-                else :
-                    offset += (tread_width - stringer_width) / (nr_stringers - 1)
-                #end if
-            #end for
-        # taper = 100%:
-        else :
-            for i in range(nr_stringers) :
-                coords = []
-                coords.append(vec(0, offset,                baseZ))
-                coords.append(vec(0, offset + (mid - web),  baseZ + stringer_flange_thickness))
-                coords.append(vec(0, offset + (mid - web),  topZ - stringer_flange_thickness))
-                coords.append(vec(0, offset,                topZ))
-                coords.append(vec(0, offset + stringer_width,       topZ))
-                coords.append(vec(0, offset + (mid + web),  topZ - stringer_flange_thickness))
-                coords.append(vec(0, offset + (mid + web),  baseZ + stringer_flange_thickness))
-                coords.append(vec(0, offset + stringer_width,       baseZ))
-                for j in range(8) :
-                    coords.append(coords[j] + vec(stair_run * nr_treads, 0, stair_rise * nr_treads))
-                #end for
-                mm.make_mesh(coords, faces3b, 'stringer')
-                offset += tread_width / (nr_stringers + 1)
-            #end for
-        #end if
-    #end c_beam
-
     def housed_c_beam() :
         webOrth = vec(stair_rise, 0, - stair_run).normalized()
         webHeight = vec(stair_run + tread_toe, 0, - tread_height).project(webOrth).length
@@ -1625,7 +1544,7 @@ class Stairs(bpy.types.Operator) :
             box.prop(self, 'deg')
             box.prop(self, 'rad1')
             box.prop(self, 'rad2')
-            box.prop(self, 'center')
+            box.prop(self, 'center') # FIXME: not used
         #end if
         if self.stair_type == STAIRTYPE.FREESTANDING.name :
             box.prop(self, 'use_original')
