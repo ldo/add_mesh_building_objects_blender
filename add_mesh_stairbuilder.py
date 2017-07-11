@@ -1173,7 +1173,7 @@ def treads(mm, stair_type, tread_type, stair_run, w, tread_height, tread_run, tr
             mm.make_mesh(coords, bar_2_faces, 'treads')
         #end for
     #end if
-#end Treads
+#end treads
 
 #+
 # Putting it all together
