@@ -1662,6 +1662,8 @@ class Stairs(bpy.types.Operator) :
                     box.prop(self, 'string_tw')
                     box.prop(self, 'string_tf')
                 #end if
+            elif self.stair_type == STAIRTYPE.CIRCULAR.name :
+                box.prop(self, 'string_n')
             #end if
         #end if
     #end draw
