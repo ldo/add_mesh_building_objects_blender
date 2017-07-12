@@ -1252,7 +1252,7 @@ class Stairs(bpy.types.Operator) :
         description = "How much the stairway rotates",
         min = 0.0,
         max = 92160.0 * deg,
-        step = 5.0 * deg,
+        step = 5 * 100,
         default = 450.0 * deg
       )
     center = BoolProperty \
