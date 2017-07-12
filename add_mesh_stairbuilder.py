@@ -68,7 +68,8 @@ from mathutils.geometry import \
 # Useful stuff
 #-
 
-deg = math.pi / 180 # degrees/radians conversion factor
+# deg = math.pi / 180 # degrees/radians conversion factor # not needed
+circle = 2 * math.pi # circles/radians conversion factor
 
 vec = lambda x, y, z : mathutils.Vector([x, y, z])
   # save some extra brackets
@@ -1249,9 +1250,9 @@ class Stairs(bpy.types.Operator) :
         name = "Rotation",
         description = "How much the stairway rotates",
         min = 0.0,
-        max = 92160.0 * deg,
+        max = 256 * circle,
         step = 5 * 100,
-        default = 450.0 * deg
+        default = 1.25 * circle
       )
     center = BoolProperty \
       (
