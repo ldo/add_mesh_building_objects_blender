@@ -177,33 +177,25 @@ class MeshMaker :
 def posts(mm, rise, stair_run, post_depth, post_width, tread_width, nr_posts, rail_height, rail_thickness, rEnable, lEnable) :
     "generates posts for the stairs. These are the vertical elements holding up the railings."
     # TODO: STAIRTYPE.CIRCULAR
-
     p1 = vec(0, 0, rail_height - rail_thickness) # first post
-    a = mm.stop
-    p2 = p1 + a  # last post
+    p2 = p1 + mm.stop  # last post
     # note that first and last posts are not counted in nr_posts
     post_spacing = vec((p2.x - p1.x) / float(nr_posts + 1), 0, 0)
-    b = vec(0, 0, p2.z)
-    cr_ab = a.cross(b)
-    mag_cr_ab = cr_ab * cr_ab
-
-    def intersect(i, d) :
-        # finds intersection point, x, for rail and post
-        c = i * post_spacing + vec(d, d, d)
-        return p1 + a * (c.cross(b).dot(cr_ab) / mag_cr_ab)
-    #end intersect
-
-#begin posts
     for i in range(nr_posts + 2) :
         coords = []
-        #intersections with rail
-        coords.append(intersect(i, 0.0))
-        coords.append(intersect(i, post_depth))
+        # meet bottom of rail
+        delta_x = i * post_spacing.x
+        x1 = p1.x + delta_x
+        x2 = x1 + post_depth
+        z1 = p1.z + delta_x * mm.slope
+        z2 = p1.z + (delta_x + post_depth) * mm.slope
+        coords.append(vec(x1, 0, z1))
+        coords.append(vec(x2, 0, z2))
         #intersections with tread
         coords.append(vec(
-                p1.x + i * post_spacing.x,
+                x1,
                 0,
-                int(coords[0].x / stair_run) * rise
+                math.floor(coords[0].x / stair_run) * rise # meet top of tread
             ))
         coords.append(coords[2] + vec(post_depth, 0, 0))
         #inner face
