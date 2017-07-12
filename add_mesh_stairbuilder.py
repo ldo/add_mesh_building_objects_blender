@@ -1137,7 +1137,7 @@ def treads(mm, stair_type, tread_type, stair_run, tread_width, tread_height, tre
         for j in coords :
             j += vec(tread_run, 0, tread_rise)
         #end for
-    #end if
+    #end for
 #end treads
 
 def treads_circular(mm, tread_type, stair_run, outer_radius, tread_height, tread_rise, tread_toe, inner_radius, nr_treads, nr_sections_per_slice = 4) :
