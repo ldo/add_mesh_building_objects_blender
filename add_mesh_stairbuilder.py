@@ -1721,50 +1721,52 @@ class Stairs(bpy.types.Operator) :
                   )
             #end if
         #end if
-        if self.make_posts and (self.rEnable or self.lEnable) :
-            posts \
-              (
-                mm = mm,
-                rise = self.rise,
-                stair_run = self.run,
-                post_depth = self.post_d,
-                post_width = self.post_w,
-                tread_width = self.tread_w,
-                nr_posts = self.post_n,
-                rail_height = self.rail_h,
-                rail_thickness = self.rail_t,
-                rEnable = self.rEnable,
-                lEnable = self.lEnable
-              )
-        #end if
-        if self.make_railings and (self.rEnable or self.lEnable) :
-            railings \
-              (
-                mm = mm,
-                rail_width = self.rail_w,
-                rail_thickness = self.rail_t,
-                rail_height = self.rail_h,
-                tread_toe = self.tread_t,
-                post_width = self.post_w,
-                post_depth = self.post_d,
-                tread_width = self.tread_w,
-                rEnable = self.rEnable,
-                lEnable = self.lEnable
-              )
-        #end if
-        if self.make_retainers and (self.rEnable or self.lEnable) :
-            retainers \
-              (
-                mm = mm,
-                retainer_width = self.ret_w,
-                retainer_height = self.ret_h,
-                post_width = self.post_w,
-                tread_width = self.tread_w,
-                rail_height = self.rail_h,
-                nr_retainers = self.ret_n,
-                rEnable = self.rEnable,
-                lEnable = self.lEnable
-              )
+        if self.rEnable or self.lEnable :
+            if self.make_posts :
+                posts \
+                  (
+                    mm = mm,
+                    rise = self.rise,
+                    stair_run = self.run,
+                    post_depth = self.post_d,
+                    post_width = self.post_w,
+                    tread_width = self.tread_w,
+                    nr_posts = self.post_n,
+                    rail_height = self.rail_h,
+                    rail_thickness = self.rail_t,
+                    rEnable = self.rEnable,
+                    lEnable = self.lEnable
+                  )
+            #end if
+            if self.make_railings :
+                railings \
+                  (
+                    mm = mm,
+                    rail_width = self.rail_w,
+                    rail_thickness = self.rail_t,
+                    rail_height = self.rail_h,
+                    tread_toe = self.tread_t,
+                    post_width = self.post_w,
+                    post_depth = self.post_d,
+                    tread_width = self.tread_w,
+                    rEnable = self.rEnable,
+                    lEnable = self.lEnable
+                  )
+            #end if
+            if self.make_retainers :
+                retainers \
+                  (
+                    mm = mm,
+                    retainer_width = self.ret_w,
+                    retainer_height = self.ret_h,
+                    post_width = self.post_w,
+                    tread_width = self.tread_w,
+                    rail_height = self.rail_h,
+                    nr_retainers = self.ret_n,
+                    rEnable = self.rEnable,
+                    lEnable = self.lEnable
+                  )
+            #end if
         #end if
         if self.make_stringer :
             if stair_type == STAIRTYPE.FREESTANDING and self.use_original :
