@@ -14,7 +14,6 @@
 #
 #   @todo:
 #   - Join separate stringer objects and then clean up the mesh.
-#   - Put all objects into a group.
 #   - Generate left/right posts/railings/retainers separately with
 #       option to disable just the left/right.
 #   - Add wall railing type as an option for left/right
@@ -143,6 +142,7 @@ class MeshMaker :
                 [2, 3, 7, 6],
                 [1, 3, 7, 5],
             ]
+        self.made_objects = []
     #end __init__
 
     def make_mesh(self, verts, faces, name) :
@@ -151,7 +151,10 @@ class MeshMaker :
         mesh.from_pydata(verts, [], faces)
         mesh.use_auto_smooth = True
         mesh.update()
-        return object_utils.object_data_add(bpy.context, mesh, operator = None)
+        mesh_obj = bpy.data.objects.new(name = name, object_data = mesh)
+        bpy.context.scene.objects.link(mesh_obj)
+        mesh_obj.location = (0, 0, 0) # relative to root
+        self.made_objects.append(mesh_obj)
     #end make_mesh
 
     def make_ppd_mesh(self, verts, name) :
@@ -1819,6 +1822,26 @@ class Stairs(bpy.types.Operator) :
                     distributed_stringers = self.string_dis,
                     notMulti = self.use_original
                   )
+            #end if
+        #end if
+        if len(mm.made_objects) != 0 :
+            # cannot seem to create an empty with bpy.data.objects.new()
+            bpy.ops.object.empty_add \
+              (
+                location = bpy.context.scene.cursor_location,
+                layers = bpy.context.space_data.layers
+              )
+            root = bpy.context.active_object
+            assert root.type == "EMPTY"
+            root.name = "staircase root"
+            for obj in mm.made_objects :
+                obj.parent = root
+                obj.parent_type = "OBJECT"
+                obj.select = True
+            #end if
+            bpy.ops.group.create(name = "staircase components")
+            for obj in mm.made_objects :
+                obj.select = False
             #end if
         #end if
         return {'FINISHED'}
