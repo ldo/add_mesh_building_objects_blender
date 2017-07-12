@@ -1557,7 +1557,7 @@ class Stairs(bpy.types.Operator) :
             box.prop(self, 'rad2')
             box.prop(self, 'center') # FIXME: not used
         #end if
-        if self.stair_type == STAIRTYPE.FREESTANDING.name :
+        if self.stair_type in [STAIRTYPE.FREESTANDING.name, STAIRTYPE.CIRCULAR.name] :
             box.prop(self, 'use_original')
             if not self.use_original :
                 box.prop(self, 'rEnable')
