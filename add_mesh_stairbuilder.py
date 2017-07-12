@@ -870,27 +870,34 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
                         coords.append(rot * v + vec(0, 0, stair_rise * i))
                     #end for
                 #end for
-                for j in range(sections_per_slice) :
-                    k = (j + sections_per_slice) * 4 + 4
-                    bar_2_faces.append([k, k - 4, k - 3, k + 1])
-                    bar_2_faces.append([k - 2, k - 1, k + 3, k + 2])
-                    bar_2_faces.append([k + 1, k - 3, k - 1, k + 3])
-                    bar_2_faces.append([k, k - 4, k - 2, k + 2])
-                    rot = z_rotation \
-                      (
-                            tread_arc * (j + sections_per_slice + 1) / sections_per_slice
-                        +
-                            tread_arc * i
-                      )
-                    for v in range(4) :
-                        if v in [1, 3] :
-                            incline = stair_rise * i + stair_rise / sections_per_slice * (j + 1)
-                            coords.append(rot * start[v] + vec(0, 0, incline))
-                        else :
-                            coords.append(rot * start[v] + vec(0, 0, stair_rise * i))
-                        #end if
+                if i + 1 < nr_treads :
+                    # part that overlaps stringer for next tread
+                    for j in range(sections_per_slice) :
+                        k = (j + sections_per_slice) * 4 + 4
+                        bar_2_faces.append([k, k - 4, k - 3, k + 1])
+                        bar_2_faces.append([k - 2, k - 1, k + 3, k + 2])
+                        bar_2_faces.append([k + 1, k - 3, k - 1, k + 3])
+                        bar_2_faces.append([k, k - 4, k - 2, k + 2])
+                        rot = z_rotation \
+                          (
+                                tread_arc * (j + sections_per_slice + 1) / sections_per_slice
+                            +
+                                tread_arc * i
+                          )
+                        for v in range(4) :
+                            if v in [1, 3] :
+                                incline = stair_rise * i + stair_rise / sections_per_slice * (j + 1)
+                                coords.append(rot * start[v] + vec(0, 0, incline))
+                            else :
+                                coords.append(rot * start[v] + vec(0, 0, stair_rise * i))
+                            #end if
+                        #end for
                     #end for
-                #end for
+                else :
+                    # close off end
+                    k = sections_per_slice * 4 + 4
+                    bar_2_faces.append([k - 3, k - 4, k - 2, k - 1])
+                #end if
                 mm.make_mesh(coords, bar_2_faces, 'stringer')
             #end for
         #end for
