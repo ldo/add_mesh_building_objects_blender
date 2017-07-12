@@ -865,7 +865,6 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
                 t_outer = Matrix.Rotation(tread_angle * i, 3, 'Z')
                 coords.append(t_outer * start[2] + vec(0, 0, stair_rise * i))
                 coords.append(t_outer * start[3] + vec(0, 0, stair_rise * i))
-                k = 0
                 for j in range(sections_per_slice) :
                     k = j * 4 + 4
                     bar_2_faces.append([k, k - 4, k - 3, k + 1])
@@ -1172,7 +1171,6 @@ def treads_circular(mm, tread_type, stair_arc, outer_radius, tread_height, tread
         t_outer = Matrix.Rotation(- tread_toe / outer_radius + tread_arc * i, 3, 'Z')
         coords.append(t_outer * start[2] + vec(0, 0, tread_rise * i))
         coords.append(t_outer * start[3] + vec(0, 0, tread_rise * i))
-        k = 0
         for j in range(nr_sections_per_slice + 1) :
             k = j * 4 + 4
             bar_2_faces.append([k, k - 4, k - 3, k + 1])
