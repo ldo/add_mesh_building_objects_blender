@@ -854,17 +854,17 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
             for i in range(nr_treads) :
                 coords = []
                 # Base faces.  Should be able to append more sections :
-                bar_2_faces = [[0, 1, 3, 2]]
+                faces = [[0, 1, 3, 2]]
                 tread_angle = z_rotation(tread_arc * i)
                 for j in range(4) :
                     coords.append(tread_angle * start[j] + vec(0, 0, stair_rise * i))
                 #end for
                 for j in range(sections_per_slice) :
                     k = j * 4 + 4
-                    bar_2_faces.append([k, k - 4, k - 3, k + 1])
-                    bar_2_faces.append([k - 2, k - 1, k + 3, k + 2])
-                    bar_2_faces.append([k + 1, k - 3, k - 1, k + 3])
-                    bar_2_faces.append([k, k - 4, k - 2, k + 2])
+                    faces.append([k, k - 4, k - 3, k + 1])
+                    faces.append([k - 2, k - 1, k + 3, k + 2])
+                    faces.append([k + 1, k - 3, k - 1, k + 3])
+                    faces.append([k, k - 4, k - 2, k + 2])
                     rot = z_rotation(tread_arc * (j + 1) / sections_per_slice + tread_arc * i)
                     for v in start :
                         coords.append(rot * v + vec(0, 0, stair_rise * i))
@@ -874,10 +874,10 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
                     # part that overlaps stringer for next tread
                     for j in range(sections_per_slice) :
                         k = (j + sections_per_slice) * 4 + 4
-                        bar_2_faces.append([k, k - 4, k - 3, k + 1])
-                        bar_2_faces.append([k - 2, k - 1, k + 3, k + 2])
-                        bar_2_faces.append([k + 1, k - 3, k - 1, k + 3])
-                        bar_2_faces.append([k, k - 4, k - 2, k + 2])
+                        faces.append([k, k - 4, k - 3, k + 1])
+                        faces.append([k - 2, k - 1, k + 3, k + 2])
+                        faces.append([k + 1, k - 3, k - 1, k + 3])
+                        faces.append([k, k - 4, k - 2, k + 2])
                         rot = z_rotation \
                           (
                                 tread_arc * (j + sections_per_slice + 1) / sections_per_slice
@@ -896,9 +896,9 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
                 else :
                     # close off end
                     k = sections_per_slice * 4 + 4
-                    bar_2_faces.append([k - 3, k - 4, k - 2, k - 1])
+                    faces.append([k - 3, k - 4, k - 2, k - 1])
                 #end if
-                mm.make_mesh(coords, bar_2_faces, 'stringer')
+                mm.make_mesh(coords, faces, 'stringer')
             #end for
         #end for
     #end circular
