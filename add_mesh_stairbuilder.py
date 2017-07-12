@@ -174,12 +174,12 @@ def posts(mm, rise, stair_run, post_depth, post_width, tread_width, nr_posts, ra
 
     x1 = vec(0, 0, rail_height - rail_thickness) #rail start
     x2 = mm.stop + vec(0, 0, rail_height - rail_thickness) #rail stop
-    post_spacing = vec((x2[0] - x1[0]) / float(nr_posts + 1), 0, 0) #spacing between posts
+    post_spacing = vec((x2.x - x1.x) / float(nr_posts + 1), 0, 0)
 
     def intersect(i, d) :
         # finds intersection point, x, for rail and post
         x3 = x1 + i * post_spacing + vec(d, d, d)
-        x4 = x3 + vec(0, 0, x2[-1])
+        x4 = x3 + vec(0, 0, x2.z)
         a = x2 - x1
         b = x4 - x3
         c = x3 - x1
@@ -196,9 +196,9 @@ def posts(mm, rise, stair_run, post_depth, post_width, tread_width, nr_posts, ra
         coords.append(intersect(i, post_depth))
         #intersections with tread
         coords.append(vec(
-                x1[0] + i * post_spacing[0],
+                x1.x + i * post_spacing.x,
                 0,
-                int(coords[0][0] / stair_run) * rise
+                int(coords[0].x / stair_run) * rise
             ))
         coords.append(coords[2] + vec(post_depth, 0, 0))
         #inner face
