@@ -119,12 +119,18 @@ class TREADTYPE(EnumPropItems) :
     BAR_3 = ("Bar 3", "Generate bar-support steel treads")
 #end TREADTYPE
 
-class STRINGERTYPE(EnumPropItems) :
+class FREESTANDING_STRINGERTYPE(EnumPropItems) :
+    "types of stair stringers."
+    CLASSIC = ("Classic", "Generate a classic style stringer")
+    I_BEAM = ("I-Beam", "Generate a steel I-beam stringer")
+#end FREESTANDING_STRINGERTYPE
+
+class HOUSED_STRINGERTYPE(EnumPropItems) :
     "types of stair stringers."
     CLASSIC = ("Classic", "Generate a classic style stringer")
     I_BEAM = ("I-Beam", "Generate a steel I-beam stringer")
     C_BEAM = ("C-Beam", "Generate a C-channel style stringer")
-#end STRINGERTYPE
+#end HOUSED_STRINGERTYPE
 
 class MeshMaker :
     "object for creating meshes given the verts and faces."
@@ -892,18 +898,17 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
 
 #begin stringer
     if stair_type == STAIRTYPE.FREESTANDING :
-        if stringer_type == STRINGERTYPE.CLASSIC :
+        if stringer_type == FREESTANDING_STRINGERTYPE.CLASSIC :
             freestanding_classic()
-        elif stringer_type == STRINGERTYPE.I_BEAM :
+        elif stringer_type == FREESTANDING_STRINGERTYPE.I_BEAM :
             i_beam()
-        # note STRINGERTYPE.C_BEAM not supported
         #end if
     elif stair_type == STAIRTYPE.HOUSED_OPEN :
-        if stringer_type == STRINGERTYPE.CLASSIC :
+        if stringer_type == HOUSED_STRINGERTYPE.CLASSIC :
             housed_open_classic()
-        elif stringer_type == STRINGERTYPE.I_BEAM :
+        elif stringer_type == HOUSED_STRINGERTYPE.I_BEAM :
             housed_i_beam()
-        elif stringer_type == STRINGERTYPE.C_BEAM :
+        elif stringer_type == HOUSED_STRINGERTYPE.C_BEAM :
             housed_c_beam()
         #end if
     elif stair_type == STAIRTYPE.BOX :
@@ -1442,11 +1447,17 @@ class Stairs(bpy.types.Operator) :
         description = "Generate stair stringer",
         default = True
       )
-    stringer_type = EnumProperty \
+    freestanding_stringer_type = EnumProperty \
       (
         name = "Stringer Type",
-        description = "Type/style of stringer to generate",
-        items = STRINGERTYPE.all_items()
+        description = "Type/style of freestanding stringer to generate",
+        items = FREESTANDING_STRINGERTYPE.all_items()
+      )
+    housed_stringer_type = EnumProperty \
+      (
+        name = "Stringer Type",
+        description = "Type/style of housed stringer to generate",
+        items = HOUSED_STRINGERTYPE.all_items()
       )
     string_n = IntProperty \
       (
@@ -1616,23 +1627,28 @@ class Stairs(bpy.types.Operator) :
         #end if
         # Stringers
         box = layout.box()
-        if self.stair_type not in [STAIRTYPE.HOUSED_OPEN.name, STAIRTYPE.BOX.name] :
+        if self.stair_type != STAIRTYPE.BOX.name :
             box.prop(self, 'make_stringer')
         else :
             self.make_stringer = True
         #end if
         if self.stair_type != STAIRTYPE.BOX.name and self.make_stringer :
             if not self.use_original and self.stair_type != STAIRTYPE.CIRCULAR.name :
-                box.prop(self, 'stringer_type')
+                if self.stair_type == STAIRTYPE.HOUSED_OPEN.name :
+                    box.prop(self, 'housed_stringer_type')
+                else :
+                    box.prop(self, 'freestanding_stringer_type')
+                #end if
             else :
-                self.stringer_type = STRINGERTYPE.CLASSIC.name
+                self.freestanding_stringer_type = FREESTANDING_STRINGERTYPE.CLASSIC.name
+                self.housed_stringer_type = HOUSED_STRINGERTYPE.CLASSIC.name
             #end if
             box.prop(self, 'string_w')
             if self.stair_type == STAIRTYPE.FREESTANDING.name :
-                if self.stringer_type == STRINGERTYPE.CLASSIC.name and not self.use_original :
+                if self.freestanding_stringer_type == FREESTANDING_STRINGERTYPE.CLASSIC.name and not self.use_original :
                     box.prop(self, 'string_n')
                     box.prop(self, 'string_dis')
-                elif self.stringer_type in [STRINGERTYPE.I_BEAM.name, STRINGERTYPE.C_BEAM.name] :
+                elif self.freestanding_stringer_type == FREESTANDING_STRINGERTYPE.I_BEAM.name :
                     box.prop(self, 'string_n')
                     box.prop(self, 'string_dis')
                     box.prop(self, 'string_h')
@@ -1642,21 +1658,20 @@ class Stairs(bpy.types.Operator) :
                     box.prop(self, 'string_g')
                 #end if
             elif self.stair_type == STAIRTYPE.HOUSED_OPEN.name :
-                if self.stringer_type in [STRINGERTYPE.I_BEAM.name, STRINGERTYPE.C_BEAM.name] :
+                if self.housed_stringer_type in [HOUSED_STRINGERTYPE.I_BEAM.name, HOUSED_STRINGERTYPE.C_BEAM.name] :
                     box.prop(self, 'string_tw')
                     box.prop(self, 'string_tf')
                 #end if
             #end if
         #end if
-        # Tread support:
-##        if self.make_stringer and self.stringer_type in [STRINGERTYPE.I_BEAM.name, STRINGERTYPE.C_BEAM.name] :
     #end draw
 
     def execute(self, context) :
         mm = MeshMaker(self.rise, self.run, self.tread_n)
         # convert strings to enums
         stair_type = STAIRTYPE[self.stair_type]
-        stringer_type = STRINGERTYPE[self.stringer_type]
+        freestanding_stringer_type = FREESTANDING_STRINGERTYPE[self.freestanding_stringer_type]
+        housed_stringer_type = HOUSED_STRINGERTYPE[self.housed_stringer_type]
         tread_type = TREADTYPE[self.tread_type]
         if self.make_treads :
             if stair_type != STAIRTYPE.CIRCULAR :
@@ -1745,7 +1760,7 @@ class Stairs(bpy.types.Operator) :
                   (
                     mm = mm,
                     stair_type = stair_type,
-                    stringer_type = stringer_type,
+                    stringer_type = freestanding_stringer_type,
                     stair_rise = self.rise,
                     stair_run = self.run,
                     w = self.string_w,
@@ -1765,7 +1780,7 @@ class Stairs(bpy.types.Operator) :
                   (
                     mm = mm,
                     stair_type = stair_type,
-                    stringer_type = stringer_type,
+                    stringer_type = freestanding_stringer_type,
                     stair_rise = self.rise,
                     stair_run = self.run,
                     w = 100,
@@ -1788,7 +1803,7 @@ class Stairs(bpy.types.Operator) :
                   (
                     mm = mm,
                     stair_type = stair_type,
-                    stringer_type = stringer_type,
+                    stringer_type = None,
                     stair_rise = self.rise,
                     stair_run = self.rotation,
                     w = self.string_w,
@@ -1812,7 +1827,7 @@ class Stairs(bpy.types.Operator) :
                   (
                     mm = mm,
                     stair_type = stair_type,
-                    stringer_type = stringer_type,
+                    stringer_type = (freestanding_stringer_type, housed_stringer_type)[stair_type == STAIRTYPE.HOUSED_OPEN],
                     stair_rise = self.rise,
                     stair_run = self.run,
                     w = self.string_w,
