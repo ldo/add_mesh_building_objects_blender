@@ -141,7 +141,7 @@ class MeshMaker :
         # N -- number of treads
         self.stop = N * vec(run, 0, rise)
         self.slope = rise / run
-        # identical quads for all objects which are parallelpipeds (except stringers and treads)
+        # identical quads for all objects which are parallelepipeds (except stringers and treads)
         self.ppd_faces = \
             [
                 [0, 1, 3, 2],
@@ -167,7 +167,7 @@ class MeshMaker :
     #end make_mesh
 
     def make_ppd_mesh(self, verts, name) :
-        # special case of make_mesh for parallellipiped shapes
+        # special case of make_mesh for parallelepiped shapes
         assert len(verts) == 8
         self.make_mesh(verts, self.ppd_faces, name)
     #end make_ppd_mesh
