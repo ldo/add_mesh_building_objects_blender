@@ -139,7 +139,7 @@ class MeshMaker :
         # rise -- height of each tread
         # run -- depth of each tread
         # N -- number of treads
-        self.stop = float(N) * vec(run, 0, rise)
+        self.stop = N * vec(run, 0, rise)
         self.slope = rise / run
         # identical quads for all objects which are parallelpipeds (except stringers and treads)
         self.faces = \
@@ -180,7 +180,7 @@ def posts(mm, rise, stair_run, post_depth, post_width, tread_width, nr_posts, ra
     p1 = vec(0, 0, rail_height - rail_thickness) # first post
     p2 = p1 + mm.stop  # last post
     # note that first and last posts are not counted in nr_posts
-    post_spacing = vec((p2.x - p1.x) / float(nr_posts + 1), 0, 0)
+    post_spacing = vec((p2.x - p1.x) / (nr_posts + 1), 0, 0)
     for i in range(nr_posts + 2) :
         coords = []
         # meet bottom of rail
@@ -276,7 +276,7 @@ def retainers(mm, retainer_width, retainer_height, post_width, tread_width, rail
     "generates retainers for the stairs. These are the additional pieces parallel" \
     " to, and below, the railings."
 
-    retainer_spacing = rail_height / float(nr_retainers + 1)
+    retainer_spacing = rail_height / (nr_retainers + 1)
 
     for i in range(nr_retainers) :
         coords = []
