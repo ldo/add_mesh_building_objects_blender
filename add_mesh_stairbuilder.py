@@ -855,24 +855,22 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
                     vec(0, - base - stringer_width, - tread_height),
                     vec(0, - base - stringer_width, - tread_height - stair_rise),
                 ]
-            tread_angle = stair_run / nr_treads
+            tread_arc = stair_run / nr_treads
             for i in range(nr_treads) :
                 coords = []
                 # Base faces.  Should be able to append more sections :
                 bar_2_faces = [[0, 1, 3, 2]]
-                t_inner = z_rotation(tread_angle * i)
-                coords.append(t_inner * start[0] + vec(0, 0, stair_rise * i))
-                coords.append(t_inner * start[1] + vec(0, 0, stair_rise * i))
-                t_outer = z_rotation(tread_angle * i)
-                coords.append(t_outer * start[2] + vec(0, 0, stair_rise * i))
-                coords.append(t_outer * start[3] + vec(0, 0, stair_rise * i))
+                tread_angle = z_rotation(tread_arc * i)
+                for j in range(4) :
+                    coords.append(tread_angle * start[j] + vec(0, 0, stair_rise * i))
+                #end for
                 for j in range(sections_per_slice) :
                     k = j * 4 + 4
                     bar_2_faces.append([k, k - 4, k - 3, k + 1])
                     bar_2_faces.append([k - 2, k - 1, k + 3, k + 2])
                     bar_2_faces.append([k + 1, k - 3, k - 1, k + 3])
                     bar_2_faces.append([k, k - 4, k - 2, k + 2])
-                    rot = z_rotation(tread_angle * (j + 1) / sections_per_slice + tread_angle * i)
+                    rot = z_rotation(tread_arc * (j + 1) / sections_per_slice + tread_arc * i)
                     for v in start :
                         coords.append(rot * v + vec(0, 0, stair_rise * i))
                     #end for
@@ -885,9 +883,9 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
                     bar_2_faces.append([k, k - 4, k - 2, k + 2])
                     rot = z_rotation \
                       (
-                            tread_angle * (j + sections_per_slice + 1) / sections_per_slice
+                            tread_arc * (j + sections_per_slice + 1) / sections_per_slice
                         +
-                            tread_angle * i
+                            tread_arc * i
                       )
                     for v in range(4) :
                         if v in [1, 3] :
