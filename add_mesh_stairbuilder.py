@@ -956,7 +956,7 @@ def treads(mm, stair_type, tread_type, stair_run, tread_width, tread_height, tre
 
     def make_treads_coords() :
         # calculates coordinates for the pieces of the treads.
-        nonlocal tread_section_spacing, cW, depth, offset, height
+        nonlocal tread_section_spacing, cross, cW, depth, offset, height
         if tread_type == TREADTYPE.CLASSIC :
             treads_coords.append(vec(- tread_toe, - tread_side_overhang, 0))
             treads_coords.append(vec(tread_run, - tread_side_overhang, 0))
