@@ -172,20 +172,19 @@ def posts(mm, rise, stair_run, post_depth, post_width, tread_width, nr_posts, ra
     "generates posts for the stairs. These are the vertical elements holding up the railings."
     # TODO: STAIRTYPE.CIRCULAR
 
-    x1 = vec(0, 0, rail_height - rail_thickness) #rail start
-    x2 = mm.stop + vec(0, 0, rail_height - rail_thickness) #rail stop
-    post_spacing = vec((x2.x - x1.x) / float(nr_posts + 1), 0, 0)
+    p1 = vec(0, 0, rail_height - rail_thickness) # first post
+    a = mm.stop
+    p2 = p1 + a  # last post
+    # note that first and last posts are not counted in nr_posts
+    post_spacing = vec((p2.x - p1.x) / float(nr_posts + 1), 0, 0)
+    b = vec(0, 0, p2.z)
+    cr_ab = a.cross(b)
+    mag_cr_ab = cr_ab * cr_ab
 
     def intersect(i, d) :
         # finds intersection point, x, for rail and post
-        x3 = x1 + i * post_spacing + vec(d, d, d)
-        x4 = x3 + vec(0, 0, x2.z)
-        a = x2 - x1
-        b = x4 - x3
-        c = x3 - x1
-        cr_ab = a.cross(b)
-        mag_cr_ab = cr_ab * cr_ab
-        return x1 + a * (c.cross(b).dot(cr_ab) / mag_cr_ab)
+        c = i * post_spacing + vec(d, d, d)
+        return p1 + a * (c.cross(b).dot(cr_ab) / mag_cr_ab)
     #end intersect
 
 #begin posts
@@ -196,7 +195,7 @@ def posts(mm, rise, stair_run, post_depth, post_width, tread_width, nr_posts, ra
         coords.append(intersect(i, post_depth))
         #intersections with tread
         coords.append(vec(
-                x1.x + i * post_spacing.x,
+                p1.x + i * post_spacing.x,
                 0,
                 int(coords[0].x / stair_run) * rise
             ))
