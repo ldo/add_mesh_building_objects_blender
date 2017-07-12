@@ -319,191 +319,92 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
     stringer_web_thickness = stringer_width * (tw / 100)
     stringer_flange_taper = 1 - tp / 100
 
-    # Default stringer object (classic / STRINGERTYPE.CLASSIC):
-    faces1 = \
-        [
-            [0, 1, 3, 2],
-            [1, 5, 3],
-            [3, 5, 4],
-            [6, 7, 9, 8],
-            [7, 11, 9],
-            [9, 11, 10],
-            [0, 2, 8, 6],
-            [0, 1, 7, 6],
-            [1, 5, 11, 7],
-            [2, 3, 9, 8],
-            [3, 4, 10, 9],
-            [4, 5, 11, 10],
-        ]
-    # Box stair type stringer:
-    faces2 = \
-        [
-            [0, 1, 7, 6],
-            [1, 3, 9, 7],
-            [3, 4, 10, 9],
-            [4, 10, 11, 5],
-            [5, 11, 8, 2],
-            [2, 8, 6, 0],
-            [0, 1, 2],
-            [1, 2, 5, 3],
-            [3, 4, 5],
-            [6, 7, 8],
-            [7, 8, 11, 9],
-            [9, 10, 11],
-        ]
-    # I-beam stringer (STAIRTYPE.HOUSED_OPEN / STRINGERTYPE.I_BEAM / Taper < 100%):
-    faces3a = \
-        [
-            [0, 1, 17, 16],
-            [1, 2, 18, 17],
-            [2, 3, 19, 18],
-            [3, 4, 20, 19],
-            [4, 5, 21, 20],
-            [5, 6, 22, 21],
-            [6, 7, 23, 22],
-            [7, 8, 24, 23],
-            [8, 9, 25, 24],
-            [9, 10, 26, 25],
-            [10, 11, 27, 26],
-            [11, 12, 28, 27],
-            [12, 13, 29, 28],
-            [13, 14, 30, 29],
-            [14, 15, 31, 30],
-            [15, 0, 16, 31],
-            [0, 1, 2, 15],
-            [2, 11, 14, 15],
-            [11, 12, 13, 14],
-            [2, 3, 10, 11],
-            [3, 4, 5, 6],
-            [3, 6, 7, 10],
-            [7, 8, 9, 10],
-            [16, 17, 18, 31],
-            [18, 27, 30, 31],
-            [27, 28, 29, 30],
-            [18, 19, 26, 27],
-            [19, 20, 21, 22],
-            [19, 22, 23, 26],
-            [23, 24, 25, 26],
-        ]
-    # I-beam stringer (STAIRTYPE.HOUSED_OPEN / STRINGERTYPE.I_BEAM / Taper = 100%):
-    faces3b = \
-        [
-            [0, 1, 9, 8],
-            [1, 2, 10, 9],
-            [2, 3, 11, 10],
-            [3, 4, 12, 11],
-            [4, 5, 13, 12],
-            [5, 6, 14, 13],
-            [6, 7, 15, 14],
-            [7, 0, 8, 15],
-            [0, 1, 6, 7],
-            [1, 2, 5, 6],
-            [2, 3, 4, 5],
-            [8, 9, 14, 15],
-            [9, 10, 13, 14],
-            [10, 11, 12, 13],
-        ]
-    # I-beam stringer (STAIRTYPE.BOX / STRINGERTYPE.I_BEAM / Taper < 100%):
-    faces3c = \
-        [
-            [0, 1, 2, 7],
-            [2, 3, 6, 7],
-            [3, 4, 5, 6],
-            [1, 2, 23, 16],
-            [2, 3, 22, 23],
-            [3, 4, 21, 22],
-            [16, 17, 18, 23],
-            [18, 19, 22, 23],
-            [19, 20, 21, 22],
-            [17, 8, 15, 18],
-            [18, 15, 14, 19],
-            [19, 14, 13, 20],
-            [8, 9, 10, 15],
-            [10, 11, 14, 15],
-            [11, 12, 13, 14],
-            [9, 10, 53, 52],
-            [10, 11, 54, 53],
-            [11, 12, 55, 54],
-            [52, 53, 61, 60],
-            [53, 54, 62, 61],
-            [54, 55, 63, 62],
-            [60, 61, 34, 33],
-            [61, 62, 35, 34],
-            [62, 63, 36, 35],
-            [32, 33, 34, 39],
-            [34, 35, 38, 39],
-            [35, 36, 37, 38],
-            [41, 32, 39, 42],
-            [42, 39, 38, 43],
-            [43, 38, 37, 44],
-            [40, 41, 42, 47],
-            [42, 43, 46, 47],
-            [43, 44, 45, 46],
-            [25, 26, 47, 40],
-            [26, 27, 46, 47],
-            [27, 28, 45, 46],
-            [24, 25, 26, 31],
-            [26, 27, 30, 31],
-            [27, 28, 29, 30],
-            [24, 31, 57, 56],
-            [31, 30, 58, 57],
-            [30, 29, 59, 58],
-            [48, 49, 57, 56],
-            [49, 50, 58, 57],
-            [50, 51, 59, 58],
-            [0, 7, 49, 48],
-            [7, 6, 50, 49],
-            [6, 5, 51, 50],
-            [0, 1, 16, 48],
-            [16, 40, 56, 48],
-            [24, 25, 40, 56],
-            [16, 17, 41, 40],
-            [8, 9, 52, 17],
-            [17, 52, 60, 41],
-            [32, 33, 60, 41],
-            [12, 13, 20, 55],
-            [20, 44, 63, 55],
-            [37, 44, 63, 36],
-            [20, 21, 45, 44],
-            [28, 29, 51, 21],
-            [21, 51, 59, 45],
-            [28, 45, 59, 29],
-            [4, 5, 51, 21],
-        ]
-    # C-beam stringer (STAIRTYPE.BOX / STRINGERTYPE.C_BEAM / Taper < 100%):
-    faces4c = \
-        [
-            [0, 1, 2, 7],
-            [2, 3, 6, 7],
-            [3, 4, 5, 6],
-            [1, 2, 23, 16],
-            [2, 3, 22, 23],
-            [3, 4, 21, 22],
-            [16, 17, 18, 23],
-            [18, 19, 22, 23],
-            [19, 20, 21, 22],
-            [17, 8, 15, 18],
-            [18, 15, 14, 19],
-            [19, 14, 13, 20],
-            [8, 9, 10, 15],
-            [10, 11, 14, 15],
-            [11, 12, 13, 14],
-            [0, 24, 25, 7],
-            [7, 25, 26, 6],
-            [6, 26, 27, 5],
-            [9, 31, 30, 10],
-            [10, 30, 29, 11],
-            [11, 29, 28, 12],
-            [24, 25, 30, 31],
-            [25, 26, 29, 30],
-            [26, 27, 28, 29],
-            [0, 1, 16, 24],
-            [16, 24, 31, 17],
-            [8, 9, 31, 17],
-            [4, 5, 27, 21],
-            [20, 21, 27, 28],
-            [12, 13, 20, 28],
-        ]
+    def freestanding_classic() :
+        if distributed_stringers or nr_stringers == 1 :
+            offset = tread_width / (nr_stringers + 1) - stringer_width / 2
+        else :
+            offset = 0
+        #end if
+        faces = \
+            [
+                [0, 1, 3, 2],
+                [1, 5, 3],
+                [3, 5, 4],
+                [6, 7, 9, 8],
+                [7, 11, 9],
+                [9, 11, 10],
+                [0, 2, 8, 6],
+                [0, 1, 7, 6],
+                [1, 5, 11, 7],
+                [2, 3, 9, 8],
+                [3, 4, 10, 9],
+                [4, 5, 11, 10],
+            ]
+        for i in range(nr_stringers) :
+            for j in range(nr_treads) :
+                coords = []
+                coords.append(vec(0, offset, - stair_rise))
+                coords.append(vec(stair_run, offset, - stair_rise))
+                coords.append(vec(0, offset, - tread_height))
+                coords.append(vec(stair_run, offset, - tread_height))
+                coords.append(vec(stair_run, offset, 0))
+                coords.append(vec(stair_run * 2, offset, 0))
+                for k in range(6) :
+                    coords.append(coords[k] + vec(0, stringer_width, 0))
+                #end for
+                for k in coords :
+                    k += j * vec(stair_run, 0, stair_rise)
+                #end for
+                mm.make_mesh(coords, faces, 'stringer')
+            #end for
+            if distributed_stringers or nr_stringers == 1 :
+                offset += tread_width / (nr_stringers + 1)
+            else :
+                offset += (tread_width - stringer_width) / (nr_stringers - 1)
+            #end if
+        #end for
+    #end freestanding_classic
+
+    def housed_open_classic() :
+        coords = []
+        coords.append(vec(- tread_toe, - stringer_width, - stair_rise))
+        coords.append(vec(tread_height / mm.slope, - stringer_width, - stair_rise))
+        coords.append(vec(- tread_toe, - stringer_width, 0))
+        coords.append(vec(
+                nr_treads * stair_run,
+                - stringer_width,
+                (nr_treads - 1) * stair_rise - tread_height
+            ))
+        coords.append(vec(nr_treads * stair_run, - stringer_width, nr_treads * stair_rise))
+        coords.append(vec(
+                nr_treads * stair_run - tread_toe,
+                - stringer_width,
+                nr_treads * stair_rise
+            ))
+        for i in range(6) :
+            coords.append(coords[i] + vec(0, stringer_width, 0))
+        #end for
+        faces = \
+            [
+                [0, 1, 7, 6],
+                [1, 3, 9, 7],
+                [3, 4, 10, 9],
+                [4, 10, 11, 5],
+                [5, 11, 8, 2],
+                [2, 8, 6, 0],
+                [0, 1, 2],
+                [1, 2, 5, 3],
+                [3, 4, 5],
+                [6, 7, 8],
+                [7, 8, 11, 9],
+                [9, 10, 11],
+            ]
+        mm.make_mesh(coords, faces, 'stringer')
+        for i in coords :
+            i += vec(0, stringer_width + tread_width, 0)
+        #end for
+        mm.make_mesh(coords, faces, 'stringer')
+    #end housed_open_classic
 
     def i_beam() :
         mid = stringer_width / 2
@@ -557,7 +458,40 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
                           )
                     #end for
                 #end if
-                mm.make_mesh(coords, faces3a, 'stringer')
+                faces = \
+                    [
+                        [0, 1, 17, 16],
+                        [1, 2, 18, 17],
+                        [2, 3, 19, 18],
+                        [3, 4, 20, 19],
+                        [4, 5, 21, 20],
+                        [5, 6, 22, 21],
+                        [6, 7, 23, 22],
+                        [7, 8, 24, 23],
+                        [8, 9, 25, 24],
+                        [9, 10, 26, 25],
+                        [10, 11, 27, 26],
+                        [11, 12, 28, 27],
+                        [12, 13, 29, 28],
+                        [13, 14, 30, 29],
+                        [14, 15, 31, 30],
+                        [15, 0, 16, 31],
+                        [0, 1, 2, 15],
+                        [2, 11, 14, 15],
+                        [11, 12, 13, 14],
+                        [2, 3, 10, 11],
+                        [3, 4, 5, 6],
+                        [3, 6, 7, 10],
+                        [7, 8, 9, 10],
+                        [16, 17, 18, 31],
+                        [18, 27, 30, 31],
+                        [27, 28, 29, 30],
+                        [18, 19, 26, 27],
+                        [19, 20, 21, 22],
+                        [19, 22, 23, 26],
+                        [23, 24, 25, 26],
+                    ]
+                mm.make_mesh(coords, faces, 'stringer')
                 if distributed_stringers or nr_stringers == 1 :
                     offset += tread_width / (nr_stringers + 1)
                 else :
@@ -579,7 +513,24 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
                 for j in range(8) :
                     coords.append(coords[j] + vec(stair_run * nr_treads, 0, stair_rise * nr_treads))
                 #end for
-                mm.make_mesh(coords, faces3b, 'stringer')
+                faces = \
+                    [
+                        [0, 1, 9, 8],
+                        [1, 2, 10, 9],
+                        [2, 3, 11, 10],
+                        [3, 4, 12, 11],
+                        [4, 5, 13, 12],
+                        [5, 6, 14, 13],
+                        [6, 7, 15, 14],
+                        [7, 0, 8, 15],
+                        [0, 1, 6, 7],
+                        [1, 2, 5, 6],
+                        [2, 3, 4, 5],
+                        [8, 9, 14, 15],
+                        [9, 10, 13, 14],
+                        [10, 11, 12, 13],
+                    ]
+                mm.make_mesh(coords, faces, 'stringer')
                 offset += tread_width / (nr_stringers + 1)
             #end for
         #end if
@@ -675,11 +626,77 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
             for i in range(8) :
                 coords.append(coords[i + 48] + vec(0, stringer_web_thickness, 0))
             #end for
-            mm.make_mesh(coords, faces3c, 'stringer')
+            faces = \
+                [
+                    [0, 1, 2, 7],
+                    [2, 3, 6, 7],
+                    [3, 4, 5, 6],
+                    [1, 2, 23, 16],
+                    [2, 3, 22, 23],
+                    [3, 4, 21, 22],
+                    [16, 17, 18, 23],
+                    [18, 19, 22, 23],
+                    [19, 20, 21, 22],
+                    [17, 8, 15, 18],
+                    [18, 15, 14, 19],
+                    [19, 14, 13, 20],
+                    [8, 9, 10, 15],
+                    [10, 11, 14, 15],
+                    [11, 12, 13, 14],
+                    [9, 10, 53, 52],
+                    [10, 11, 54, 53],
+                    [11, 12, 55, 54],
+                    [52, 53, 61, 60],
+                    [53, 54, 62, 61],
+                    [54, 55, 63, 62],
+                    [60, 61, 34, 33],
+                    [61, 62, 35, 34],
+                    [62, 63, 36, 35],
+                    [32, 33, 34, 39],
+                    [34, 35, 38, 39],
+                    [35, 36, 37, 38],
+                    [41, 32, 39, 42],
+                    [42, 39, 38, 43],
+                    [43, 38, 37, 44],
+                    [40, 41, 42, 47],
+                    [42, 43, 46, 47],
+                    [43, 44, 45, 46],
+                    [25, 26, 47, 40],
+                    [26, 27, 46, 47],
+                    [27, 28, 45, 46],
+                    [24, 25, 26, 31],
+                    [26, 27, 30, 31],
+                    [27, 28, 29, 30],
+                    [24, 31, 57, 56],
+                    [31, 30, 58, 57],
+                    [30, 29, 59, 58],
+                    [48, 49, 57, 56],
+                    [49, 50, 58, 57],
+                    [50, 51, 59, 58],
+                    [0, 7, 49, 48],
+                    [7, 6, 50, 49],
+                    [6, 5, 51, 50],
+                    [0, 1, 16, 48],
+                    [16, 40, 56, 48],
+                    [24, 25, 40, 56],
+                    [16, 17, 41, 40],
+                    [8, 9, 52, 17],
+                    [17, 52, 60, 41],
+                    [32, 33, 60, 41],
+                    [12, 13, 20, 55],
+                    [20, 44, 63, 55],
+                    [37, 44, 63, 36],
+                    [20, 21, 45, 44],
+                    [28, 29, 51, 21],
+                    [21, 51, 59, 45],
+                    [28, 45, 59, 29],
+                    [4, 5, 51, 21],
+                ]
+            mm.make_mesh(coords, faces, 'stringer')
             for i in coords :
                 i += vec(0, tread_width + stringer_web_thickness, 0)
             #end for
-            mm.make_mesh(coords, faces3c, 'stringer')
+            mm.make_mesh(coords, faces, 'stringer')
         #end if
         # @TODO Taper = 100%
     #end housed_i_beam
@@ -763,7 +780,40 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
             for i in [0, 7, 6, 5, 12, 11, 10, 9] :
                 coords.append(coords[i] + vec(0, flange_y + stringer_web_thickness, 0))
             #end for
-            mm.make_mesh(coords, faces4c, 'stringer')
+            faces = \
+                [
+                    [0, 1, 2, 7],
+                    [2, 3, 6, 7],
+                    [3, 4, 5, 6],
+                    [1, 2, 23, 16],
+                    [2, 3, 22, 23],
+                    [3, 4, 21, 22],
+                    [16, 17, 18, 23],
+                    [18, 19, 22, 23],
+                    [19, 20, 21, 22],
+                    [17, 8, 15, 18],
+                    [18, 15, 14, 19],
+                    [19, 14, 13, 20],
+                    [8, 9, 10, 15],
+                    [10, 11, 14, 15],
+                    [11, 12, 13, 14],
+                    [0, 24, 25, 7],
+                    [7, 25, 26, 6],
+                    [6, 26, 27, 5],
+                    [9, 31, 30, 10],
+                    [10, 30, 29, 11],
+                    [11, 29, 28, 12],
+                    [24, 25, 30, 31],
+                    [25, 26, 29, 30],
+                    [26, 27, 28, 29],
+                    [0, 1, 16, 24],
+                    [16, 24, 31, 17],
+                    [8, 9, 31, 17],
+                    [4, 5, 27, 21],
+                    [20, 21, 27, 28],
+                    [12, 13, 20, 28],
+                ]
+            mm.make_mesh(coords, faces, 'stringer')
             for i in range(16) :
                 coords[i] += vec(0, - outer * 2, 0)
             #end for
@@ -773,75 +823,11 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
             for i in coords :
                 i += vec(0, tread_overhang * 2 + tread_width, 0)
             #end for
-            mm.make_mesh(coords, faces4c, 'stringer')
+            mm.make_mesh(coords, faces, 'stringer')
         #end if
     #end housed_c_beam
 
-#begin stringer
-    if stair_type == STAIRTYPE.FREESTANDING :
-        if stringer_type == STRINGERTYPE.CLASSIC :
-            if distributed_stringers or nr_stringers == 1 :
-                offset = tread_width / (nr_stringers + 1) - stringer_width / 2
-            else :
-                offset = 0
-            #end if
-            for i in range(nr_stringers) :
-                for j in range(nr_treads) :
-                    coords = []
-                    coords.append(vec(0, offset, - stair_rise))
-                    coords.append(vec(stair_run, offset, - stair_rise))
-                    coords.append(vec(0, offset, - tread_height))
-                    coords.append(vec(stair_run, offset, - tread_height))
-                    coords.append(vec(stair_run, offset, 0))
-                    coords.append(vec(stair_run * 2, offset, 0))
-                    for k in range(6) :
-                        coords.append(coords[k] + vec(0, stringer_width, 0))
-                    #end for
-                    for k in coords :
-                        k += j * vec(stair_run, 0, stair_rise)
-                    #end for
-                    mm.make_mesh(coords, faces1, 'stringer')
-                #end for
-                if distributed_stringers or nr_stringers == 1 :
-                    offset += tread_width / (nr_stringers + 1)
-                else :
-                    offset += (tread_width - stringer_width) / (nr_stringers - 1)
-                #end if
-            #end for
-        elif stringer_type == STRINGERTYPE.I_BEAM :
-            i_beam()
-        #end if
-    elif stair_type == STAIRTYPE.HOUSED_OPEN :
-        if stringer_type == STRINGERTYPE.CLASSIC :
-            coords = []
-            coords.append(vec(- tread_toe, - stringer_width, - stair_rise))
-            coords.append(vec(tread_height / mm.slope, - stringer_width, - stair_rise))
-            coords.append(vec(- tread_toe, - stringer_width, 0))
-            coords.append(vec(
-                    nr_treads * stair_run,
-                    - stringer_width,
-                    (nr_treads - 1) * stair_rise - tread_height
-                ))
-            coords.append(vec(nr_treads * stair_run, - stringer_width, nr_treads * stair_rise))
-            coords.append(vec(
-                    nr_treads * stair_run - tread_toe,
-                    - stringer_width,
-                    nr_treads * stair_rise
-                ))
-            for i in range(6) :
-                coords.append(coords[i] + vec(0, stringer_width, 0))
-            #end for
-            mm.make_mesh(coords, faces2, 'stringer')
-            for i in coords :
-                i += vec(0, stringer_width + tread_width, 0)
-            #end for
-            mm.make_mesh(coords, faces2, 'stringer')
-        elif stringer_type == STRINGERTYPE.I_BEAM :
-            housed_i_beam()
-        elif stringer_type == STRINGERTYPE.C_BEAM :
-            housed_c_beam()
-        #end if
-    elif stair_type == STAIRTYPE.BOX :
+    def box() :
         h = - tread_height #height of top section
         for i in range(nr_treads) :
             coords = []
@@ -854,7 +840,9 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
             #end for
             mm.make_ppd_mesh(coords, 'stringer')
         #end for
-    elif stair_type == STAIRTYPE.CIRCULAR :
+    #end box
+
+    def circular() :
         offset = tread_width / (nr_stringers + 1) - stringer_width / 2
         for s in range(nr_stringers) :
             base = tread_overhang + offset * (s + 1)
@@ -917,6 +905,27 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
                 mm.make_mesh(coords, bar_2_faces, 'stringer')
             #end for
         #end for
+    #end circular
+
+#begin stringer
+    if stair_type == STAIRTYPE.FREESTANDING :
+        if stringer_type == STRINGERTYPE.CLASSIC :
+            freestanding_classic()
+        elif stringer_type == STRINGERTYPE.I_BEAM :
+            i_beam()
+        #end if
+    elif stair_type == STAIRTYPE.HOUSED_OPEN :
+        if stringer_type == STRINGERTYPE.CLASSIC :
+            housed_open_classic()
+        elif stringer_type == STRINGERTYPE.I_BEAM :
+            housed_i_beam()
+        elif stringer_type == STRINGERTYPE.C_BEAM :
+            housed_c_beam()
+        #end if
+    elif stair_type == STAIRTYPE.BOX :
+        box()
+    elif stair_type == STAIRTYPE.CIRCULAR :
+        circular()
     #end if
 #end stringer
 
