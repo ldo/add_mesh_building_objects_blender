@@ -1616,13 +1616,13 @@ class Stairs(bpy.types.Operator) :
         #end if
         # Stringers
         box = layout.box()
-        if self.stair_type != STAIRTYPE.HOUSED_OPEN.name :
+        if self.stair_type not in [STAIRTYPE.HOUSED_OPEN.name, STAIRTYPE.BOX.name] :
             box.prop(self, 'make_stringer')
         else :
             self.make_stringer = True
         #end if
-        if self.make_stringer :
-            if not self.use_original :
+        if self.stair_type != STAIRTYPE.BOX.name and self.make_stringer :
+            if not self.use_original and self.stair_type != STAIRTYPE.CIRCULAR.name :
                 box.prop(self, 'stringer_type')
             else :
                 self.stringer_type = STRINGERTYPE.CLASSIC.name
