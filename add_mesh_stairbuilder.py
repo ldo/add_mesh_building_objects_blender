@@ -988,9 +988,9 @@ def treads(mm, stair_type, tread_type, stair_run, tread_width, tread_height, tre
         ]
 
     # Setup the coordinates:
-    coords = []
-    coords2 = []
-    coords3 = []
+    treads_coords = []
+    bars_coords = []
+    crosses_coords = []
     cross = 0
     cW = 0
     depth = 0
@@ -998,50 +998,50 @@ def treads(mm, stair_type, tread_type, stair_run, tread_width, tread_height, tre
     height = 0
     assert stair_type in [STAIRTYPE.FREESTANDING, STAIRTYPE.HOUSED_OPEN, STAIRTYPE.BOX]
     if tread_type == TREADTYPE.CLASSIC :
-        coords.append(vec(- tread_toe, - tread_side_overhang, 0))
-        coords.append(vec(tread_run, - tread_side_overhang, 0))
-        coords.append(vec(- tread_toe, tread_width + tread_side_overhang, 0))
-        coords.append(vec(tread_run, tread_width + tread_side_overhang, 0))
+        treads_coords.append(vec(- tread_toe, - tread_side_overhang, 0))
+        treads_coords.append(vec(tread_run, - tread_side_overhang, 0))
+        treads_coords.append(vec(- tread_toe, tread_width + tread_side_overhang, 0))
+        treads_coords.append(vec(tread_run, tread_width + tread_side_overhang, 0))
         for i in range(4) :
-            coords.append(coords[i] + vec(0, 0, - tread_height))
+            treads_coords.append(treads_coords[i] + vec(0, 0, - tread_height))
         #end for
     elif tread_type == TREADTYPE.BASIC_STEEL :
         depth = (tread_run + tread_toe - (nr_tread_sections - 1) * tread_section_spacing) / nr_tread_sections
         inset = depth / 4
         tDepth = depth - tread_toe
-        coords.append(vec(- tread_toe, - tread_side_overhang, - tread_height))                          #0
-        coords.append(vec(inset - tread_toe, - tread_side_overhang, - tread_height))           #1
-        coords.append(vec(inset - tread_toe, - tread_side_overhang, - tread_height + tread_metal_thickness)) #2
-        coords.append(vec(tread_metal_thickness - tread_toe, - tread_side_overhang, - tread_height + tread_metal_thickness))       #3
-        coords.append(vec(tread_metal_thickness - tread_toe, - tread_side_overhang, - tread_metal_thickness))                #4
-        coords.append(vec(- tread_toe, - tread_side_overhang, 0))                                #5
-        coords.append(vec(tDepth, - tread_side_overhang, 0))                                 #6
-        coords.append(vec(tDepth - tread_metal_thickness, - tread_side_overhang, - tread_metal_thickness))                #7
-        coords.append(vec(tDepth - tread_metal_thickness, - tread_side_overhang, tread_metal_thickness - tread_height))        #8
-        coords.append(vec(tDepth, - tread_side_overhang, - tread_height))                           #9
-        coords.append(vec(tDepth - inset, - tread_side_overhang, - tread_height))           #10
-        coords.append(vec(tDepth - inset, - tread_side_overhang, - tread_height + tread_metal_thickness)) #11
+        treads_coords.append(vec(- tread_toe, - tread_side_overhang, - tread_height))                          #0
+        treads_coords.append(vec(inset - tread_toe, - tread_side_overhang, - tread_height))           #1
+        treads_coords.append(vec(inset - tread_toe, - tread_side_overhang, - tread_height + tread_metal_thickness)) #2
+        treads_coords.append(vec(tread_metal_thickness - tread_toe, - tread_side_overhang, - tread_height + tread_metal_thickness))       #3
+        treads_coords.append(vec(tread_metal_thickness - tread_toe, - tread_side_overhang, - tread_metal_thickness))                #4
+        treads_coords.append(vec(- tread_toe, - tread_side_overhang, 0))                                #5
+        treads_coords.append(vec(tDepth, - tread_side_overhang, 0))                                 #6
+        treads_coords.append(vec(tDepth - tread_metal_thickness, - tread_side_overhang, - tread_metal_thickness))                #7
+        treads_coords.append(vec(tDepth - tread_metal_thickness, - tread_side_overhang, tread_metal_thickness - tread_height))        #8
+        treads_coords.append(vec(tDepth, - tread_side_overhang, - tread_height))                           #9
+        treads_coords.append(vec(tDepth - inset, - tread_side_overhang, - tread_height))           #10
+        treads_coords.append(vec(tDepth - inset, - tread_side_overhang, - tread_height + tread_metal_thickness)) #11
         for i in range(12) :
-            coords.append(coords[i] + vec(0, tread_width + 2 * tread_side_overhang, 0))
+            treads_coords.append(treads_coords[i] + vec(0, tread_width + 2 * tread_side_overhang, 0))
         #end for
     elif tread_type in [TREADTYPE.BAR_1, TREADTYPE.BAR_2, TREADTYPE.BAR_3] :
         # Frame:
-        coords.append(vec(- tread_toe, - tread_side_overhang, - tread_height))
-        coords.append(vec(tread_run, - tread_side_overhang, - tread_height))
-        coords.append(vec(- tread_toe, - tread_side_overhang, 0))
-        coords.append(vec(tread_run, - tread_side_overhang, 0))
+        treads_coords.append(vec(- tread_toe, - tread_side_overhang, - tread_height))
+        treads_coords.append(vec(tread_run, - tread_side_overhang, - tread_height))
+        treads_coords.append(vec(- tread_toe, - tread_side_overhang, 0))
+        treads_coords.append(vec(tread_run, - tread_side_overhang, 0))
         for i in range(4) :
             if i % 2 == 0 :
-                coords.append(coords[i] + vec(tread_metal_thickness, tread_metal_thickness, 0))
+                treads_coords.append(treads_coords[i] + vec(tread_metal_thickness, tread_metal_thickness, 0))
             else :
-                coords.append(coords[i] + vec(- tread_metal_thickness, tread_metal_thickness, 0))
+                treads_coords.append(treads_coords[i] + vec(- tread_metal_thickness, tread_metal_thickness, 0))
             #end if
         #end for
         for i in range(4) :
-            coords.append(coords[i] + vec(0, tread_width + tread_side_overhang, 0))
+            treads_coords.append(treads_coords[i] + vec(0, tread_width + tread_side_overhang, 0))
         #end for
         for i in range(4) :
-            coords.append(coords[i + 4] + vec(0, tread_width + tread_side_overhang - 2 * tread_metal_thickness, 0))
+            treads_coords.append(treads_coords[i + 4] + vec(0, tread_width + tread_side_overhang - 2 * tread_metal_thickness, 0))
         #end for
         # Tread sections:
         if tread_type == TREADTYPE.BAR_1 :
@@ -1049,25 +1049,25 @@ def treads(mm, stair_type, tread_type, stair_run, tread_width, tread_height, tre
             topset = tread_height - offset
             tread_section_spacing = ((tread_run + tread_toe - 2 * tread_metal_thickness) - (offset * nr_tread_sections + topset)) / (nr_tread_sections + 1)
             baseX = - tread_toe + tread_section_spacing + tread_metal_thickness
-            coords2.append(vec(baseX, tread_metal_thickness - tread_side_overhang, offset - tread_height))
-            coords2.append(vec(baseX + offset, tread_metal_thickness - tread_side_overhang, - tread_height))
+            bars_coords.append(vec(baseX, tread_metal_thickness - tread_side_overhang, offset - tread_height))
+            bars_coords.append(vec(baseX + offset, tread_metal_thickness - tread_side_overhang, - tread_height))
             for i in range(2) :
-                coords2.append(coords2[i] + vec(topset, 0, topset))
+                bars_coords.append(bars_coords[i] + vec(topset, 0, topset))
             #end for
             for i in range(4) :
-                coords2.append(coords2[i] + vec(0, (tread_width + tread_side_overhang) - 2 * tread_metal_thickness, 0))
+                bars_coords.append(bars_coords[i] + vec(0, (tread_width + tread_side_overhang) - 2 * tread_metal_thickness, 0))
             #end for
         elif tread_type in [TREADTYPE.BAR_2, TREADTYPE.BAR_3] :
             offset = ((stair_run + tread_toe) * tread_section_spacing) / (nr_tread_sections + 1)
             topset = ((stair_run + tread_toe) * (1 - tread_section_spacing) - 2 * tread_metal_thickness) / nr_tread_sections
             baseX = - tread_toe + tread_metal_thickness + offset
             baseY = tread_width + tread_side_overhang - 2 * tread_metal_thickness
-            coords2.append(vec(baseX, - tread_side_overhang + tread_metal_thickness, - tread_height / 2))
-            coords2.append(vec(baseX + topset, - tread_side_overhang + tread_metal_thickness, - tread_height / 2))
-            coords2.append(vec(baseX, - tread_side_overhang + tread_metal_thickness, 0))
-            coords2.append(vec(baseX + topset, - tread_side_overhang + tread_metal_thickness, 0))
+            bars_coords.append(vec(baseX, - tread_side_overhang + tread_metal_thickness, - tread_height / 2))
+            bars_coords.append(vec(baseX + topset, - tread_side_overhang + tread_metal_thickness, - tread_height / 2))
+            bars_coords.append(vec(baseX, - tread_side_overhang + tread_metal_thickness, 0))
+            bars_coords.append(vec(baseX + topset, - tread_side_overhang + tread_metal_thickness, 0))
             for i in range(4) :
-                coords2.append(coords2[i] + vec(0, baseY, 0))
+                bars_coords.append(bars_coords[i] + vec(0, baseY, 0))
             #end for
         #end if
         # Tread cross-sections:
@@ -1082,21 +1082,21 @@ def treads(mm, stair_type, tread_type, stair_run, tread_width, tread_height, tre
             height = - tread_height / 2
         #end if
         baseY = - tread_side_overhang + tread_metal_thickness + cross
-        coords3.append(vec(- tread_toe + tread_metal_thickness, baseY, - tread_height))
-        coords3.append(vec(tread_run - tread_metal_thickness, baseY, - tread_height))
-        coords3.append(vec(- tread_toe + tread_metal_thickness, baseY, height))
-        coords3.append(vec(tread_run - tread_metal_thickness, baseY, height))
+        crosses_coords.append(vec(- tread_toe + tread_metal_thickness, baseY, - tread_height))
+        crosses_coords.append(vec(tread_run - tread_metal_thickness, baseY, - tread_height))
+        crosses_coords.append(vec(- tread_toe + tread_metal_thickness, baseY, height))
+        crosses_coords.append(vec(tread_run - tread_metal_thickness, baseY, height))
         for i in range(4) :
-            coords3.append(coords3[i] + vec(0, cW, 0))
+            crosses_coords.append(crosses_coords[i] + vec(0, cW, 0))
         #end for
     #end if
     # Make the treads:
     for i in range(nr_treads) :
         if tread_type == TREADTYPE.CLASSIC :
-            mm.make_ppd_mesh(coords, 'treads')
+            mm.make_ppd_mesh(treads_coords, 'treads')
         elif tread_type == TREADTYPE.BASIC_STEEL :
             temp = []
-            for j in coords :
+            for j in treads_coords :
                 temp.append(copy(j))
             #end for
             for j in range(nr_tread_sections) :
@@ -1106,9 +1106,9 @@ def treads(mm, stair_type, tread_type, stair_run, tread_width, tread_height, tre
                 #end for
             #end for
         elif tread_type in [TREADTYPE.BAR_1, TREADTYPE.BAR_2, TREADTYPE.BAR_3] :
-            mm.make_mesh(coords, out_faces, 'treads')
+            mm.make_mesh(treads_coords, out_faces, 'treads')
             temp = []
-            for j in coords2 :
+            for j in bars_coords :
                 temp.append(copy(j))
             #end for
             for j in range(nr_tread_sections) :
@@ -1117,11 +1117,11 @@ def treads(mm, stair_type, tread_type, stair_run, tread_width, tread_height, tre
                     k += vec(offset + tread_section_spacing, 0, 0)
                 #end for
             #end for
-            for j in coords2 :
+            for j in bars_coords :
                 j += vec(tread_run, 0, tread_rise)
             #end for
             temp = []
-            for j in coords3 :
+            for j in crosses_coords :
                 temp.append(copy(j))
             #end for
             for j in range(nr_cross_sections) :
@@ -1130,11 +1130,11 @@ def treads(mm, stair_type, tread_type, stair_run, tread_width, tread_height, tre
                     k += vec(0, cW + cross, 0)
                 #end for
             #end for
-            for j in coords3 :
+            for j in crosses_coords :
                 j += vec(tread_run, 0, tread_rise)
             #end for
         #end if
-        for j in coords :
+        for j in treads_coords :
             j += vec(tread_run, 0, tread_rise)
         #end for
     #end for
