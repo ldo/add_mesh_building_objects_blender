@@ -306,9 +306,10 @@ def retainers(mm, retainer_width, retainer_height, post_width, tread_width, rail
 #end retainers
 
 def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_height, nr_treads, tread_height, tread_width, tread_toe, tread_overhang, tw, stringer_flange_thickness, tp, stringer_intersects_ground,
-    nr_stringers = 1, distributed_stringers = False, notMulti = True, sections_per_slice = 4) :
+    nr_stringers = 1, distributed_stringers = False, notMulti = True, sections_per_slice = None) :
     "generates stringers for the stairs. These are the supports that go under" \
     " the stairs."
+    assert (sections_per_slice != None) == (stair_type == STAIRTYPE.CIRCULAR)
 
     if notMulti :
         stringer_width = w / 100
@@ -1147,7 +1148,7 @@ def treads(mm, stair_type, tread_type, stair_run, tread_width, tread_height, tre
     make_treads()
 #end treads
 
-def treads_circular(mm, tread_type, stair_arc, outer_radius, tread_height, tread_rise, tread_toe, inner_radius, nr_treads, nr_sections_per_slice = 4) :
+def treads_circular(mm, tread_type, stair_arc, outer_radius, tread_height, tread_rise, tread_toe, inner_radius, nr_treads, nr_sections_per_slice) :
     "generates treads for circular stairs."
     start = \
         [
