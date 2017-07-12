@@ -832,9 +832,13 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
     #end box
 
     def circular() :
-        offset = tread_width / (nr_stringers + 1) - stringer_width / 2
+        if distributed_stringers or nr_stringers == 1 :
+            offset = tread_width / (nr_stringers + 1) - stringer_width / 2
+        else :
+            offset = 0
+        #end if
         for s in range(nr_stringers) :
-            base = tread_overhang + offset * (s + 1)
+            base = tread_overhang + offset
             start = \
                 [
                     vec(0, - base, - tread_height),
@@ -892,6 +896,11 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
                 #end if
                 mm.make_mesh(coords, faces, 'stringer')
             #end for
+            if distributed_stringers or nr_stringers == 1 :
+                offset += tread_width / (nr_stringers + 1)
+            else :
+                offset += (tread_width - stringer_width) / (nr_stringers - 1)
+            #end if
         #end for
     #end circular
 
@@ -1663,6 +1672,7 @@ class Stairs(bpy.types.Operator) :
                 #end if
             elif self.stair_type == STAIRTYPE.CIRCULAR.name :
                 box.prop(self, 'string_n')
+                box.prop(self, 'string_dis')
             #end if
         #end if
     #end draw
