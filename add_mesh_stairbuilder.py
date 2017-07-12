@@ -24,9 +24,6 @@
 #       - "L" staircase
 #       - "T" staircase
 #
-# Last Modified By: Paul "brikbot" Marshall
-# Last Modification: January 29, 2011
-#
 # ##### BEGIN GPL LICENSE BLOCK #####
 #
 #  Stairbuilder is for quick stair generation.
