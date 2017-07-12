@@ -423,6 +423,39 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
         #end if
         # taper < 100%:
         if stringer_flange_taper > 0 :
+            faces = \
+                [
+                    [0, 1, 17, 16],
+                    [1, 2, 18, 17],
+                    [2, 3, 19, 18],
+                    [3, 4, 20, 19],
+                    [4, 5, 21, 20],
+                    [5, 6, 22, 21],
+                    [6, 7, 23, 22],
+                    [7, 8, 24, 23],
+                    [8, 9, 25, 24],
+                    [9, 10, 26, 25],
+                    [10, 11, 27, 26],
+                    [11, 12, 28, 27],
+                    [12, 13, 29, 28],
+                    [13, 14, 30, 29],
+                    [14, 15, 31, 30],
+                    [15, 0, 16, 31],
+                    [0, 1, 2, 15],
+                    [2, 11, 14, 15],
+                    [11, 12, 13, 14],
+                    [2, 3, 10, 11],
+                    [3, 4, 5, 6],
+                    [3, 6, 7, 10],
+                    [7, 8, 9, 10],
+                    [16, 17, 18, 31],
+                    [18, 27, 30, 31],
+                    [27, 28, 29, 30],
+                    [18, 19, 26, 27],
+                    [19, 20, 21, 22],
+                    [19, 22, 23, 26],
+                    [23, 24, 25, 26],
+                ]
             for i in range(nr_stringers) :
                 coords = []
                 coords.append(vec(0, offset,                baseZ))
@@ -459,39 +492,6 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
                           )
                     #end for
                 #end if
-                faces = \
-                    [
-                        [0, 1, 17, 16],
-                        [1, 2, 18, 17],
-                        [2, 3, 19, 18],
-                        [3, 4, 20, 19],
-                        [4, 5, 21, 20],
-                        [5, 6, 22, 21],
-                        [6, 7, 23, 22],
-                        [7, 8, 24, 23],
-                        [8, 9, 25, 24],
-                        [9, 10, 26, 25],
-                        [10, 11, 27, 26],
-                        [11, 12, 28, 27],
-                        [12, 13, 29, 28],
-                        [13, 14, 30, 29],
-                        [14, 15, 31, 30],
-                        [15, 0, 16, 31],
-                        [0, 1, 2, 15],
-                        [2, 11, 14, 15],
-                        [11, 12, 13, 14],
-                        [2, 3, 10, 11],
-                        [3, 4, 5, 6],
-                        [3, 6, 7, 10],
-                        [7, 8, 9, 10],
-                        [16, 17, 18, 31],
-                        [18, 27, 30, 31],
-                        [27, 28, 29, 30],
-                        [18, 19, 26, 27],
-                        [19, 20, 21, 22],
-                        [19, 22, 23, 26],
-                        [23, 24, 25, 26],
-                    ]
                 mm.make_mesh(coords, faces, 'stringer')
                 if distributed_stringers or nr_stringers == 1 :
                     offset += tread_width / (nr_stringers + 1)
@@ -501,6 +501,23 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
             #end for
         # taper = 100%:
         else :
+            faces = \
+                [
+                    [0, 1, 9, 8],
+                    [1, 2, 10, 9],
+                    [2, 3, 11, 10],
+                    [3, 4, 12, 11],
+                    [4, 5, 13, 12],
+                    [5, 6, 14, 13],
+                    [6, 7, 15, 14],
+                    [7, 0, 8, 15],
+                    [0, 1, 6, 7],
+                    [1, 2, 5, 6],
+                    [2, 3, 4, 5],
+                    [8, 9, 14, 15],
+                    [9, 10, 13, 14],
+                    [10, 11, 12, 13],
+                ]
             for i in range(nr_stringers) :
                 coords = []
                 coords.append(vec(0, offset,                baseZ))
@@ -514,23 +531,6 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
                 for j in range(8) :
                     coords.append(coords[j] + vec(stair_run * nr_treads, 0, stair_rise * nr_treads))
                 #end for
-                faces = \
-                    [
-                        [0, 1, 9, 8],
-                        [1, 2, 10, 9],
-                        [2, 3, 11, 10],
-                        [3, 4, 12, 11],
-                        [4, 5, 13, 12],
-                        [5, 6, 14, 13],
-                        [6, 7, 15, 14],
-                        [7, 0, 8, 15],
-                        [0, 1, 6, 7],
-                        [1, 2, 5, 6],
-                        [2, 3, 4, 5],
-                        [8, 9, 14, 15],
-                        [9, 10, 13, 14],
-                        [10, 11, 12, 13],
-                    ]
                 mm.make_mesh(coords, faces, 'stringer')
                 offset += tread_width / (nr_stringers + 1)
             #end for
