@@ -913,6 +913,7 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
             freestanding_classic()
         elif stringer_type == STRINGERTYPE.I_BEAM :
             i_beam()
+        # note STRINGERTYPE.C_BEAM not supported
         #end if
     elif stair_type == STAIRTYPE.HOUSED_OPEN :
         if stringer_type == STRINGERTYPE.CLASSIC :
