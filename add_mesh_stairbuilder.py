@@ -68,6 +68,8 @@ from mathutils.geometry import \
 # Useful stuff
 #-
 
+deg = math.pi / 180 # degrees/radians conversion factor
+
 vec = lambda x, y, z : mathutils.Vector([x, y, z])
   # save some extra brackets
 
@@ -309,7 +311,6 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
     nr_stringers = 1, distributed_stringers = False, notMulti = True, sections_per_slice = 4) :
     "generates stringers for the stairs. These are the supports that go under" \
     " the stairs."
-    # stair_run is in degrees if stair_type == STAIRTYPE.CIRCULAR
 
     if notMulti :
         stringer_width = w / 100
@@ -853,7 +854,7 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
                     vec(0, - base - stringer_width, - tread_height),
                     vec(0, - base - stringer_width, - tread_height - stair_rise),
                 ]
-            tread_angle = math.radians(stair_run) / nr_treads
+            tread_angle = stair_run / nr_treads
             for i in range(nr_treads) :
                 coords = []
                 # Base faces.  Should be able to append more sections :
@@ -1141,7 +1142,6 @@ def treads(mm, stair_type, tread_type, stair_run, tread_width, tread_height, tre
 
 def treads_circular(mm, tread_type, stair_run, outer_radius, tread_height, tread_rise, tread_toe, inner_radius, nr_treads, nr_sections_per_slice = 4) :
     "generates treads for circular stairs."
-    # stair_run is in degrees
     start = \
         [
             vec(0, - inner_radius, 0),
@@ -1149,7 +1149,7 @@ def treads_circular(mm, tread_type, stair_run, outer_radius, tread_height, tread
             vec(0, - outer_radius, 0),
             vec(0, - outer_radius, - tread_height),
         ]
-    tread_run = math.radians(stair_run) / nr_treads
+    tread_run = stair_run / nr_treads
     for i in range(nr_treads) :
         coords = []
         # Base faces.  Should be able to append more sections:
@@ -1233,14 +1233,15 @@ class Stairs(bpy.types.Operator) :
         soft_max = 32.0,
         default = 1.0
       )
-    deg = FloatProperty \
+    rotation = FloatProperty \
       (
-        name = "Degrees",
-        description = "Number of degrees the stairway rotates",
+        subtype = "ANGLE",
+        name = "Rotation",
+        description = "How much the stairway rotates",
         min = 0.0,
-        max = 92160.0,
-        step = 5.0,
-        default = 450.0
+        max = 92160.0 * deg,
+        step = 5.0 * deg,
+        default = 450.0 * deg
       )
     center = BoolProperty \
       (
@@ -1319,6 +1320,7 @@ class Stairs(bpy.types.Operator) :
       )
     tread_sp = IntProperty \
       (
+        subtype = "PERCENTAGE",
         name = "Spacing",
         description = "Total spacing between tread sections as a percentage of total tread width",
         min = 0,
@@ -1469,6 +1471,7 @@ class Stairs(bpy.types.Operator) :
       )
     string_w = FloatProperty \
       (
+        subtype = "PERCENTAGE",
         name = "Stringer width",
         description = "Width of stringer as a percentage of tread width",
         min = 0.0001,
@@ -1485,6 +1488,7 @@ class Stairs(bpy.types.Operator) :
       )
     string_tw = FloatProperty \
       (
+        subtype = "PERCENTAGE",
         name = "Web Thickness",
         description = "Thickness of the beam's web as a percentage of width",
         min = 0.0001,
@@ -1501,6 +1505,7 @@ class Stairs(bpy.types.Operator) :
       )
     string_tp = FloatProperty \
       (
+        subtype = "PERCENTAGE",
         name = "Flange Taper",
         description = "Flange thickness taper as a percentage",
         min = 0.0,
@@ -1543,7 +1548,7 @@ class Stairs(bpy.types.Operator) :
         if self.stair_type != STAIRTYPE.CIRCULAR.name :
             box.prop(self, 'run')
         else :
-            box.prop(self, 'deg')
+            box.prop(self, 'rotation')
             box.prop(self, 'rad1')
             box.prop(self, 'rad2')
             box.prop(self, 'center') # FIXME: not used
@@ -1685,7 +1690,7 @@ class Stairs(bpy.types.Operator) :
                   (
                     mm = mm,
                     tread_type = tread_type,
-                    stair_run = self.deg,
+                    stair_run = self.rotation,
                     outer_radius = self.rad2,
                     tread_height = self.tread_h,
                     tread_rise = self.rise,
@@ -1792,7 +1797,7 @@ class Stairs(bpy.types.Operator) :
                     stair_type = stair_type,
                     stringer_type = stringer_type,
                     stair_rise = self.rise,
-                    stair_run = self.deg,
+                    stair_run = self.rotation,
                     w = self.string_w,
                     stringer_height = self.string_h,
                     nr_treads = self.tread_n,
