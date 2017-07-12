@@ -1152,7 +1152,7 @@ def treads(mm, stair_type, tread_type, stair_run, tread_width, tread_height, tre
     make_treads()
 #end treads
 
-def treads_circular(mm, tread_type, stair_run, outer_radius, tread_height, tread_rise, tread_toe, inner_radius, nr_treads, nr_sections_per_slice = 4) :
+def treads_circular(mm, tread_type, stair_arc, outer_radius, tread_height, tread_rise, tread_toe, inner_radius, nr_treads, nr_sections_per_slice = 4) :
     "generates treads for circular stairs."
     start = \
         [
@@ -1161,15 +1161,15 @@ def treads_circular(mm, tread_type, stair_run, outer_radius, tread_height, tread
             vec(0, - outer_radius, 0),
             vec(0, - outer_radius, - tread_height),
         ]
-    tread_run = stair_run / nr_treads
+    tread_arc = stair_arc / nr_treads
     for i in range(nr_treads) :
         coords = []
         # Base faces.  Should be able to append more sections:
         bar_2_faces = [[0, 1, 3, 2]]
-        t_inner = Matrix.Rotation(- tread_toe / inner_radius + tread_run * i, 3, 'Z')
+        t_inner = Matrix.Rotation(- tread_toe / inner_radius + tread_arc * i, 3, 'Z')
         coords.append(t_inner * start[0] + vec(0, 0, tread_rise * i))
         coords.append(t_inner * start[1] + vec(0, 0, tread_rise * i))
-        t_outer = Matrix.Rotation(- tread_toe / outer_radius + tread_run * i, 3, 'Z')
+        t_outer = Matrix.Rotation(- tread_toe / outer_radius + tread_arc * i, 3, 'Z')
         coords.append(t_outer * start[2] + vec(0, 0, tread_rise * i))
         coords.append(t_outer * start[3] + vec(0, 0, tread_rise * i))
         k = 0
@@ -1179,7 +1179,7 @@ def treads_circular(mm, tread_type, stair_run, outer_radius, tread_height, tread
             bar_2_faces.append([k - 2, k - 1, k + 3, k + 2])
             bar_2_faces.append([k + 1, k - 3, k - 1, k + 3])
             bar_2_faces.append([k, k - 4, k - 2, k + 2])
-            rot = Matrix.Rotation(tread_run * j / nr_sections_per_slice + tread_run * i, 3, 'Z')
+            rot = Matrix.Rotation(tread_arc * j / nr_sections_per_slice + tread_arc * i, 3, 'Z')
             for v in start :
                 coords.append(rot * v + vec(0, 0, tread_rise * i))
             #end for
@@ -1702,7 +1702,7 @@ class Stairs(bpy.types.Operator) :
                   (
                     mm = mm,
                     tread_type = tread_type,
-                    stair_run = self.rotation,
+                    stair_arc = self.rotation,
                     outer_radius = self.rad2,
                     tread_height = self.tread_h,
                     tread_rise = self.rise,
