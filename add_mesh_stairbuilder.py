@@ -1148,7 +1148,7 @@ def treads_circular(mm, tread_type, stair_arc, outer_radius, tread_height, tread
     for i in range(nr_treads) :
         coords = []
         # Base faces.  Should be able to append more sections:
-        bar_2_faces = [[0, 1, 3, 2]]
+        faces = [[0, 1, 3, 2]]
         t_inner = z_rotation(- tread_toe / inner_radius + tread_arc * i)
         coords.append(t_inner * start[0] + vec(0, 0, tread_rise * i))
         coords.append(t_inner * start[1] + vec(0, 0, tread_rise * i))
@@ -1157,17 +1157,17 @@ def treads_circular(mm, tread_type, stair_arc, outer_radius, tread_height, tread
         coords.append(t_outer * start[3] + vec(0, 0, tread_rise * i))
         for j in range(nr_sections_per_slice + 1) :
             k = j * 4 + 4
-            bar_2_faces.append([k, k - 4, k - 3, k + 1])
-            bar_2_faces.append([k - 2, k - 1, k + 3, k + 2])
-            bar_2_faces.append([k + 1, k - 3, k - 1, k + 3])
-            bar_2_faces.append([k, k - 4, k - 2, k + 2])
+            faces.append([k, k - 4, k - 3, k + 1])
+            faces.append([k - 2, k - 1, k + 3, k + 2])
+            faces.append([k + 1, k - 3, k - 1, k + 3])
+            faces.append([k, k - 4, k - 2, k + 2])
             rot = z_rotation(tread_arc * j / nr_sections_per_slice + tread_arc * i)
             for v in start :
                 coords.append(rot * v + vec(0, 0, tread_rise * i))
             #end for
         #end for
-        bar_2_faces.append([k, k + 1, k + 3, k + 2])
-        mm.make_mesh(coords, bar_2_faces, 'treads')
+        faces.append([k, k + 1, k + 3, k + 2])
+        mm.make_mesh(coords, faces, 'treads')
     #end for
 #end treads_circular
 
