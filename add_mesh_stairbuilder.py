@@ -58,8 +58,6 @@ from bpy.props import \
 from bpy_extras import \
     object_utils
 import mathutils
-from mathutils import \
-    Matrix
 from mathutils.geometry import \
     intersect_line_plane, \
     intersect_line_line
@@ -73,6 +71,8 @@ circle = 2 * math.pi # circles/radians conversion factor
 
 vec = lambda x, y, z : mathutils.Vector([x, y, z])
   # save some extra brackets
+z_rotation = lambda angle : mathutils.Matrix.Rotation(angle, 3, "Z")
+  # all my rotation matrices are of this form
 
 class EnumPropItems(enum.Enum) :
     "base class for enumerations that can be passed to Blender’s EnumProperty" \
@@ -860,10 +860,10 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
                 coords = []
                 # Base faces.  Should be able to append more sections :
                 bar_2_faces = [[0, 1, 3, 2]]
-                t_inner = Matrix.Rotation(tread_angle * i, 3, 'Z')
+                t_inner = z_rotation(tread_angle * i)
                 coords.append(t_inner * start[0] + vec(0, 0, stair_rise * i))
                 coords.append(t_inner * start[1] + vec(0, 0, stair_rise * i))
-                t_outer = Matrix.Rotation(tread_angle * i, 3, 'Z')
+                t_outer = z_rotation(tread_angle * i)
                 coords.append(t_outer * start[2] + vec(0, 0, stair_rise * i))
                 coords.append(t_outer * start[3] + vec(0, 0, stair_rise * i))
                 for j in range(sections_per_slice) :
@@ -872,12 +872,7 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
                     bar_2_faces.append([k - 2, k - 1, k + 3, k + 2])
                     bar_2_faces.append([k + 1, k - 3, k - 1, k + 3])
                     bar_2_faces.append([k, k - 4, k - 2, k + 2])
-                    rot = Matrix.Rotation \
-                      (
-                        tread_angle * (j + 1) / sections_per_slice + tread_angle * i,
-                        3,
-                        'Z'
-                      )
+                    rot = z_rotation(tread_angle * (j + 1) / sections_per_slice + tread_angle * i)
                     for v in start :
                         coords.append(rot * v + vec(0, 0, stair_rise * i))
                     #end for
@@ -888,11 +883,11 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
                     bar_2_faces.append([k - 2, k - 1, k + 3, k + 2])
                     bar_2_faces.append([k + 1, k - 3, k - 1, k + 3])
                     bar_2_faces.append([k, k - 4, k - 2, k + 2])
-                    rot = Matrix.Rotation \
+                    rot = z_rotation \
                       (
-                        tread_angle * (j + sections_per_slice + 1) / sections_per_slice + tread_angle * i,
-                        3,
-                        'Z'
+                            tread_angle * (j + sections_per_slice + 1) / sections_per_slice
+                        +
+                            tread_angle * i
                       )
                     for v in range(4) :
                         if v in [1, 3] :
@@ -1166,10 +1161,10 @@ def treads_circular(mm, tread_type, stair_arc, outer_radius, tread_height, tread
         coords = []
         # Base faces.  Should be able to append more sections:
         bar_2_faces = [[0, 1, 3, 2]]
-        t_inner = Matrix.Rotation(- tread_toe / inner_radius + tread_arc * i, 3, 'Z')
+        t_inner = z_rotation(- tread_toe / inner_radius + tread_arc * i)
         coords.append(t_inner * start[0] + vec(0, 0, tread_rise * i))
         coords.append(t_inner * start[1] + vec(0, 0, tread_rise * i))
-        t_outer = Matrix.Rotation(- tread_toe / outer_radius + tread_arc * i, 3, 'Z')
+        t_outer = z_rotation(- tread_toe / outer_radius + tread_arc * i)
         coords.append(t_outer * start[2] + vec(0, 0, tread_rise * i))
         coords.append(t_outer * start[3] + vec(0, 0, tread_rise * i))
         for j in range(nr_sections_per_slice + 1) :
@@ -1178,7 +1173,7 @@ def treads_circular(mm, tread_type, stair_arc, outer_radius, tread_height, tread
             bar_2_faces.append([k - 2, k - 1, k + 3, k + 2])
             bar_2_faces.append([k + 1, k - 3, k - 1, k + 3])
             bar_2_faces.append([k, k - 4, k - 2, k + 2])
-            rot = Matrix.Rotation(tread_arc * j / nr_sections_per_slice + tread_arc * i, 3, 'Z')
+            rot = z_rotation(tread_arc * j / nr_sections_per_slice + tread_arc * i)
             for v in start :
                 coords.append(rot * v + vec(0, 0, tread_rise * i))
             #end for
