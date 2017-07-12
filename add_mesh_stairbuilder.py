@@ -1079,7 +1079,7 @@ def treads(mm, stair_type, tread_type, stair_run, tread_width, tread_height, tre
                 [6, 5, 17, 18],
                 [5, 0, 12, 17],
             ]
-        out_faces = \
+        bar_faces = \
             [
                 [0 , 2, 3, 1],
                 [0, 2, 10, 8],
@@ -1113,7 +1113,7 @@ def treads(mm, stair_type, tread_type, stair_run, tread_width, tread_height, tre
                     #end for
                 #end for
             elif tread_type in [TREADTYPE.BAR_1, TREADTYPE.BAR_2, TREADTYPE.BAR_3] :
-                mm.make_mesh(treads_coords, out_faces, 'treads')
+                mm.make_mesh(treads_coords, bar_faces, 'treads')
                 temp = []
                 for j in bars_coords :
                     temp.append(copy(j))
