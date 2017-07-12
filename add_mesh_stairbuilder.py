@@ -188,7 +188,7 @@ def posts(mm, rise, stair_run, post_depth, post_width, tread_width, nr_posts, ra
     #end intersect
 
 #begin posts
-    for i in range(0, nr_posts + 2, 1) :
+    for i in range(nr_posts + 2) :
         coords = []
         #intersections with rail
         coords.append(intersect(i, 0.0))
