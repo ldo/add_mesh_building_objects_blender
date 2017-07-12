@@ -605,14 +605,9 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
                     )[0]
               )
             # Outer web:
-            coords.append(coords[1] + vec(0, flange_y, 0))
-            coords.append(coords[8] + vec(0, flange_y, 0))
-            coords.append(coords[15] + vec(0, flange_y, 0))
-            coords.append(coords[14] + vec(0, flange_y, 0))
-            coords.append(coords[13] + vec(0, flange_y, 0))
-            coords.append(coords[4] + vec(0, flange_y, 0))
-            coords.append(coords[3] + vec(0, flange_y, 0))
-            coords.append(coords[2] + vec(0, flange_y, 0))
+            for i in [1, 8, 15, 14, 13, 4, 3, 2] :
+                coords.append(coords[i] + vec(0, flange_y, 0))
+            #end for
             # Upper-Inner flange and lower-inner flange:
             for i in range(16) :
                 coords.append(coords[i] + vec(0, stringer_width, 0))
@@ -770,14 +765,9 @@ def stringer(mm, stair_type, stringer_type, stair_rise, stair_run, w, stringer_h
                   )[0]
               )
             # Outer web:
-            coords.append(coords[1] + vec(0, flange_y, 0))
-            coords.append(coords[8] + vec(0, flange_y, 0))
-            coords.append(coords[15] + vec(0, flange_y, 0))
-            coords.append(coords[14] + vec(0, flange_y, 0))
-            coords.append(coords[13] + vec(0, flange_y, 0))
-            coords.append(coords[4] + vec(0, flange_y, 0))
-            coords.append(coords[3] + vec(0, flange_y, 0))
-            coords.append(coords[2] + vec(0, flange_y, 0))
+            for i in [1, 8, 15, 14, 13, 4, 3, 2] :
+                coords.append(coords[i] + vec(0, flange_y, 0))
+            #end for
             # Outer corner nodes:
             for i in [0, 7, 6, 5, 12, 11, 10, 9] :
                 coords.append(coords[i] + vec(0, flange_y + stringer_web_thickness, 0))
