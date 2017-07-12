@@ -174,7 +174,7 @@ class MeshMaker :
 
 #end MeshMaker
 
-def posts(mm, rise, stair_run, post_depth, post_width, tread_width, nr_posts, rail_height, rail_thickness, rEnable, lEnable) :
+def posts(mm, rise, stair_run, post_depth, post_width, tread_width, nr_posts, rail_height, rail_thickness, do_right_side, do_left_side) :
     "generates posts for the stairs. These are the vertical elements holding up the railings."
     # TODO: STAIRTYPE.CIRCULAR
     p1 = vec(0, 0, rail_height - rail_thickness) # first post
@@ -202,10 +202,10 @@ def posts(mm, rise, stair_run, post_depth, post_width, tread_width, nr_posts, ra
         for j in range(4) :
             coords.append(coords[j] + vec(0, post_width, 0))
         #end for
-        if rEnable :
+        if do_right_side :
             mm.make_ppd_mesh(coords, 'posts')
         #end if
-        if lEnable :
+        if do_left_side :
             #make post on other side of steps as well
             for j in coords :
                 j += vec(0, tread_width - post_width, 0)
@@ -215,7 +215,7 @@ def posts(mm, rise, stair_run, post_depth, post_width, tread_width, nr_posts, ra
     #end for
 #end posts
 
-def railings(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width, post_depth, tread_width, rEnable, lEnable) :
+def railings(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width, post_depth, tread_width, do_right_side, do_left_side) :
     "generates railings for the stairs. These go across the tops of the posts."
     # TODO: STAIRTYPE.CIRCULAR
 
@@ -260,10 +260,10 @@ def railings(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width,
     for j in coords :
         j += vec(0, 0.5 * (- rail_width + post_width), 0)
     #end for
-    if rEnable :
+    if do_right_side :
         mm.make_ppd_mesh(coords, 'rails')
     #end if
-    if lEnable :
+    if do_left_side :
         #make rail on other side
         for j in coords :
             j += vec(0, tread_width - post_width, 0)
@@ -272,7 +272,7 @@ def railings(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width,
     #end if
 #end railings
 
-def retainers(mm, retainer_width, retainer_height, post_width, tread_width, rail_height, nr_retainers, rEnable, lEnable) :
+def retainers(mm, retainer_width, retainer_height, post_width, tread_width, rail_height, nr_retainers, do_right_side, do_left_side) :
     "generates retainers for the stairs. These are the additional pieces parallel" \
     " to, and below, the railings."
 
@@ -292,10 +292,10 @@ def retainers(mm, retainer_width, retainer_height, post_width, tread_width, rail
         for j in coords :
             j += vec(0, 0.5 * (post_width - retainer_width), 0)
         #end for
-        if rEnable :
+        if do_right_side :
             mm.make_ppd_mesh(coords, 'retainers')
         #end if
-        if lEnable :
+        if do_left_side :
             #make retainer on other side
             for j in coords :
                 j += vec(0, tread_width - post_width, 0)
@@ -1538,13 +1538,13 @@ class Stairs(bpy.types.Operator) :
         description = "Use the Blender 2.49 legacy method for stair generation",
         default = True
       )
-    rEnable = BoolProperty \
+    do_right_side = BoolProperty \
       (
         name = "Right Details",
         description = "Generate right side details (posts/rails/retainers)",
         default = True
       )
-    lEnable = BoolProperty \
+    do_left_side = BoolProperty \
       (
         name = "Left Details",
         description = "Generate left side details (posts/rails/retainers)",
@@ -1569,13 +1569,13 @@ class Stairs(bpy.types.Operator) :
         if self.stair_type in [STAIRTYPE.FREESTANDING.name, STAIRTYPE.CIRCULAR.name] :
             box.prop(self, 'use_original')
             if not self.use_original :
-                box.prop(self, 'rEnable')
-                box.prop(self, 'lEnable')
+                box.prop(self, 'do_right_side')
+                box.prop(self, 'do_left_side')
             #end if
         else :
             self.use_original = False
-            box.prop(self, 'rEnable')
-            box.prop(self, 'lEnable')
+            box.prop(self, 'do_right_side')
+            box.prop(self, 'do_left_side')
         #end if
         # Treads
         box = layout.box()
@@ -1721,7 +1721,7 @@ class Stairs(bpy.types.Operator) :
                   )
             #end if
         #end if
-        if self.rEnable or self.lEnable :
+        if self.do_right_side or self.do_left_side :
             if self.make_posts :
                 posts \
                   (
@@ -1734,8 +1734,8 @@ class Stairs(bpy.types.Operator) :
                     nr_posts = self.post_n,
                     rail_height = self.rail_h,
                     rail_thickness = self.rail_t,
-                    rEnable = self.rEnable,
-                    lEnable = self.lEnable
+                    do_right_side = self.do_right_side,
+                    do_left_side = self.do_left_side
                   )
             #end if
             if self.make_railings :
@@ -1749,8 +1749,8 @@ class Stairs(bpy.types.Operator) :
                     post_width = self.post_w,
                     post_depth = self.post_d,
                     tread_width = self.tread_w,
-                    rEnable = self.rEnable,
-                    lEnable = self.lEnable
+                    do_right_side = self.do_right_side,
+                    do_left_side = self.do_left_side
                   )
             #end if
             if self.make_retainers :
@@ -1763,8 +1763,8 @@ class Stairs(bpy.types.Operator) :
                     tread_width = self.tread_w,
                     rail_height = self.rail_h,
                     nr_retainers = self.ret_n,
-                    rEnable = self.rEnable,
-                    lEnable = self.lEnable
+                    do_right_side = self.do_right_side,
+                    do_left_side = self.do_left_side
                   )
             #end if
         #end if
