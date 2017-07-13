@@ -285,11 +285,9 @@ def railings(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width,
 
 def railings_circular(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width, post_depth, tread_width, inner_radius, outer_radius, sections_per_slice) :
     start = vec(0, 0, rail_height - rail_thickness) # rail bottom start
-    stop = mm.stop + vec(0, 0, rail_height - rail_thickness) # rail bottom stop
     # determine offset to include railing toe -- fixme -- need to take rotation into account
     offset = vec(tread_toe, 0, tread_toe * mm.slope)
     nr_sections = sections_per_slice * mm.nr_treads
-    section_spacing = (stop - start) / nr_sections
     section_spacing_angle = mm.rotation / nr_sections
     section_coords = \
         [
