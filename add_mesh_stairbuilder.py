@@ -133,13 +133,15 @@ class HOUSED_STRINGERTYPE(EnumPropItems) :
 class MeshMaker :
     "object for creating meshes given the verts and faces."
 
-    def __init__(self, rise, run, nr_treads, rotation) :
+    def __init__(self, rise, run, nr_treads, rotation, do_left_side, do_right_side) :
         # rise -- height of each tread
         # run -- depth of each tread
         self.rise = rise
         self.run = run
         self.nr_treads = nr_treads
         self.rotation = rotation
+        self.do_left_side = do_left_side
+        self.do_right_side = do_right_side
         self.stop = nr_treads * vec(run, 0, rise)
         self.slope = rise / run
         # identical quads for all objects which are parallelepipeds (except stringers and treads)
@@ -175,7 +177,7 @@ class MeshMaker :
 
 #end MeshMaker
 
-def posts(mm, post_depth, post_width, tread_width, nr_posts, rail_height, rail_thickness, do_right_side, do_left_side) :
+def posts(mm, post_depth, post_width, tread_width, nr_posts, rail_height, rail_thickness) :
     "generates posts for the stairs. These are the vertical elements holding up the railings."
     p1 = vec(0, 0, rail_height - rail_thickness) # first post
     p2 = p1 + mm.stop  # last post
@@ -202,10 +204,10 @@ def posts(mm, post_depth, post_width, tread_width, nr_posts, rail_height, rail_t
         for j in range(4) :
             coords.append(coords[j] + vec(0, post_width, 0))
         #end for
-        if do_right_side :
+        if mm.do_right_side :
             mm.make_ppd_mesh(coords, 'posts')
         #end if
-        if do_left_side :
+        if mm.do_left_side :
             #make post on other side of steps as well
             for j in coords :
                 j += vec(0, tread_width - post_width, 0)
@@ -215,7 +217,7 @@ def posts(mm, post_depth, post_width, tread_width, nr_posts, rail_height, rail_t
     #end for
 #end posts
 
-def posts_circular(mm, stair_arc, post_depth, post_width, tread_width, nr_posts, rail_height, rail_thickness, inner_radius, outer_radius, do_right_side, do_left_side) :
+def posts_circular(mm, stair_arc, post_depth, post_width, tread_width, nr_posts, rail_height, rail_thickness, inner_radius, outer_radius) :
     p1 = vec(0, 0, rail_height - rail_thickness) # top of first post
     p2 = p1 + vec(0, 0, mm.stop.z) # top of last post, ignoring rotation
     # note that first and last posts are not counted in nr_posts
@@ -223,7 +225,7 @@ def posts_circular(mm, stair_arc, post_depth, post_width, tread_width, nr_posts,
     post_spacing_angle = stair_arc / (nr_posts + 1)
     offset_angle = - math.pi # so posts end up on same side as treads
     for i in range(nr_posts + 2) :
-        for radius, do_side in ((outer_radius, do_right_side), (inner_radius, do_left_side)) :
+        for radius, do_side in ((outer_radius, mm.do_right_side), (inner_radius, mm.do_left_side)) :
             if do_side :
                 coords = []
                 orient = z_rotation(i * post_spacing_angle + offset_angle)
@@ -251,7 +253,7 @@ def posts_circular(mm, stair_arc, post_depth, post_width, tread_width, nr_posts,
     #end for
 #end posts_circular
 
-def railings(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width, post_depth, tread_width, do_right_side, do_left_side) :
+def railings(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width, post_depth, tread_width) :
     "generates railings for the stairs. These go across the tops of the posts."
     # TODO: STAIRTYPE.CIRCULAR
 
@@ -296,10 +298,10 @@ def railings(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width,
     for j in coords :
         j += vec(0, 0.5 * (- rail_width + post_width), 0)
     #end for
-    if do_right_side :
+    if mm.do_right_side :
         mm.make_ppd_mesh(coords, 'rails')
     #end if
-    if do_left_side :
+    if mm.do_left_side :
         #make rail on other side
         for j in coords :
             j += vec(0, tread_width - post_width, 0)
@@ -308,7 +310,7 @@ def railings(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width,
     #end if
 #end railings
 
-def retainers(mm, retainer_width, retainer_height, post_width, tread_width, rail_height, nr_retainers, do_right_side, do_left_side) :
+def retainers(mm, retainer_width, retainer_height, post_width, tread_width, rail_height, nr_retainers) :
     "generates retainers for the stairs. These are the additional pieces parallel" \
     " to, and below, the railings."
 
@@ -328,10 +330,10 @@ def retainers(mm, retainer_width, retainer_height, post_width, tread_width, rail
         for j in coords :
             j += vec(0, 0.5 * (post_width - retainer_width), 0)
         #end for
-        if do_right_side :
+        if mm.do_right_side :
             mm.make_ppd_mesh(coords, 'retainers')
         #end if
-        if do_left_side :
+        if mm.do_left_side :
             #make retainer on other side
             for j in coords :
                 j += vec(0, tread_width - post_width, 0)
@@ -1715,7 +1717,7 @@ class Stairs(bpy.types.Operator) :
     #end draw
 
     def execute(self, context) :
-        mm = MeshMaker(self.rise, self.run, self.tread_n, self.rotation)
+        mm = MeshMaker(self.rise, self.run, self.tread_n, self.rotation, self.do_left_side, self.do_right_side)
         # convert strings to enums
         stair_type = STAIRTYPE[self.stair_type]
         freestanding_stringer_type = FREESTANDING_STRINGERTYPE[self.freestanding_stringer_type]
@@ -1762,9 +1764,7 @@ class Stairs(bpy.types.Operator) :
                         tread_width = self.tread_w,
                         nr_posts = self.post_n,
                         rail_height = self.rail_h,
-                        rail_thickness = self.rail_t,
-                        do_right_side = self.do_right_side,
-                        do_left_side = self.do_left_side
+                        rail_thickness = self.rail_t
                       )
                 else :
                     posts_circular \
@@ -1778,9 +1778,7 @@ class Stairs(bpy.types.Operator) :
                         rail_height = self.rail_h,
                         rail_thickness = self.rail_t,
                         inner_radius = self.rad1,
-                        outer_radius = self.rad2,
-                        do_right_side = self.do_right_side,
-                        do_left_side = self.do_left_side
+                        outer_radius = self.rad2
                       )
                 #end if
             #end if
@@ -1794,9 +1792,7 @@ class Stairs(bpy.types.Operator) :
                     tread_toe = self.tread_t,
                     post_width = self.post_w,
                     post_depth = self.post_d,
-                    tread_width = self.tread_w,
-                    do_right_side = self.do_right_side,
-                    do_left_side = self.do_left_side
+                    tread_width = self.tread_w
                   )
             #end if
             if self.make_retainers :
@@ -1808,9 +1804,7 @@ class Stairs(bpy.types.Operator) :
                     post_width = self.post_w,
                     tread_width = self.tread_w,
                     rail_height = self.rail_h,
-                    nr_retainers = self.ret_n,
-                    do_right_side = self.do_right_side,
-                    do_left_side = self.do_left_side
+                    nr_retainers = self.ret_n
                   )
             #end if
         #end if
