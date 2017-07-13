@@ -1991,11 +1991,6 @@ class Stairs(bpy.types.Operator) :
             for obj in mm.made_objects :
                 obj.parent = root
                 obj.parent_type = "OBJECT"
-                obj.select = True
-            #end if
-            bpy.ops.group.create(name = "staircase components")
-            for obj in mm.made_objects :
-                obj.select = False
             #end if
         #end if
         return {'FINISHED'}
