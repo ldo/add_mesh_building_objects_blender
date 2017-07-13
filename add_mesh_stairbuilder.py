@@ -1622,8 +1622,8 @@ class Stairs(bpy.types.Operator) :
         if self.make_railings :
             box.prop(self, 'rail_w')
             box.prop(self, 'rail_t')
-            box.prop(self, 'rail_h')
         #end if
+        box.prop(self, 'rail_h') # affects placement of posts and retainers too
         # Retainers
         box = layout.box()
         box.prop(self, 'make_retainers')
