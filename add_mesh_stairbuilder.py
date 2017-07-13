@@ -178,11 +178,11 @@ def posts(mm, rise, stair_run, post_depth, post_width, tread_width, nr_posts, ra
     p1 = vec(0, 0, rail_height - rail_thickness) # first post
     p2 = p1 + mm.stop  # last post
     # note that first and last posts are not counted in nr_posts
-    post_spacing = vec((p2.x - p1.x) / (nr_posts + 1), 0, 0)
+    post_spacing_x = (p2.x - p1.x) / (nr_posts + 1)
     for i in range(nr_posts + 2) :
         coords = []
         # meet bottom of rail
-        delta_x = i * post_spacing.x
+        delta_x = i * post_spacing_x
         x1 = p1.x + delta_x
         x2 = x1 + post_depth
         z1 = p1.z + delta_x * mm.slope
