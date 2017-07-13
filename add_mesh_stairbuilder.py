@@ -217,12 +217,12 @@ def posts(mm, post_depth, post_width, tread_width, nr_posts, rail_height, rail_t
     #end for
 #end posts
 
-def posts_circular(mm, stair_arc, post_depth, post_width, tread_width, nr_posts, rail_height, rail_thickness, inner_radius, outer_radius) :
+def posts_circular(mm, post_depth, post_width, tread_width, nr_posts, rail_height, rail_thickness, inner_radius, outer_radius) :
     p1 = vec(0, 0, rail_height - rail_thickness) # top of first post
     p2 = p1 + vec(0, 0, mm.stop.z) # top of last post, ignoring rotation
     # note that first and last posts are not counted in nr_posts
     post_spacing = (p2 - p1) / (nr_posts + 1)
-    post_spacing_angle = stair_arc / (nr_posts + 1)
+    post_spacing_angle = mm.rotation / (nr_posts + 1)
     offset_angle = - math.pi # so posts end up on same side as treads
     for i in range(nr_posts + 2) :
         for radius, do_side in ((outer_radius, mm.do_right_side), (inner_radius, mm.do_left_side)) :
@@ -1186,7 +1186,7 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
     make_treads()
 #end treads
 
-def treads_circular(mm, tread_type, stair_arc, outer_radius, tread_height, tread_toe, inner_radius, nr_sections_per_slice) :
+def treads_circular(mm, tread_type, outer_radius, tread_height, tread_toe, inner_radius, nr_sections_per_slice) :
     "generates treads for circular stairs."
     start = \
         [
@@ -1195,7 +1195,7 @@ def treads_circular(mm, tread_type, stair_arc, outer_radius, tread_height, tread
             vec(0, - outer_radius, 0),
             vec(0, - outer_radius, - tread_height),
         ]
-    tread_arc = stair_arc / mm.nr_treads
+    tread_arc = mm.rotation / mm.nr_treads
     for i in range(mm.nr_treads) :
         coords = []
         # Base faces.  Should be able to append more sections:
@@ -1744,7 +1744,6 @@ class Stairs(bpy.types.Operator) :
                   (
                     mm = mm,
                     tread_type = tread_type,
-                    stair_arc = self.rotation,
                     outer_radius = self.rad2,
                     tread_height = self.tread_h,
                     tread_toe = self.tread_t,
@@ -1770,7 +1769,6 @@ class Stairs(bpy.types.Operator) :
                     posts_circular \
                       (
                         mm = mm,
-                        stair_arc = self.rotation,
                         post_depth = self.post_d,
                         post_width = self.post_w,
                         tread_width = self.tread_w,
