@@ -176,6 +176,59 @@ class MeshMaker :
         self.make_mesh(verts, self.ppd_faces, name)
     #end make_ppd_mesh
 
+    def start_sectioned(self) :
+        # returns an object suitable for constructing a mesh consisting
+        # of a succession of quad cross-sections. Call the object’s
+        # add_quad(«coords») method to add another cross section consisting
+        # of four Vectors, and call finish(«name») to finish off the
+        # mesh and create the object with the given name.
+
+        class Sectioned :
+
+            def __init__(self, parent) :
+                self.parent = parent
+                self.coords = []
+                self.faces = [[0, 1, 3, 2]]
+                self.nr_sections = 0
+            #end __init__
+
+            def add_quad(self, coords) :
+                # positions of coords elements should be
+                #   2 3
+                #   0 1
+                assert len(coords) == 4
+                self.coords.extend(coords)
+                if self.nr_sections != 0 :
+                    # add side faces joining to previous section
+                    k = self.nr_sections * 4
+                    self.faces.extend \
+                      (
+                        [
+                            [k - 4, k - 3, k + 1, k],
+                            [k - 3, k - 1, k + 3, k + 1],
+                            [k - 1, k - 2, k + 2, k + 3],
+                            [k - 2, k - 4, k, k + 2],
+                        ]
+                      )
+                #end if
+                self.nr_sections += 1
+            #end add_quad
+
+            def finish(self, name) :
+                assert self.nr_sections != 0
+                # close off end
+                k = self.nr_sections * 4
+                self.faces.append([k - 3, k - 4, k - 2, k - 1])
+                self.parent.make_mesh(self.coords, self.faces, name)
+            #end finish
+
+        #end Sectioned
+
+    #begin start_sectioned
+        return \
+            Sectioned(self)
+    #end start_sectioned
+
 #end MeshMaker
 
 def posts(mm, post_depth, post_width, tread_width, nr_posts, rail_height, rail_thickness) :
@@ -299,31 +352,20 @@ def railings_circular(mm, rail_width, rail_thickness, rail_height, tread_toe, po
             total_rise = mm.rise * mm.nr_treads * (1 + 2 * angle_adjust / mm.rotation)
             rise_adjust = mm.rise * mm.nr_treads * angle_adjust / mm.rotation
             section_spacing_angle = (mm.rotation + 2 * angle_adjust) / nr_sections
-            coords = []
-            faces = [[0, 1, 3, 2]]
+            sections = mm.start_sectioned()
             for i in range(nr_sections + 1) :
                 orient = z_rotation(i * section_spacing_angle + offset_angle - angle_adjust)
-                for pt in section_coords :
-                    coords.append \
-                      (
+                sections.add_quad \
+                  (
+                    [
                             orient * (pt + vec(0, radius, 0))
                         +
                             vec(0, 0, i / nr_sections * total_rise - rise_adjust)
-                      )
-                #end for
-                if i != 0 :
-                    # add side faces joining to previous section
-                    k = i * 4
-                    faces.append([k - 4, k - 3, k + 1, k])
-                    faces.append([k - 3, k - 1, k + 3, k + 1])
-                    faces.append([k - 1, k - 2, k + 2, k + 3])
-                    faces.append([k - 2, k - 4, k, k + 2])
-                #end if
+                        for pt in section_coords
+                    ]
+                  )
             #end for
-            # close off end
-            k = nr_sections * 4 + 4
-            faces.append([k - 3, k - 4, k - 2, k - 1])
-            mm.make_mesh(coords, faces, "rails")
+            sections.finish("rails")
         #end if
     #end for
 #end railings_circular
@@ -375,31 +417,20 @@ def retainers_circular(mm, retainer_width, retainer_height, nr_retainers, post_w
                         offset + vec(0, 0, retainer_height),
                         offset + vec(0, retainer_width, retainer_height),
                     ]
-                coords = []
-                faces = [[0, 1, 3, 2]]
+                sections = mm.start_sectioned()
                 for j in range(nr_sections + 1) :
                     orient = z_rotation(j * section_spacing_angle + offset_angle)
-                    for pt in section_coords :
-                        coords.append \
-                          (
+                    sections.add_quad \
+                      (
+                        [
                                 orient * (pt + vec(0, radius, 0))
                             +
                                 vec(0, 0, j / nr_sections * mm.rise * mm.nr_treads)
-                          )
-                    #end for
-                    if j != 0 :
-                        # add side faces joining to previous section
-                        k = j * 4
-                        faces.append([k - 4, k - 3, k + 1, k])
-                        faces.append([k - 3, k - 1, k + 3, k + 1])
-                        faces.append([k - 1, k - 2, k + 2, k + 3])
-                        faces.append([k - 2, k - 4, k, k + 2])
-                    #end if
+                            for pt in section_coords
+                        ]
+                      )
                 #end for
-                # close off end
-                k = nr_sections * 4 + 4
-                faces.append([k - 3, k - 4, k - 2, k - 1])
-                mm.make_mesh(coords, faces, "retainers")
+                sections.finish("retainers")
             #end for
         #end if
     #end for
@@ -949,7 +980,6 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
             tread_arc = mm.rotation / mm.nr_treads
             for i in range(mm.nr_treads) :
                 coords = []
-                # Base faces.  Should be able to append more sections :
                 faces = [[0, 1, 3, 2]]
                 tread_angle = z_rotation(tread_arc * i)
                 for j in range(4) :
