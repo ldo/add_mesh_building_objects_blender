@@ -228,18 +228,18 @@ def posts_circular(mm, post_depth, post_width, nr_posts, rail_height, rail_thick
     for i in range(nr_posts + 2) :
         for radius, do_side in ((outer_radius - post_width, mm.do_right_side), (inner_radius, mm.do_left_side)) :
             if do_side :
+                slope_adjust = mm.rise * mm.nr_treads / mm.rotation * math.atan(post_depth / radius / 2)
                 coords = []
                 orient = z_rotation(i * post_spacing_angle + offset_angle)
-                # fixme: should probably use average angle at both front and back sides of post
                 for width in (0, post_width) :
-                    top1 = orient * (p1 + vec(0, radius + width, 0) + post_spacing * i)
+                    top1 = orient * (p1 + vec(0, radius + width, slope_adjust) + post_spacing * i)
                     bottom1 = vec \
                       (
                         top1.x,
                         top1.y,
                         math.floor(i / (nr_posts + 2) * mm.nr_treads) * mm.rise
                       )
-                    top2 = orient * (p1 + vec(post_depth, radius + width, 0) + post_spacing * i)
+                    top2 = orient * (p1 + vec(post_depth, radius + width, - slope_adjust) + post_spacing * i)
                     bottom2 = vec(top2.x, top2.y, bottom1.z)
                     coords.append(top1)
                     coords.append(top2)
