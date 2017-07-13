@@ -255,46 +255,19 @@ def posts_circular(mm, post_depth, post_width, tread_width, nr_posts, rail_heigh
 
 def railings(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width, post_depth, tread_width) :
     "generates railings for the stairs. These go across the tops of the posts."
-    # TODO: STAIRTYPE.CIRCULAR
-
-    start = vec(0, 0, rail_height - rail_thickness) #rail start
-    stop = mm.stop + vec(0, 0, rail_height - rail_thickness) #rail stop
-
-    #determine offset to include railing toe
+    start = vec(0, 0, rail_height - rail_thickness) # rail bottom start
+    stop = mm.stop + vec(0, 0, rail_height - rail_thickness) # rail bottom stop
+    # determine offset to include railing toe
     offset = vec(tread_toe, 0, tread_toe * mm.slope)
     coords = []
     coords.append(start - offset)
-    coords.append \
-      (
-            stop
-        +
-            offset
-        +
-            vec
-              (
-                post_depth,
-                0,
-                post_depth * mm.slope
-              )
-      )
+    coords.append(stop + offset + vec(post_depth, 0, post_depth * mm.slope))
     coords.append(start - offset + vec(0, rail_width, 0))
-    coords.append \
-      (
-            stop
-        +
-            offset
-        +
-            vec
-              (
-                post_depth,
-                rail_width,
-                post_depth * mm.slope
-              )
-      )
+    coords.append(stop + offset + vec(post_depth, rail_width, post_depth * mm.slope))
     for j in range(4) :
         coords.append(coords[j] + vec(0, 0, rail_thickness))
     #end for
-    #centre over posts
+    # centre over posts
     for j in coords :
         j += vec(0, 0.5 * (- rail_width + post_width), 0)
     #end for
@@ -302,13 +275,60 @@ def railings(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width,
         mm.make_ppd_mesh(coords, 'rails')
     #end if
     if mm.do_left_side :
-        #make rail on other side
+        # make rail on other side
         for j in coords :
             j += vec(0, tread_width - post_width, 0)
         #end for
         mm.make_ppd_mesh(coords, 'rails')
     #end if
 #end railings
+
+def railings_circular(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width, post_depth, tread_width, inner_radius, outer_radius, sections_per_slice) :
+    start = vec(0, 0, rail_height - rail_thickness) # rail bottom start
+    stop = mm.stop + vec(0, 0, rail_height - rail_thickness) # rail bottom stop
+    # determine offset to include railing toe -- fixme -- need to take rotation into account
+    offset = vec(tread_toe, 0, tread_toe * mm.slope)
+    nr_sections = sections_per_slice * mm.nr_treads
+    section_spacing = (stop - start) / nr_sections
+    section_spacing_angle = mm.rotation / nr_sections
+    section_coords = \
+        [
+            start - offset,
+            start - offset + vec(0, rail_width, 0),
+            start - offset + vec(0, 0, rail_thickness),
+            start - offset + vec(0, rail_width, rail_thickness),
+        ]
+    offset_angle = - math.pi # so railings end up on same side as treads
+    for radius, do_side in ((outer_radius, mm.do_right_side), (inner_radius, mm.do_left_side)) :
+        if do_side :
+            coords = []
+            faces = [[0, 1, 3, 2]]
+            for i in range(nr_sections + 1) :
+                orient = z_rotation(i * section_spacing_angle + offset_angle)
+                for pt in section_coords :
+                    coords.append \
+                      (
+                            orient * (pt + vec(0, radius, 0))
+                        +
+                            vec(0, 0, i / nr_sections * mm.rise * mm.nr_treads)
+                      )
+                #end for
+                if i != 0 :
+                    # add side faces joining to previous section
+                    k = i * 4
+                    faces.append([k - 4, k - 3, k + 1, k])
+                    faces.append([k - 3, k - 1, k + 3, k + 1])
+                    faces.append([k - 1, k - 2, k + 2, k + 3])
+                    faces.append([k - 2, k - 4, k, k + 2])
+                #end if
+            #end for
+            # close off end
+            k = nr_sections * 4 + 4
+            faces.append([k - 3, k - 4, k - 2, k - 1])
+            mm.make_mesh(coords, faces, "rails")
+        #end if
+    #end for
+#end railings_circular
 
 def retainers(mm, retainer_width, retainer_height, post_width, tread_width, rail_height, nr_retainers) :
     "generates retainers for the stairs. These are the additional pieces parallel" \
@@ -1644,9 +1664,10 @@ class Stairs(bpy.types.Operator) :
                 if self.tread_type in [TREADTYPE.BAR_1.name, TREADTYPE.BAR_2.name, TREADTYPE.BAR_3.name] :
                     box.prop(self, 'tread_sn')
                 #end if
-            elif self.stair_type == STAIRTYPE.CIRCULAR.name :
-                box.prop(self, "tread_slc")
             #end if
+        #end if
+        if self.stair_type == STAIRTYPE.CIRCULAR.name :
+            box.prop(self, "tread_slc") # affects resolution of railings and retainers as well
         #end if
         # Posts
         box = layout.box()
@@ -1781,17 +1802,34 @@ class Stairs(bpy.types.Operator) :
                 #end if
             #end if
             if self.make_railings :
-                railings \
-                  (
-                    mm = mm,
-                    rail_width = self.rail_w,
-                    rail_thickness = self.rail_t,
-                    rail_height = self.rail_h,
-                    tread_toe = self.tread_t,
-                    post_width = self.post_w,
-                    post_depth = self.post_d,
-                    tread_width = self.tread_w
-                  )
+                if stair_type != STAIRTYPE.CIRCULAR :
+                    railings \
+                      (
+                        mm = mm,
+                        rail_width = self.rail_w,
+                        rail_thickness = self.rail_t,
+                        rail_height = self.rail_h,
+                        tread_toe = self.tread_t,
+                        post_width = self.post_w,
+                        post_depth = self.post_d,
+                        tread_width = self.tread_w
+                      )
+                else :
+                    railings_circular \
+                      (
+                        mm = mm,
+                        rail_width = self.rail_w,
+                        rail_thickness = self.rail_t,
+                        rail_height = self.rail_h,
+                        tread_toe = self.tread_t,
+                        post_width = self.post_w,
+                        post_depth = self.post_d,
+                        tread_width = self.tread_w,
+                        inner_radius = self.rad1,
+                        outer_radius = self.rad2,
+                        sections_per_slice = self.tread_slc
+                      )
+                #end if
             #end if
             if self.make_retainers :
                 retainers \
