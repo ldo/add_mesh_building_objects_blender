@@ -1313,6 +1313,39 @@ def treads_circular(mm, tread_type, outer_radius, tread_height, tread_toe, inner
     #end for
 #end treads_circular
 
+def central_pillar(mm, rail_height, inner_radius) :
+    "central pillar for circular stairs."
+    height = mm.rise * mm.nr_treads + rail_height
+    tread_arc = mm.rotation / mm.nr_treads
+    nr_sections = math.ceil(mm.sections_per_slice * circle / tread_arc)
+    radius = inner_radius * 0.5 # make this adjustable?
+    coords = []
+    faces = []
+    bottom_face = []
+    top_face = []
+    for i in range(nr_sections) :
+        orient1 = z_rotation(circle * i / nr_sections)
+        orient2 = z_rotation(circle * (i + 1) / nr_sections)
+        bottom_face.append(len(coords))
+        top_face.append(len(coords) + 2)
+        coords.extend \
+          (
+            [
+                orient1 * vec(0, radius, 0),
+                orient2 * vec(0, radius, 0),
+                orient1 * vec(0, radius, height),
+                orient2 * vec(0, radius, height),
+            ]
+          )
+        k = i * 4
+        faces.append([k, k + 1, k + 3, k + 2])
+    #end for
+    bottom_face.reverse() # get normal the right way
+    faces.append(bottom_face)
+    faces.append(top_face)
+    mm.make_mesh(coords, faces, "central pillar")
+#end central_pillar
+
 #+
 # Putting it all together
 #-
@@ -1379,9 +1412,9 @@ class Stairs(bpy.types.Operator) :
         step = 5 * 100,
         default = 1.25 * circle
       )
-    center = BoolProperty \
+    central_pillar = BoolProperty \
       (
-        name = "Center Pillar",
+        name = "Central Pillar",
         description = "Generate a central pillar",
         default = False
       )
@@ -1693,7 +1726,7 @@ class Stairs(bpy.types.Operator) :
             box.prop(self, 'rotation')
             box.prop(self, 'rad1')
             box.prop(self, 'rad2')
-            box.prop(self, 'center') # FIXME: not used
+            box.prop(self, 'central_pillar')
         #end if
         if self.stair_type == STAIRTYPE.CIRCULAR.name :
             box.prop(self, "sections_per_slice") # affects resolution of treads, railings, retainers and stringers
@@ -2006,6 +2039,14 @@ class Stairs(bpy.types.Operator) :
                     notMulti = self.use_original
                   )
             #end if
+        #end if
+        if stair_type == STAIRTYPE.CIRCULAR and self.central_pillar :
+            central_pillar \
+              (
+                mm = mm,
+                rail_height = self.rail_h,
+                inner_radius = self.rad1
+              )
         #end if
         if len(mm.made_objects) != 0 :
             # cannot seem to create an empty with bpy.data.objects.new()
