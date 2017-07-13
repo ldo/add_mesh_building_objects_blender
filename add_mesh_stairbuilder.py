@@ -226,27 +226,25 @@ def posts_circular(mm, post_depth, post_width, tread_width, nr_posts, rail_heigh
     post_spacing_angle = mm.rotation / (nr_posts + 1)
     offset_angle = - math.pi # so posts end up on same side as treads
     for i in range(nr_posts + 2) :
-        for radius, do_side in ((outer_radius, mm.do_right_side), (inner_radius, mm.do_left_side)) :
+        for radius, do_side in ((outer_radius - post_width, mm.do_right_side), (inner_radius, mm.do_left_side)) :
             if do_side :
                 coords = []
                 orient = z_rotation(i * post_spacing_angle + offset_angle)
                 # fixme: should probably use average angle at both front and back sides of post
-                top1 = orient * (p1 + vec(0, radius, 0) + post_spacing * i)
-                bottom1 = vec \
-                  (
-                    top1.x,
-                    top1.y,
-                    math.floor(i / (nr_posts + 2) * mm.nr_treads) * mm.rise
-                  )
-                top2 = top1 + vec(post_depth, 0, 0)
-                bottom2 = vec(top2.x, top2.y, bottom1.z)
-                coords.append(top1)
-                coords.append(top2)
-                coords.append(bottom1)
-                coords.append(bottom2)
-                # inner face
-                for j in range(4) :
-                    coords.append(coords[j] + vec(0, post_width, 0))
+                for width in (0, post_width) :
+                    top1 = orient * (p1 + vec(0, radius + width, 0) + post_spacing * i)
+                    bottom1 = vec \
+                      (
+                        top1.x,
+                        top1.y,
+                        math.floor(i / (nr_posts + 2) * mm.nr_treads) * mm.rise
+                      )
+                    top2 = orient * (p1 + vec(post_depth, radius + width, 0) + post_spacing * i)
+                    bottom2 = vec(top2.x, top2.y, bottom1.z)
+                    coords.append(top1)
+                    coords.append(top2)
+                    coords.append(bottom1)
+                    coords.append(bottom2)
                 #end for
                 mm.make_ppd_mesh(coords, 'posts')
             #end if
@@ -286,30 +284,31 @@ def railings(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width,
 
 def railings_circular(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width, post_depth, tread_width, inner_radius, outer_radius) :
     start = vec(0, 0, rail_height - rail_thickness) # rail bottom start
-    # determine offset to include railing toe -- fixme -- need to take rotation into account
-    offset = vec(tread_toe, 0, tread_toe * mm.slope)
     nr_sections = mm.sections_per_slice * mm.nr_treads
-    section_spacing_angle = mm.rotation / nr_sections
     section_coords = \
         [
-            start - offset,
-            start - offset + vec(0, rail_width, 0),
-            start - offset + vec(0, 0, rail_thickness),
-            start - offset + vec(0, rail_width, rail_thickness),
+            start + vec(0, - rail_width / 2, 0),
+            start + vec(0, rail_width / 2, 0),
+            start + vec(0, - rail_width / 2, rail_thickness),
+            start + vec(0, rail_width / 2, rail_thickness),
         ]
     offset_angle = - math.pi # so railings end up on same side as treads
     for radius, do_side in ((outer_radius, mm.do_right_side), (inner_radius, mm.do_left_side)) :
         if do_side :
+            angle_adjust = tread_toe / radius
+            total_rise = mm.rise * mm.nr_treads * (1 + 2 * angle_adjust / mm.rotation)
+            rise_adjust = mm.rise * mm.nr_treads * angle_adjust / mm.rotation
+            section_spacing_angle = (mm.rotation + 2 * angle_adjust) / nr_sections
             coords = []
             faces = [[0, 1, 3, 2]]
             for i in range(nr_sections + 1) :
-                orient = z_rotation(i * section_spacing_angle + offset_angle)
+                orient = z_rotation(i * section_spacing_angle + offset_angle - angle_adjust)
                 for pt in section_coords :
                     coords.append \
                       (
                             orient * (pt + vec(0, radius, 0))
                         +
-                            vec(0, 0, i / nr_sections * mm.rise * mm.nr_treads)
+                            vec(0, 0, i / nr_sections * total_rise - rise_adjust)
                       )
                 #end for
                 if i != 0 :
@@ -365,7 +364,7 @@ def retainers_circular(mm, retainer_width, retainer_height, nr_retainers, post_w
     nr_sections = mm.sections_per_slice * mm.nr_treads
     section_spacing_angle = mm.rotation / nr_sections
     offset_angle = - math.pi # so retainers end up on same side as treads
-    for radius, do_side in ((outer_radius, mm.do_right_side), (inner_radius, mm.do_left_side)) :
+    for radius, do_side in ((outer_radius - post_width / 2, mm.do_right_side), (inner_radius + post_width / 2, mm.do_left_side)) :
         if do_side :
             for i in range(nr_retainers) :
                 offset = (i + 1) * vec(0, 0, retainer_spacing)
