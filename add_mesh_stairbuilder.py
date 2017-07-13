@@ -328,12 +328,10 @@ def railings_circular(mm, rail_width, rail_thickness, rail_height, tread_toe, po
     #end for
 #end railings_circular
 
-def retainers(mm, retainer_width, retainer_height, post_width, tread_width, rail_height, nr_retainers) :
+def retainers(mm, retainer_width, retainer_height, nr_retainers, post_width, tread_width, rail_height) :
     "generates retainers for the stairs. These are the additional pieces parallel" \
     " to, and below, the railings."
-
     retainer_spacing = rail_height / (nr_retainers + 1)
-
     for i in range(nr_retainers) :
         coords = []
         offset = (i + 1) * vec(0, 0, retainer_spacing)
@@ -344,7 +342,7 @@ def retainers(mm, retainer_width, retainer_height, post_width, tread_width, rail
         for j in range(4) :
             coords.append(coords[j] + vec(0, 0, retainer_height))
         #end for
-        #centre in posts
+        # centre in posts
         for j in coords :
             j += vec(0, 0.5 * (post_width - retainer_width), 0)
         #end for
@@ -352,7 +350,7 @@ def retainers(mm, retainer_width, retainer_height, post_width, tread_width, rail
             mm.make_ppd_mesh(coords, 'retainers')
         #end if
         if mm.do_left_side :
-            #make retainer on other side
+            # make retainer on other side
             for j in coords :
                 j += vec(0, tread_width - post_width, 0)
             #end for
@@ -360,6 +358,52 @@ def retainers(mm, retainer_width, retainer_height, post_width, tread_width, rail
         #end if
     #end for
 #end retainers
+
+def retainers_circular(mm, retainer_width, retainer_height, nr_retainers, post_width, tread_width, rail_height, inner_radius, outer_radius, sections_per_slice) :
+    retainer_spacing = rail_height / (nr_retainers + 1)
+    nr_sections = sections_per_slice * mm.nr_treads
+    section_spacing_angle = mm.rotation / nr_sections
+    offset_angle = - math.pi # so retainers end up on same side as treads
+    for radius, do_side in ((outer_radius, mm.do_right_side), (inner_radius, mm.do_left_side)) :
+        if do_side :
+            for i in range(nr_retainers) :
+                offset = (i + 1) * vec(0, 0, retainer_spacing)
+                section_coords = \
+                    [
+                        offset,
+                        offset + vec(0, retainer_width, 0),
+                        offset + vec(0, 0, retainer_height),
+                        offset + vec(0, retainer_width, retainer_height),
+                    ]
+                coords = []
+                faces = [[0, 1, 3, 2]]
+                for j in range(nr_sections + 1) :
+                    orient = z_rotation(j * section_spacing_angle + offset_angle)
+                    for pt in section_coords :
+                        coords.append \
+                          (
+                                orient * (pt + vec(0, radius, 0))
+                            +
+                                vec(0, 0, j / nr_sections * mm.rise * mm.nr_treads)
+                          )
+                    #end for
+                    if j != 0 :
+                        # add side faces joining to previous section
+                        k = j * 4
+                        faces.append([k - 4, k - 3, k + 1, k])
+                        faces.append([k - 3, k - 1, k + 3, k + 1])
+                        faces.append([k - 1, k - 2, k + 2, k + 3])
+                        faces.append([k - 2, k - 4, k, k + 2])
+                    #end if
+                #end for
+                # close off end
+                k = nr_sections * 4 + 4
+                faces.append([k - 3, k - 4, k - 2, k - 1])
+                mm.make_mesh(coords, faces, "retainers")
+            #end for
+        #end if
+    #end for
+#end retainers_circular
 
 def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tread_width, tread_toe, tread_overhang, tw, stringer_flange_thickness, tp, stringer_intersects_ground,
     nr_stringers = 1, distributed_stringers = False, notMulti = True, sections_per_slice = None) :
@@ -1830,16 +1874,32 @@ class Stairs(bpy.types.Operator) :
                 #end if
             #end if
             if self.make_retainers :
-                retainers \
-                  (
-                    mm = mm,
-                    retainer_width = self.ret_w,
-                    retainer_height = self.ret_h,
-                    post_width = self.post_w,
-                    tread_width = self.tread_w,
-                    rail_height = self.rail_h,
-                    nr_retainers = self.ret_n
-                  )
+                if stair_type != STAIRTYPE.CIRCULAR :
+                    retainers \
+                      (
+                        mm = mm,
+                        retainer_width = self.ret_w,
+                        retainer_height = self.ret_h,
+                        nr_retainers = self.ret_n,
+                        post_width = self.post_w,
+                        tread_width = self.tread_w,
+                        rail_height = self.rail_h
+                      )
+                else :
+                    retainers_circular \
+                      (
+                        mm = mm,
+                        retainer_width = self.ret_w,
+                        retainer_height = self.ret_h,
+                        nr_retainers = self.ret_n,
+                        post_width = self.post_w,
+                        tread_width = self.tread_w,
+                        rail_height = self.rail_h,
+                        inner_radius = self.rad1,
+                        outer_radius = self.rad2,
+                        sections_per_slice = self.tread_slc
+                      )
+                #end if
             #end if
         #end if
         if self.make_stringer :
