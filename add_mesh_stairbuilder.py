@@ -55,8 +55,6 @@ from bpy.props import \
     EnumProperty, \
     IntProperty, \
     FloatProperty
-from bpy_extras import \
-    object_utils
 import mathutils
 from mathutils.geometry import \
     intersect_line_plane, \
