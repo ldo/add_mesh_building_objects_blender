@@ -204,10 +204,10 @@ class MeshMaker :
                     self.faces.extend \
                       (
                         [
-                            [k - 4, k - 3, k + 1, k],
-                            [k - 3, k - 1, k + 3, k + 1],
-                            [k - 1, k - 2, k + 2, k + 3],
-                            [k - 2, k - 4, k, k + 2],
+                            [k, k + 1, k - 3, k - 4],
+                            [k + 1, k + 3, k - 1, k - 3],
+                            [k + 3, k + 2, k - 2, k - 1],
+                            [k + 2, k, k - 4, k - 2],
                         ]
                       )
                 #end if
