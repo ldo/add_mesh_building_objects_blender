@@ -174,7 +174,6 @@ class MeshMaker :
 
 def posts(mm, rise, stair_run, post_depth, post_width, tread_width, nr_posts, rail_height, rail_thickness, do_right_side, do_left_side) :
     "generates posts for the stairs. These are the vertical elements holding up the railings."
-    # TODO: STAIRTYPE.CIRCULAR
     p1 = vec(0, 0, rail_height - rail_thickness) # first post
     p2 = p1 + mm.stop  # last post
     # note that first and last posts are not counted in nr_posts
@@ -212,6 +211,42 @@ def posts(mm, rise, stair_run, post_depth, post_width, tread_width, nr_posts, ra
         #end if
     #end for
 #end posts
+
+def posts_circular(mm, run, rise, nr_treads, stair_arc, post_depth, post_width, tread_width, nr_posts, rail_height, rail_thickness, inner_radius, outer_radius, do_right_side, do_left_side) :
+    p1 = vec(0, 0, rail_height - rail_thickness) # top of first post
+    p2 = p1 + vec(0, 0, mm.stop.z) # top of last post, ignoring rotation
+    # note that first and last posts are not counted in nr_posts
+    post_spacing = (p2 - p1) / (nr_posts + 1)
+    post_spacing_angle = stair_arc / (nr_posts + 1)
+    offset_angle = - math.pi # so posts end up on same side as treads
+    for i in range(nr_posts + 2) :
+        for radius, do_side in ((outer_radius, do_right_side), (inner_radius, do_left_side)) :
+            if do_side :
+                coords = []
+                orient = z_rotation(i * post_spacing_angle + offset_angle)
+                # fixme: should probably use average angle at both front and back sides of post
+                top1 = orient * (p1 + vec(0, radius, 0) + post_spacing * i)
+                bottom1 = vec \
+                  (
+                    top1.x,
+                    top1.y,
+                    math.floor(i / (nr_posts + 2) * nr_treads) * rise
+                  )
+                top2 = top1 + vec(post_depth, 0, 0)
+                bottom2 = vec(top2.x, top2.y, bottom1.z)
+                coords.append(top1)
+                coords.append(top2)
+                coords.append(bottom1)
+                coords.append(bottom2)
+                # inner face
+                for j in range(4) :
+                    coords.append(coords[j] + vec(0, post_width, 0))
+                #end for
+                mm.make_ppd_mesh(coords, 'posts')
+            #end if
+        #end for
+    #end for
+#end posts_circular
 
 def railings(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width, post_depth, tread_width, do_right_side, do_left_side) :
     "generates railings for the stairs. These go across the tops of the posts."
@@ -1721,20 +1756,41 @@ class Stairs(bpy.types.Operator) :
         #end if
         if self.do_right_side or self.do_left_side :
             if self.make_posts :
-                posts \
-                  (
-                    mm = mm,
-                    rise = self.rise,
-                    stair_run = self.run,
-                    post_depth = self.post_d,
-                    post_width = self.post_w,
-                    tread_width = self.tread_w,
-                    nr_posts = self.post_n,
-                    rail_height = self.rail_h,
-                    rail_thickness = self.rail_t,
-                    do_right_side = self.do_right_side,
-                    do_left_side = self.do_left_side
-                  )
+                if stair_type != STAIRTYPE.CIRCULAR :
+                    posts \
+                      (
+                        mm = mm,
+                        rise = self.rise,
+                        stair_run = self.run,
+                        post_depth = self.post_d,
+                        post_width = self.post_w,
+                        tread_width = self.tread_w,
+                        nr_posts = self.post_n,
+                        rail_height = self.rail_h,
+                        rail_thickness = self.rail_t,
+                        do_right_side = self.do_right_side,
+                        do_left_side = self.do_left_side
+                      )
+                else :
+                    posts_circular \
+                      (
+                        mm = mm,
+                        run = self.run,
+                        rise = self.rise,
+                        nr_treads = self.tread_n,
+                        stair_arc = self.rotation,
+                        post_depth = self.post_d,
+                        post_width = self.post_w,
+                        tread_width = self.tread_w,
+                        nr_posts = self.post_n,
+                        rail_height = self.rail_h,
+                        rail_thickness = self.rail_t,
+                        inner_radius = self.rad1,
+                        outer_radius = self.rad2,
+                        do_right_side = self.do_right_side,
+                        do_left_side = self.do_left_side
+                      )
+                #end if
             #end if
             if self.make_railings :
                 railings \
