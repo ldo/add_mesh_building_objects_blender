@@ -212,7 +212,7 @@ def posts(mm, rise, stair_run, post_depth, post_width, tread_width, nr_posts, ra
     #end for
 #end posts
 
-def posts_circular(mm, run, rise, nr_treads, stair_arc, post_depth, post_width, tread_width, nr_posts, rail_height, rail_thickness, inner_radius, outer_radius, do_right_side, do_left_side) :
+def posts_circular(mm, rise, nr_treads, stair_arc, post_depth, post_width, tread_width, nr_posts, rail_height, rail_thickness, inner_radius, outer_radius, do_right_side, do_left_side) :
     p1 = vec(0, 0, rail_height - rail_thickness) # top of first post
     p2 = p1 + vec(0, 0, mm.stop.z) # top of last post, ignoring rotation
     # note that first and last posts are not counted in nr_posts
@@ -1775,7 +1775,6 @@ class Stairs(bpy.types.Operator) :
                     posts_circular \
                       (
                         mm = mm,
-                        run = self.run,
                         rise = self.rise,
                         nr_treads = self.tread_n,
                         stair_arc = self.rotation,
