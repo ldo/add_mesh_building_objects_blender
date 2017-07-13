@@ -131,15 +131,16 @@ class HOUSED_STRINGERTYPE(EnumPropItems) :
 #end HOUSED_STRINGERTYPE
 
 class MeshMaker :
-    "object for creating meshes given the verts and faces."
+    "utility class for creating meshes given the verts and faces."
 
-    def __init__(self, rise, run, nr_treads, rotation, do_left_side, do_right_side) :
+    def __init__(self, rise, run, nr_treads, rotation, sections_per_slice, do_left_side, do_right_side) :
         # rise -- height of each tread
         # run -- depth of each tread
         self.rise = rise
         self.run = run
         self.nr_treads = nr_treads
         self.rotation = rotation
+        self.sections_per_slice = sections_per_slice
         self.do_left_side = do_left_side
         self.do_right_side = do_right_side
         self.stop = nr_treads * vec(run, 0, rise)
@@ -283,11 +284,11 @@ def railings(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width,
     #end if
 #end railings
 
-def railings_circular(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width, post_depth, tread_width, inner_radius, outer_radius, sections_per_slice) :
+def railings_circular(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width, post_depth, tread_width, inner_radius, outer_radius) :
     start = vec(0, 0, rail_height - rail_thickness) # rail bottom start
     # determine offset to include railing toe -- fixme -- need to take rotation into account
     offset = vec(tread_toe, 0, tread_toe * mm.slope)
-    nr_sections = sections_per_slice * mm.nr_treads
+    nr_sections = mm.sections_per_slice * mm.nr_treads
     section_spacing_angle = mm.rotation / nr_sections
     section_coords = \
         [
@@ -359,9 +360,9 @@ def retainers(mm, retainer_width, retainer_height, nr_retainers, post_width, tre
     #end for
 #end retainers
 
-def retainers_circular(mm, retainer_width, retainer_height, nr_retainers, post_width, tread_width, rail_height, inner_radius, outer_radius, sections_per_slice) :
+def retainers_circular(mm, retainer_width, retainer_height, nr_retainers, post_width, tread_width, rail_height, inner_radius, outer_radius) :
     retainer_spacing = rail_height / (nr_retainers + 1)
-    nr_sections = sections_per_slice * mm.nr_treads
+    nr_sections = mm.sections_per_slice * mm.nr_treads
     section_spacing_angle = mm.rotation / nr_sections
     offset_angle = - math.pi # so retainers end up on same side as treads
     for radius, do_side in ((outer_radius, mm.do_right_side), (inner_radius, mm.do_left_side)) :
@@ -406,10 +407,9 @@ def retainers_circular(mm, retainer_width, retainer_height, nr_retainers, post_w
 #end retainers_circular
 
 def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tread_width, tread_toe, tread_overhang, tw, stringer_flange_thickness, tp, stringer_intersects_ground,
-    nr_stringers = 1, distributed_stringers = False, notMulti = True, sections_per_slice = None) :
+    nr_stringers = 1, distributed_stringers = False, notMulti = True) :
     "generates stringers for the stairs. These are the supports that go under" \
     " the stairs."
-    assert (sections_per_slice != None) == (stair_type == STAIRTYPE.CIRCULAR)
 
     if notMulti :
         stringer_width = w / 100
@@ -956,34 +956,34 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                 for j in range(4) :
                     coords.append(tread_angle * start[j] + vec(0, 0, mm.rise * i))
                 #end for
-                for j in range(sections_per_slice) :
+                for j in range(mm.sections_per_slice) :
                     k = j * 4 + 4
                     faces.append([k, k - 4, k - 3, k + 1])
                     faces.append([k - 2, k - 1, k + 3, k + 2])
                     faces.append([k + 1, k - 3, k - 1, k + 3])
                     faces.append([k, k - 4, k - 2, k + 2])
-                    rot = z_rotation(tread_arc * (j + 1) / sections_per_slice + tread_arc * i)
+                    rot = z_rotation(tread_arc * (j + 1) / mm.sections_per_slice + tread_arc * i)
                     for v in start :
                         coords.append(rot * v + vec(0, 0, mm.rise * i))
                     #end for
                 #end for
                 if i + 1 < mm.nr_treads :
                     # part that overlaps stringer for next tread
-                    for j in range(sections_per_slice) :
-                        k = (j + sections_per_slice) * 4 + 4
+                    for j in range(mm.sections_per_slice) :
+                        k = (j + mm.sections_per_slice) * 4 + 4
                         faces.append([k, k - 4, k - 3, k + 1])
                         faces.append([k - 2, k - 1, k + 3, k + 2])
                         faces.append([k + 1, k - 3, k - 1, k + 3])
                         faces.append([k, k - 4, k - 2, k + 2])
                         rot = z_rotation \
                           (
-                                tread_arc * (j + sections_per_slice + 1) / sections_per_slice
+                                tread_arc * (j + mm.sections_per_slice + 1) / mm.sections_per_slice
                             +
                                 tread_arc * i
                           )
                         for v in range(4) :
                             if v in [1, 3] :
-                                incline = mm.rise * i + mm.rise / sections_per_slice * (j + 1)
+                                incline = mm.rise * i + mm.rise / mm.sections_per_slice * (j + 1)
                                 coords.append(rot * start[v] + vec(0, 0, incline))
                             else :
                                 coords.append(rot * start[v] + vec(0, 0, mm.rise * i))
@@ -992,7 +992,7 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                     #end for
                 else :
                     # close off end
-                    k = sections_per_slice * 4 + 4
+                    k = mm.sections_per_slice * 4 + 4
                     faces.append([k - 3, k - 4, k - 2, k - 1])
                 #end if
                 mm.make_mesh(coords, faces, 'stringer')
@@ -1248,7 +1248,7 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
     make_treads()
 #end treads
 
-def treads_circular(mm, tread_type, outer_radius, tread_height, tread_toe, inner_radius, nr_sections_per_slice) :
+def treads_circular(mm, tread_type, outer_radius, tread_height, tread_toe, inner_radius) :
     "generates treads for circular stairs."
     start = \
         [
@@ -1268,13 +1268,13 @@ def treads_circular(mm, tread_type, outer_radius, tread_height, tread_toe, inner
         t_outer = z_rotation(- tread_toe / outer_radius + tread_arc * i)
         coords.append(t_outer * start[2] + vec(0, 0, mm.rise * i))
         coords.append(t_outer * start[3] + vec(0, 0, mm.rise * i))
-        for j in range(nr_sections_per_slice + 1) :
+        for j in range(mm.sections_per_slice + 1) :
             k = j * 4 + 4
             faces.append([k, k - 4, k - 3, k + 1])
             faces.append([k - 2, k - 1, k + 3, k + 2])
             faces.append([k + 1, k - 3, k - 1, k + 3])
             faces.append([k, k - 4, k - 2, k + 2])
-            rot = z_rotation(tread_arc * j / nr_sections_per_slice + tread_arc * i)
+            rot = z_rotation(tread_arc * j / mm.sections_per_slice + tread_arc * i)
             for v in start :
                 coords.append(rot * v + vec(0, 0, mm.rise * i))
             #end for
@@ -1443,7 +1443,7 @@ class Stairs(bpy.types.Operator) :
         default = 4
       )
     #special circular tread properties:
-    tread_slc = IntProperty \
+    sections_per_slice = IntProperty \
       (
         name = "Slices",
         description = "Number of slices each tread is composed of",
@@ -1666,6 +1666,9 @@ class Stairs(bpy.types.Operator) :
             box.prop(self, 'rad2')
             box.prop(self, 'center') # FIXME: not used
         #end if
+        if self.stair_type == STAIRTYPE.CIRCULAR.name :
+            box.prop(self, "sections_per_slice") # affects resolution of treads, railings, retainers and stringers
+        #end if
         if self.stair_type in [STAIRTYPE.FREESTANDING.name, STAIRTYPE.CIRCULAR.name] :
             box.prop(self, 'use_original')
             if not self.use_original :
@@ -1707,9 +1710,6 @@ class Stairs(bpy.types.Operator) :
                     box.prop(self, 'tread_sn')
                 #end if
             #end if
-        #end if
-        if self.stair_type == STAIRTYPE.CIRCULAR.name :
-            box.prop(self, "tread_slc") # affects resolution of railings and retainers as well
         #end if
         # Posts
         box = layout.box()
@@ -1780,7 +1780,7 @@ class Stairs(bpy.types.Operator) :
     #end draw
 
     def execute(self, context) :
-        mm = MeshMaker(self.rise, self.run, self.tread_n, self.rotation, self.do_left_side, self.do_right_side)
+        mm = MeshMaker(self.rise, self.run, self.tread_n, self.rotation, self.sections_per_slice, self.do_left_side, self.do_right_side)
         # convert strings to enums
         stair_type = STAIRTYPE[self.stair_type]
         freestanding_stringer_type = FREESTANDING_STRINGERTYPE[self.freestanding_stringer_type]
@@ -1810,8 +1810,7 @@ class Stairs(bpy.types.Operator) :
                     outer_radius = self.rad2,
                     tread_height = self.tread_h,
                     tread_toe = self.tread_t,
-                    inner_radius = self.rad1,
-                    nr_sections_per_slice = self.tread_slc
+                    inner_radius = self.rad1
                   )
             #end if
         #end if
@@ -1868,8 +1867,7 @@ class Stairs(bpy.types.Operator) :
                         post_depth = self.post_d,
                         tread_width = self.tread_w,
                         inner_radius = self.rad1,
-                        outer_radius = self.rad2,
-                        sections_per_slice = self.tread_slc
+                        outer_radius = self.rad2
                       )
                 #end if
             #end if
@@ -1896,8 +1894,7 @@ class Stairs(bpy.types.Operator) :
                         tread_width = self.tread_w,
                         rail_height = self.rail_h,
                         inner_radius = self.rad1,
-                        outer_radius = self.rad2,
-                        sections_per_slice = self.tread_slc
+                        outer_radius = self.rad2
                       )
                 #end if
             #end if
@@ -1958,8 +1955,7 @@ class Stairs(bpy.types.Operator) :
                     stringer_intersects_ground = not self.string_g,
                     nr_stringers = self.string_n,
                     distributed_stringers = self.string_dis,
-                    notMulti = self.use_original,
-                    sections_per_slice = self.tread_slc
+                    notMulti = self.use_original
                   )
             else :
                 stringer \
