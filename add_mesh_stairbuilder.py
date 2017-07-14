@@ -1369,9 +1369,10 @@ def treads_circular(mm, tread_type, outer_radius, tread_height, tread_toe, inner
     #end for
 #end treads_circular
 
-def central_pillar(mm, rail_height, inner_radius) :
+def central_pillar(mm, tread_height, rail_height, inner_radius) :
     "central pillar for circular stairs."
-    height = mm.rise * mm.nr_treads + rail_height
+    stringer_height = mm.rise # height of circular stringers
+    height = mm.rise * mm.nr_treads + rail_height + tread_height + stringer_height
     tread_arc = mm.rotation / mm.nr_treads
     nr_sections = math.ceil(mm.sections_per_slice * circle / tread_arc)
     verts = []
@@ -1385,8 +1386,8 @@ def central_pillar(mm, rail_height, inner_radius) :
         verts.extend \
           (
             [
-                orient * vec(0, inner_radius, 0),
-                orient * vec(0, inner_radius, height),
+                orient * vec(0, inner_radius, - tread_height - stringer_height),
+                orient * vec(0, inner_radius, height - tread_height - stringer_height),
             ]
           )
         k = i * 2
@@ -2106,6 +2107,7 @@ class Stairs(bpy.types.Operator) :
             central_pillar \
               (
                 mm = mm,
+                tread_height = self.tread_h,
                 rail_height = self.rail_h,
                 inner_radius = self.rad1
               )
