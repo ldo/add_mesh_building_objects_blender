@@ -1379,7 +1379,6 @@ def central_pillar(mm, rail_height, inner_radius) :
     height = mm.rise * mm.nr_treads + rail_height
     tread_arc = mm.rotation / mm.nr_treads
     nr_sections = math.ceil(mm.sections_per_slice * circle / tread_arc)
-    radius = inner_radius * 0.5 # make this adjustable?
     verts = []
     faces = []
     bottom_face = []
@@ -1391,8 +1390,8 @@ def central_pillar(mm, rail_height, inner_radius) :
         verts.extend \
           (
             [
-                orient * vec(0, radius, 0),
-                orient * vec(0, radius, height),
+                orient * vec(0, inner_radius, 0),
+                orient * vec(0, inner_radius, height),
             ]
           )
         k = i * 2
