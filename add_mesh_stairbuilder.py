@@ -1212,6 +1212,9 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
             if tread_type in [TREADTYPE.BAR_1, TREADTYPE.BAR_2] :
                 cW = tread_metal_thickness
                 cross = (tread_width + 2 * tread_side_overhang - (nr_cross_sections + 2) * tread_metal_thickness) / (nr_cross_sections + 1)
+                if tread_type == TREADTYPE.BAR_2 :
+                    tread_section_spacing = topset
+                #end if
             else : # TREADTYPE.BAR_3
                 spacing = tread_section_spacing ** (1 / 4)
                 cross = ((2 * tread_side_overhang + tread_width) * spacing) / (nr_cross_sections + 1)
