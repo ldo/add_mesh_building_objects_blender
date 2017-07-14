@@ -179,7 +179,7 @@ class MeshMaker :
     def start_sectioned(self) :
         # returns an object suitable for constructing a mesh consisting
         # of a succession of quad cross-sections. Call the object’s
-        # add_quad(«coords») method to add another cross section consisting
+        # add_quad(«verts») method to add another cross section consisting
         # of four Vectors, and call finish(«name») to finish off the
         # mesh and create the object with the given name.
 
@@ -187,17 +187,17 @@ class MeshMaker :
 
             def __init__(self, parent) :
                 self.parent = parent
-                self.coords = []
+                self.verts = []
                 self.faces = [[0, 1, 3, 2]]
                 self.nr_sections = 0
             #end __init__
 
-            def add_quad(self, coords) :
-                # positions of coords elements should be
+            def add_quad(self, verts) :
+                # positions of verts elements should be
                 #   2 3
                 #   0 1
-                assert len(coords) == 4
-                self.coords.extend(coords)
+                assert len(verts) == 4
+                self.verts.extend(verts)
                 if self.nr_sections != 0 :
                     # add side faces joining to previous section
                     k = self.nr_sections * 4
@@ -219,7 +219,7 @@ class MeshMaker :
                 # close off end
                 k = self.nr_sections * 4
                 self.faces.append([k - 3, k - 4, k - 2, k - 1])
-                self.parent.make_mesh(self.coords, self.faces, name)
+                self.parent.make_mesh(self.verts, self.faces, name)
             #end finish
 
         #end Sectioned
@@ -238,35 +238,35 @@ def posts(mm, post_depth, post_width, tread_width, nr_posts, rail_height, rail_t
     # note that first and last posts are not counted in nr_posts
     post_spacing_x = (p2.x - p1.x) / (nr_posts + 1)
     for i in range(nr_posts + 2) :
-        coords = []
+        verts = []
         # meet bottom of rail
         delta_x = i * post_spacing_x
         x1 = p1.x + delta_x
         x2 = x1 + post_depth
         z1 = p1.z + delta_x * mm.slope
         z2 = p1.z + (delta_x + post_depth) * mm.slope
-        coords.append(vec(x1, 0, z1))
-        coords.append(vec(x2, 0, z2))
+        verts.append(vec(x1, 0, z1))
+        verts.append(vec(x2, 0, z2))
         #intersections with tread
-        coords.append(vec(
+        verts.append(vec(
                 x1,
                 0,
-                math.floor(coords[0].x / mm.run) * mm.rise # meet top of tread
+                math.floor(verts[0].x / mm.run) * mm.rise # meet top of tread
             ))
-        coords.append(coords[2] + vec(post_depth, 0, 0))
+        verts.append(verts[2] + vec(post_depth, 0, 0))
         #inner face
         for j in range(4) :
-            coords.append(coords[j] + vec(0, post_width, 0))
+            verts.append(verts[j] + vec(0, post_width, 0))
         #end for
         if mm.do_right_side :
-            mm.make_ppd_mesh(coords, 'posts')
+            mm.make_ppd_mesh(verts, 'posts')
         #end if
         if mm.do_left_side :
             #make post on other side of steps as well
-            for j in coords :
+            for j in verts :
                 j += vec(0, tread_width - post_width, 0)
             #end for
-            mm.make_ppd_mesh(coords, 'posts')
+            mm.make_ppd_mesh(verts, 'posts')
         #end if
     #end for
 #end posts
@@ -282,7 +282,7 @@ def posts_circular(mm, post_depth, post_width, nr_posts, rail_height, rail_thick
         for radius, do_side in ((outer_radius - post_width, mm.do_right_side), (inner_radius, mm.do_left_side)) :
             if do_side :
                 slope_adjust = mm.rise * mm.nr_treads / mm.rotation * math.atan(post_depth / radius / 2)
-                coords = []
+                verts = []
                 orient = z_rotation(i * post_spacing_angle + offset_angle)
                 for width in (0, post_width) :
                     top1 = orient * (p1 + vec(0, radius + width, slope_adjust) + post_spacing * i)
@@ -294,12 +294,12 @@ def posts_circular(mm, post_depth, post_width, nr_posts, rail_height, rail_thick
                       )
                     top2 = orient * (p1 + vec(post_depth, radius + width, - slope_adjust) + post_spacing * i)
                     bottom2 = vec(top2.x, top2.y, bottom1.z)
-                    coords.append(top1)
-                    coords.append(top2)
-                    coords.append(bottom1)
-                    coords.append(bottom2)
+                    verts.append(top1)
+                    verts.append(top2)
+                    verts.append(bottom1)
+                    verts.append(bottom2)
                 #end for
-                mm.make_ppd_mesh(coords, 'posts')
+                mm.make_ppd_mesh(verts, 'posts')
             #end if
         #end for
     #end for
@@ -311,34 +311,34 @@ def railings(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width,
     stop = mm.stop + vec(0, 0, rail_height - rail_thickness) # rail bottom stop
     # determine offset to include railing toe
     offset = vec(tread_toe, 0, tread_toe * mm.slope)
-    coords = []
-    coords.append(start - offset)
-    coords.append(stop + offset + vec(post_depth, 0, post_depth * mm.slope))
-    coords.append(start - offset + vec(0, rail_width, 0))
-    coords.append(stop + offset + vec(post_depth, rail_width, post_depth * mm.slope))
+    verts = []
+    verts.append(start - offset)
+    verts.append(stop + offset + vec(post_depth, 0, post_depth * mm.slope))
+    verts.append(start - offset + vec(0, rail_width, 0))
+    verts.append(stop + offset + vec(post_depth, rail_width, post_depth * mm.slope))
     for j in range(4) :
-        coords.append(coords[j] + vec(0, 0, rail_thickness))
+        verts.append(verts[j] + vec(0, 0, rail_thickness))
     #end for
     # centre over posts
-    for j in coords :
+    for j in verts :
         j += vec(0, 0.5 * (- rail_width + post_width), 0)
     #end for
     if mm.do_right_side :
-        mm.make_ppd_mesh(coords, 'rails')
+        mm.make_ppd_mesh(verts, 'rails')
     #end if
     if mm.do_left_side :
         # make rail on other side
-        for j in coords :
+        for j in verts :
             j += vec(0, tread_width - post_width, 0)
         #end for
-        mm.make_ppd_mesh(coords, 'rails')
+        mm.make_ppd_mesh(verts, 'rails')
     #end if
 #end railings
 
 def railings_circular(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width, post_depth, tread_width, inner_radius, outer_radius) :
     start = vec(0, 0, rail_height - rail_thickness) # rail bottom start
     nr_sections = mm.sections_per_slice * mm.nr_treads
-    section_coords = \
+    section_verts = \
         [
             start + vec(0, - rail_width / 2, 0),
             start + vec(0, rail_width / 2, 0),
@@ -361,7 +361,7 @@ def railings_circular(mm, rail_width, rail_thickness, rail_height, tread_toe, po
                             orient * (pt + vec(0, radius, 0))
                         +
                             vec(0, 0, i / nr_sections * total_rise - rise_adjust)
-                        for pt in section_coords
+                        for pt in section_verts
                     ]
                   )
             #end for
@@ -375,28 +375,28 @@ def retainers(mm, retainer_width, retainer_height, nr_retainers, post_width, tre
     " to, and below, the railings."
     retainer_spacing = rail_height / (nr_retainers + 1)
     for i in range(nr_retainers) :
-        coords = []
+        verts = []
         offset = (i + 1) * vec(0, 0, retainer_spacing)
-        coords.append(offset)
-        coords.append(mm.stop + offset)
-        coords.append(offset + vec(0, retainer_width, 0))
-        coords.append(mm.stop + offset + vec(0, retainer_width, 0))
+        verts.append(offset)
+        verts.append(mm.stop + offset)
+        verts.append(offset + vec(0, retainer_width, 0))
+        verts.append(mm.stop + offset + vec(0, retainer_width, 0))
         for j in range(4) :
-            coords.append(coords[j] + vec(0, 0, retainer_height))
+            verts.append(verts[j] + vec(0, 0, retainer_height))
         #end for
         # centre in posts
-        for j in coords :
+        for j in verts :
             j += vec(0, 0.5 * (post_width - retainer_width), 0)
         #end for
         if mm.do_right_side :
-            mm.make_ppd_mesh(coords, 'retainers')
+            mm.make_ppd_mesh(verts, 'retainers')
         #end if
         if mm.do_left_side :
             # make retainer on other side
-            for j in coords :
+            for j in verts :
                 j += vec(0, tread_width - post_width, 0)
             #end for
-            mm.make_ppd_mesh(coords, 'retainers')
+            mm.make_ppd_mesh(verts, 'retainers')
         #end if
     #end for
 #end retainers
@@ -410,7 +410,7 @@ def retainers_circular(mm, retainer_width, retainer_height, nr_retainers, post_w
         if do_side :
             for i in range(nr_retainers) :
                 offset = (i + 1) * vec(0, 0, retainer_spacing)
-                section_coords = \
+                section_verts = \
                     [
                         offset,
                         offset + vec(0, retainer_width, 0),
@@ -426,7 +426,7 @@ def retainers_circular(mm, retainer_width, retainer_height, nr_retainers, post_w
                                 orient * (pt + vec(0, radius, 0))
                             +
                                 vec(0, 0, j / nr_sections * mm.rise * mm.nr_treads)
-                            for pt in section_coords
+                            for pt in section_verts
                         ]
                       )
                 #end for
@@ -472,20 +472,20 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
             ]
         for i in range(nr_stringers) :
             for j in range(mm.nr_treads) :
-                coords = []
-                coords.append(vec(0, offset, - mm.rise))
-                coords.append(vec(mm.run, offset, - mm.rise))
-                coords.append(vec(0, offset, - tread_height))
-                coords.append(vec(mm.run, offset, - tread_height))
-                coords.append(vec(mm.run, offset, 0))
-                coords.append(vec(mm.run * 2, offset, 0))
+                verts = []
+                verts.append(vec(0, offset, - mm.rise))
+                verts.append(vec(mm.run, offset, - mm.rise))
+                verts.append(vec(0, offset, - tread_height))
+                verts.append(vec(mm.run, offset, - tread_height))
+                verts.append(vec(mm.run, offset, 0))
+                verts.append(vec(mm.run * 2, offset, 0))
                 for k in range(6) :
-                    coords.append(coords[k] + vec(0, stringer_width, 0))
+                    verts.append(verts[k] + vec(0, stringer_width, 0))
                 #end for
-                for k in coords :
+                for k in verts :
                     k += j * vec(mm.run, 0, mm.rise)
                 #end for
-                mm.make_mesh(coords, faces, 'stringer')
+                mm.make_mesh(verts, faces, 'stringer')
             #end for
             if distributed_stringers or nr_stringers == 1 :
                 offset += tread_width / (nr_stringers + 1)
@@ -496,23 +496,23 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
     #end freestanding_classic
 
     def housed_open_classic() :
-        coords = []
-        coords.append(vec(- tread_toe, - stringer_width, - mm.rise))
-        coords.append(vec(tread_height / mm.slope, - stringer_width, - mm.rise))
-        coords.append(vec(- tread_toe, - stringer_width, 0))
-        coords.append(vec(
+        verts = []
+        verts.append(vec(- tread_toe, - stringer_width, - mm.rise))
+        verts.append(vec(tread_height / mm.slope, - stringer_width, - mm.rise))
+        verts.append(vec(- tread_toe, - stringer_width, 0))
+        verts.append(vec(
                 mm.nr_treads * mm.run,
                 - stringer_width,
                 (mm.nr_treads - 1) * mm.rise - tread_height
             ))
-        coords.append(vec(mm.nr_treads * mm.run, - stringer_width, mm.nr_treads * mm.rise))
-        coords.append(vec(
+        verts.append(vec(mm.nr_treads * mm.run, - stringer_width, mm.nr_treads * mm.rise))
+        verts.append(vec(
                 mm.nr_treads * mm.run - tread_toe,
                 - stringer_width,
                 mm.nr_treads * mm.rise
             ))
         for i in range(6) :
-            coords.append(coords[i] + vec(0, stringer_width, 0))
+            verts.append(verts[i] + vec(0, stringer_width, 0))
         #end for
         faces = \
             [
@@ -529,11 +529,11 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                 [7, 8, 11, 9],
                 [9, 10, 11],
             ]
-        mm.make_mesh(coords, faces, 'stringer')
-        for i in coords :
+        mm.make_mesh(verts, faces, 'stringer')
+        for i in verts :
             i += vec(0, stringer_width + tread_width, 0)
         #end for
-        mm.make_mesh(coords, faces, 'stringer')
+        mm.make_mesh(verts, faces, 'stringer')
     #end housed_open_classic
 
     def i_beam() :
@@ -586,25 +586,25 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                     [23, 24, 25, 26],
                 ]
             for i in range(nr_stringers) :
-                coords = []
-                coords.append(vec(0, offset,                baseZ))
-                coords.append(vec(0, offset,                baseZ + taper))
-                coords.append(vec(0, offset + (mid - web),  baseZ + stringer_flange_thickness))
-                coords.append(vec(0, offset + (mid - web),  topZ - stringer_flange_thickness))
-                coords.append(vec(0, offset,                topZ - taper))
-                coords.append(vec(0, offset,                topZ))
-                coords.append(vec(0, offset + (mid - web),  topZ))
-                coords.append(vec(0, offset + (mid + web),  topZ))
-                coords.append(vec(0, offset + stringer_width,       topZ))
-                coords.append(vec(0, offset + stringer_width,       topZ - taper))
-                coords.append(vec(0, offset + (mid + web),  topZ - stringer_flange_thickness))
-                coords.append(vec(0, offset + (mid + web),  baseZ + stringer_flange_thickness))
-                coords.append(vec(0, offset + stringer_width,       baseZ + taper))
-                coords.append(vec(0, offset + stringer_width,       baseZ))
-                coords.append(vec(0, offset + (mid + web),  baseZ))
-                coords.append(vec(0, offset + (mid - web),  baseZ))
+                verts = []
+                verts.append(vec(0, offset,                baseZ))
+                verts.append(vec(0, offset,                baseZ + taper))
+                verts.append(vec(0, offset + (mid - web),  baseZ + stringer_flange_thickness))
+                verts.append(vec(0, offset + (mid - web),  topZ - stringer_flange_thickness))
+                verts.append(vec(0, offset,                topZ - taper))
+                verts.append(vec(0, offset,                topZ))
+                verts.append(vec(0, offset + (mid - web),  topZ))
+                verts.append(vec(0, offset + (mid + web),  topZ))
+                verts.append(vec(0, offset + stringer_width,       topZ))
+                verts.append(vec(0, offset + stringer_width,       topZ - taper))
+                verts.append(vec(0, offset + (mid + web),  topZ - stringer_flange_thickness))
+                verts.append(vec(0, offset + (mid + web),  baseZ + stringer_flange_thickness))
+                verts.append(vec(0, offset + stringer_width,       baseZ + taper))
+                verts.append(vec(0, offset + stringer_width,       baseZ))
+                verts.append(vec(0, offset + (mid + web),  baseZ))
+                verts.append(vec(0, offset + (mid - web),  baseZ))
                 for j in range(16) :
-                    coords.append(coords[j]+vec(mm.run * mm.nr_treads, 0, mm.rise * mm.nr_treads))
+                    verts.append(verts[j]+vec(mm.run * mm.nr_treads, 0, mm.rise * mm.nr_treads))
                 #end for
                 # If the bottom meets the ground:
                 #   Bottom be flat with the xy plane, but shifted down.
@@ -612,16 +612,16 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                 #       interest found in mathutils.geometry (easy).  Using intersect:
                 if stringer_intersects_ground :
                     for j in range(16) :
-                        coords[j] = intersect_line_plane \
+                        verts[j] = intersect_line_plane \
                           (
-                            coords[j],
-                            coords[j + 16],
+                            verts[j],
+                            verts[j + 16],
                             vec(0, 0, topZ),
                             vec(0, 0, 1)
                           )
                     #end for
                 #end if
-                mm.make_mesh(coords, faces, 'stringer')
+                mm.make_mesh(verts, faces, 'stringer')
                 if distributed_stringers or nr_stringers == 1 :
                     offset += tread_width / (nr_stringers + 1)
                 else :
@@ -648,19 +648,19 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                     [10, 11, 12, 13],
                 ]
             for i in range(nr_stringers) :
-                coords = []
-                coords.append(vec(0, offset,                baseZ))
-                coords.append(vec(0, offset + (mid - web),  baseZ + stringer_flange_thickness))
-                coords.append(vec(0, offset + (mid - web),  topZ - stringer_flange_thickness))
-                coords.append(vec(0, offset,                topZ))
-                coords.append(vec(0, offset + stringer_width,       topZ))
-                coords.append(vec(0, offset + (mid + web),  topZ - stringer_flange_thickness))
-                coords.append(vec(0, offset + (mid + web),  baseZ + stringer_flange_thickness))
-                coords.append(vec(0, offset + stringer_width,       baseZ))
+                verts = []
+                verts.append(vec(0, offset,                baseZ))
+                verts.append(vec(0, offset + (mid - web),  baseZ + stringer_flange_thickness))
+                verts.append(vec(0, offset + (mid - web),  topZ - stringer_flange_thickness))
+                verts.append(vec(0, offset,                topZ))
+                verts.append(vec(0, offset + stringer_width,       topZ))
+                verts.append(vec(0, offset + (mid + web),  topZ - stringer_flange_thickness))
+                verts.append(vec(0, offset + (mid + web),  baseZ + stringer_flange_thickness))
+                verts.append(vec(0, offset + stringer_width,       baseZ))
                 for j in range(8) :
-                    coords.append(coords[j] + vec(mm.run * mm.nr_treads, 0, mm.rise * mm.nr_treads))
+                    verts.append(verts[j] + vec(mm.run * mm.nr_treads, 0, mm.rise * mm.nr_treads))
                 #end for
-                mm.make_mesh(coords, faces, 'stringer')
+                mm.make_mesh(verts, faces, 'stringer')
                 offset += tread_width / (nr_stringers + 1)
             #end for
         #end if
@@ -674,82 +674,82 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
         flange_y = (stringer_width - stringer_web_thickness) / 2
         front = - tread_toe - stringer_flange_thickness
         outer = - tread_overhang - stringer_web_thickness - flange_y
-        coords = []
+        verts = []
         if stringer_flange_taper > 0 :
             # Upper-Outer flange:
-            coords.append(vec(front, outer, - mm.rise))
-            coords.append(vec(- tread_toe, outer, - mm.rise))
-            coords.append(vec(- tread_toe, outer, 0))
-            coords.append(vec(
+            verts.append(vec(front, outer, - mm.rise))
+            verts.append(vec(- tread_toe, outer, - mm.rise))
+            verts.append(vec(- tread_toe, outer, 0))
+            verts.append(vec(
                     mm.run * (mm.nr_treads - 1) - tread_toe,
                     outer,
                     mm.rise * (mm.nr_treads - 1)
                 ))
-            coords.append(vec(
+            verts.append(vec(
                     mm.run * mm.nr_treads,
                     outer,
                     mm.rise * (mm.nr_treads - 1)
                 ))
-            coords.append(vec(
+            verts.append(vec(
                     mm.run * mm.nr_treads,
                     outer,
                     mm.rise * (mm.nr_treads - 1) + stringer_flange_thickness
                 ))
-            coords.append(vec(
+            verts.append(vec(
                     mm.run * (mm.nr_treads - 1) - tread_toe,
                     outer,
                     mm.rise * (mm.nr_treads - 1) + stringer_flange_thickness
                 ))
-            coords.append(vec(front, outer, stringer_flange_thickness - vDelta_1))
+            verts.append(vec(front, outer, stringer_flange_thickness - vDelta_1))
             # Lower-Outer flange:
-            coords.append(coords[0] + vec(stringer_flange_thickness + webHeight, 0, 0))
-            coords.append(coords[1] + vec(stringer_flange_thickness + webHeight, 0, 0))
-            coords.append \
+            verts.append(verts[0] + vec(stringer_flange_thickness + webHeight, 0, 0))
+            verts.append(verts[1] + vec(stringer_flange_thickness + webHeight, 0, 0))
+            verts.append \
               (
                 intersect_line_line
                   (
-                    coords[9],
-                    coords[9] - vec(0, 0, 1),
+                    verts[9],
+                    verts[9] - vec(0, 0, 1),
                     vec(mm.run, 0, - tread_height - stringer_flange_thickness),
                     vec(mm.run * 2, 0, mm.rise - tread_height - stringer_flange_thickness)
                  )[0]
               )
-            coords.append(vec(
+            verts.append(vec(
                     mm.run * mm.nr_treads - (webHeight - tread_height) / mm.slope,
                     outer,
                     vDelta_2
                 ))
-            coords.append(coords[4] - vec(0, 0, stringer_flange_thickness + webHeight))
-            coords.append(coords[5] - vec(0, 0, stringer_flange_thickness + webHeight))
-            coords.append(coords[11] + vec(0, 0, stringer_flange_thickness))
-            coords.append \
+            verts.append(verts[4] - vec(0, 0, stringer_flange_thickness + webHeight))
+            verts.append(verts[5] - vec(0, 0, stringer_flange_thickness + webHeight))
+            verts.append(verts[11] + vec(0, 0, stringer_flange_thickness))
+            verts.append \
               (
                   intersect_line_line
                     (
-                      coords[8],
-                      coords[8] - vec(0, 0, 1),
+                      verts[8],
+                      verts[8] - vec(0, 0, 1),
                       vec(mm.run, 0, - tread_height),
                       vec(mm.run * 2, 0, mm.rise - tread_height)
                     )[0]
               )
             # Outer web:
             for i in [1, 8, 15, 14, 13, 4, 3, 2] :
-                coords.append(coords[i] + vec(0, flange_y, 0))
+                verts.append(verts[i] + vec(0, flange_y, 0))
             #end for
             # Upper-Inner flange and lower-inner flange:
             for i in range(16) :
-                coords.append(coords[i] + vec(0, stringer_width, 0))
+                verts.append(verts[i] + vec(0, stringer_width, 0))
             #end for
             # Inner web:
             for i in range(8) :
-                coords.append(coords[i + 16] + vec(0, stringer_web_thickness, 0))
+                verts.append(verts[i + 16] + vec(0, stringer_web_thickness, 0))
             #end for
             # Mid nodes to so faces will be quads:
             for i in [0, 7, 6, 5, 9, 10, 11, 12] :
-                coords.append(coords[i] + vec(0, flange_y, 0))
+                verts.append(verts[i] + vec(0, flange_y, 0))
             #end for
             for i in range(8) :
-                coords.append(coords[i + 48] + vec(0, stringer_web_thickness, 0))
+                verts.append(verts[i + 48] + vec(0, stringer_web_thickness, 0))
             #end for
             faces = \
                 [
@@ -817,11 +817,11 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                     [28, 45, 59, 29],
                     [4, 5, 51, 21],
                 ]
-            mm.make_mesh(coords, faces, 'stringer')
-            for i in coords :
+            mm.make_mesh(verts, faces, 'stringer')
+            for i in verts :
                 i += vec(0, tread_width + stringer_web_thickness, 0)
             #end for
-            mm.make_mesh(coords, faces, 'stringer')
+            mm.make_mesh(verts, faces, 'stringer')
         #end if
         # @TODO Taper = 100%
     #end housed_i_beam
@@ -834,71 +834,71 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
         flange_y = (stringer_width - stringer_web_thickness) / 2
         front = - tread_toe - stringer_flange_thickness
         outer = - tread_overhang - stringer_web_thickness - flange_y
-        coords = []
+        verts = []
         if stringer_flange_taper > 0 :
             # Upper-Outer flange:
-            coords.append(vec(front, outer, - mm.rise))
-            coords.append(vec(- tread_toe, outer, - mm.rise))
-            coords.append(vec(- tread_toe, outer, 0))
-            coords.append(vec(
+            verts.append(vec(front, outer, - mm.rise))
+            verts.append(vec(- tread_toe, outer, - mm.rise))
+            verts.append(vec(- tread_toe, outer, 0))
+            verts.append(vec(
                     mm.run * (mm.nr_treads - 1) - tread_toe,
                     outer,
                     mm.rise * (mm.nr_treads - 1)
                 ))
-            coords.append(vec(
+            verts.append(vec(
                     mm.run * mm.nr_treads,
                     outer,
                     mm.rise * (mm.nr_treads - 1)
                 ))
-            coords.append(vec(
+            verts.append(vec(
                     mm.run * mm.nr_treads,
                     outer,
                     mm.rise * (mm.nr_treads - 1) + stringer_flange_thickness
                 ))
-            coords.append(vec(
+            verts.append(vec(
                     mm.run * (mm.nr_treads - 1) - tread_toe,
                     outer,
                     mm.rise * (mm.nr_treads - 1) + stringer_flange_thickness
                 ))
-            coords.append(vec(front, outer, stringer_flange_thickness - vDelta_1))
+            verts.append(vec(front, outer, stringer_flange_thickness - vDelta_1))
             # Lower-Outer flange:
-            coords.append(coords[0] + vec(stringer_flange_thickness + webHeight, 0, 0))
-            coords.append(coords[1] + vec(stringer_flange_thickness + webHeight, 0, 0))
-            coords.append \
+            verts.append(verts[0] + vec(stringer_flange_thickness + webHeight, 0, 0))
+            verts.append(verts[1] + vec(stringer_flange_thickness + webHeight, 0, 0))
+            verts.append \
               (
                 intersect_line_line
                   (
-                    coords[9],
-                    coords[9] - vec(0, 0, 1),
+                    verts[9],
+                    verts[9] - vec(0, 0, 1),
                     vec(mm.run, 0, - tread_height - stringer_flange_thickness),
                     vec(mm.run * 2, 0, mm.rise - tread_height - stringer_flange_thickness)
                 )[0]
               )
-            coords.append(vec(
+            verts.append(vec(
                     mm.run * mm.nr_treads - (webHeight - tread_height) / mm.slope,
                     outer,
                     vDelta_2
                 ))
-            coords.append(coords[4] - vec(0, 0, stringer_flange_thickness + webHeight))
-            coords.append(coords[5] - vec(0, 0, stringer_flange_thickness + webHeight))
-            coords.append(coords[11] + vec(0, 0, stringer_flange_thickness))
-            coords.append \
+            verts.append(verts[4] - vec(0, 0, stringer_flange_thickness + webHeight))
+            verts.append(verts[5] - vec(0, 0, stringer_flange_thickness + webHeight))
+            verts.append(verts[11] + vec(0, 0, stringer_flange_thickness))
+            verts.append \
               (
                 intersect_line_line
                   (
-                    coords[8],
-                    coords[8] - vec(0, 0, 1),
+                    verts[8],
+                    verts[8] - vec(0, 0, 1),
                     vec(mm.run, 0, - tread_height),
                     vec(mm.run * 2, 0, mm.rise - tread_height)
                   )[0]
               )
             # Outer web:
             for i in [1, 8, 15, 14, 13, 4, 3, 2] :
-                coords.append(coords[i] + vec(0, flange_y, 0))
+                verts.append(verts[i] + vec(0, flange_y, 0))
             #end for
             # Outer corner nodes:
             for i in [0, 7, 6, 5, 12, 11, 10, 9] :
-                coords.append(coords[i] + vec(0, flange_y + stringer_web_thickness, 0))
+                verts.append(verts[i] + vec(0, flange_y + stringer_web_thickness, 0))
             #end for
             faces = \
                 [
@@ -933,32 +933,32 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                     [20, 21, 27, 28],
                     [12, 13, 20, 28],
                 ]
-            mm.make_mesh(coords, faces, 'stringer')
+            mm.make_mesh(verts, faces, 'stringer')
             for i in range(16) :
-                coords[i] += vec(0, - outer * 2, 0)
+                verts[i] += vec(0, - outer * 2, 0)
             #end for
             for i in range(8) :
-                coords[i + 16] += vec(0, (- outer - flange_y) * 2, 0)
+                verts[i + 16] += vec(0, (- outer - flange_y) * 2, 0)
             #end for
-            for i in coords :
+            for i in verts :
                 i += vec(0, tread_overhang * 2 + tread_width, 0)
             #end for
-            mm.make_mesh(coords, faces, 'stringer')
+            mm.make_mesh(verts, faces, 'stringer')
         #end if
     #end housed_c_beam
 
     def box() :
         h = - tread_height #height of top section
         for i in range(mm.nr_treads) :
-            coords = []
-            coords.append(vec(i * mm.run, 0, - mm.rise))
-            coords.append(vec((i + 1) * mm.run, 0, - mm.rise))
-            coords.append(vec(i * mm.run, 0, h + i * mm.rise))
-            coords.append(vec((i + 1) * mm.run, 0, h + i * mm.rise))
+            verts = []
+            verts.append(vec(i * mm.run, 0, - mm.rise))
+            verts.append(vec((i + 1) * mm.run, 0, - mm.rise))
+            verts.append(vec(i * mm.run, 0, h + i * mm.rise))
+            verts.append(vec((i + 1) * mm.run, 0, h + i * mm.rise))
             for j in range(4) :
-                coords.append(coords[j] + vec(0, tread_width, 0))
+                verts.append(verts[j] + vec(0, tread_width, 0))
             #end for
-            mm.make_ppd_mesh(coords, 'stringer')
+            mm.make_ppd_mesh(verts, 'stringer')
         #end for
     #end box
 
@@ -979,11 +979,11 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                 ]
             tread_arc = mm.rotation / mm.nr_treads
             for i in range(mm.nr_treads) :
-                coords = []
+                verts = []
                 faces = [[0, 1, 3, 2]]
                 tread_angle = z_rotation(tread_arc * i)
                 for j in range(4) :
-                    coords.append(tread_angle * start[j] + vec(0, 0, mm.rise * i))
+                    verts.append(tread_angle * start[j] + vec(0, 0, mm.rise * i))
                 #end for
                 for j in range(mm.sections_per_slice) :
                     k = j * 4 + 4
@@ -993,7 +993,7 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                     faces.append([k, k - 4, k - 2, k + 2])
                     rot = z_rotation(tread_arc * (j + 1) / mm.sections_per_slice + tread_arc * i)
                     for v in start :
-                        coords.append(rot * v + vec(0, 0, mm.rise * i))
+                        verts.append(rot * v + vec(0, 0, mm.rise * i))
                     #end for
                 #end for
                 if i + 1 < mm.nr_treads :
@@ -1013,9 +1013,9 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                         for v in range(4) :
                             if v in [1, 3] :
                                 incline = mm.rise * i + mm.rise / mm.sections_per_slice * (j + 1)
-                                coords.append(rot * start[v] + vec(0, 0, incline))
+                                verts.append(rot * start[v] + vec(0, 0, incline))
                             else :
-                                coords.append(rot * start[v] + vec(0, 0, mm.rise * i))
+                                verts.append(rot * start[v] + vec(0, 0, mm.rise * i))
                             #end if
                         #end for
                     #end for
@@ -1024,7 +1024,7 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                     k = mm.sections_per_slice * 4 + 4
                     faces.append([k - 3, k - 4, k - 2, k - 1])
                 #end if
-                mm.make_mesh(coords, faces, 'stringer')
+                mm.make_mesh(verts, faces, 'stringer')
             #end for
             if distributed_stringers or nr_stringers == 1 :
                 offset += tread_width / (nr_stringers + 1)
@@ -1069,9 +1069,9 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
     #end if
 
     # Setup the coordinates:
-    treads_coords = []
-    bars_coords = []
-    crosses_coords = []
+    treads_verts = []
+    bars_verts = []
+    crosses_verts = []
     cross = 0
     cW = 0
     depth = 0
@@ -1079,54 +1079,54 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
     height = 0
     assert stair_type in [STAIRTYPE.FREESTANDING, STAIRTYPE.HOUSED_OPEN, STAIRTYPE.BOX]
 
-    def make_treads_coords() :
+    def make_treads_verts() :
         # calculates coordinates for the pieces of the treads.
         nonlocal tread_section_spacing, tread_section_offset, cross, cW, depth, height
         if tread_type == TREADTYPE.CLASSIC :
-            treads_coords.append(vec(- tread_toe, - tread_side_overhang, 0))
-            treads_coords.append(vec(mm.run, - tread_side_overhang, 0))
-            treads_coords.append(vec(- tread_toe, tread_width + tread_side_overhang, 0))
-            treads_coords.append(vec(mm.run, tread_width + tread_side_overhang, 0))
+            treads_verts.append(vec(- tread_toe, - tread_side_overhang, 0))
+            treads_verts.append(vec(mm.run, - tread_side_overhang, 0))
+            treads_verts.append(vec(- tread_toe, tread_width + tread_side_overhang, 0))
+            treads_verts.append(vec(mm.run, tread_width + tread_side_overhang, 0))
             for i in range(4) :
-                treads_coords.append(treads_coords[i] + vec(0, 0, - tread_height))
+                treads_verts.append(treads_verts[i] + vec(0, 0, - tread_height))
             #end for
         elif tread_type == TREADTYPE.BASIC_STEEL :
             depth = (mm.run + tread_toe - (nr_tread_sections - 1) * tread_section_spacing) / nr_tread_sections
             inset = depth / 4
             tDepth = depth - tread_toe
-            treads_coords.append(vec(- tread_toe, - tread_side_overhang, - tread_height))                          #0
-            treads_coords.append(vec(inset - tread_toe, - tread_side_overhang, - tread_height))           #1
-            treads_coords.append(vec(inset - tread_toe, - tread_side_overhang, - tread_height + tread_metal_thickness)) #2
-            treads_coords.append(vec(tread_metal_thickness - tread_toe, - tread_side_overhang, - tread_height + tread_metal_thickness))       #3
-            treads_coords.append(vec(tread_metal_thickness - tread_toe, - tread_side_overhang, - tread_metal_thickness))                #4
-            treads_coords.append(vec(- tread_toe, - tread_side_overhang, 0))                                #5
-            treads_coords.append(vec(tDepth, - tread_side_overhang, 0))                                 #6
-            treads_coords.append(vec(tDepth - tread_metal_thickness, - tread_side_overhang, - tread_metal_thickness))                #7
-            treads_coords.append(vec(tDepth - tread_metal_thickness, - tread_side_overhang, tread_metal_thickness - tread_height))        #8
-            treads_coords.append(vec(tDepth, - tread_side_overhang, - tread_height))                           #9
-            treads_coords.append(vec(tDepth - inset, - tread_side_overhang, - tread_height))           #10
-            treads_coords.append(vec(tDepth - inset, - tread_side_overhang, - tread_height + tread_metal_thickness)) #11
+            treads_verts.append(vec(- tread_toe, - tread_side_overhang, - tread_height))                          #0
+            treads_verts.append(vec(inset - tread_toe, - tread_side_overhang, - tread_height))           #1
+            treads_verts.append(vec(inset - tread_toe, - tread_side_overhang, - tread_height + tread_metal_thickness)) #2
+            treads_verts.append(vec(tread_metal_thickness - tread_toe, - tread_side_overhang, - tread_height + tread_metal_thickness))       #3
+            treads_verts.append(vec(tread_metal_thickness - tread_toe, - tread_side_overhang, - tread_metal_thickness))                #4
+            treads_verts.append(vec(- tread_toe, - tread_side_overhang, 0))                                #5
+            treads_verts.append(vec(tDepth, - tread_side_overhang, 0))                                 #6
+            treads_verts.append(vec(tDepth - tread_metal_thickness, - tread_side_overhang, - tread_metal_thickness))                #7
+            treads_verts.append(vec(tDepth - tread_metal_thickness, - tread_side_overhang, tread_metal_thickness - tread_height))        #8
+            treads_verts.append(vec(tDepth, - tread_side_overhang, - tread_height))                           #9
+            treads_verts.append(vec(tDepth - inset, - tread_side_overhang, - tread_height))           #10
+            treads_verts.append(vec(tDepth - inset, - tread_side_overhang, - tread_height + tread_metal_thickness)) #11
             for i in range(12) :
-                treads_coords.append(treads_coords[i] + vec(0, tread_width + 2 * tread_side_overhang, 0))
+                treads_verts.append(treads_verts[i] + vec(0, tread_width + 2 * tread_side_overhang, 0))
             #end for
         elif tread_type in [TREADTYPE.BAR_1, TREADTYPE.BAR_2, TREADTYPE.BAR_3] :
             # Frame:
-            treads_coords.append(vec(- tread_toe, - tread_side_overhang, - tread_height))
-            treads_coords.append(vec(mm.run, - tread_side_overhang, - tread_height))
-            treads_coords.append(vec(- tread_toe, - tread_side_overhang, 0))
-            treads_coords.append(vec(mm.run, - tread_side_overhang, 0))
+            treads_verts.append(vec(- tread_toe, - tread_side_overhang, - tread_height))
+            treads_verts.append(vec(mm.run, - tread_side_overhang, - tread_height))
+            treads_verts.append(vec(- tread_toe, - tread_side_overhang, 0))
+            treads_verts.append(vec(mm.run, - tread_side_overhang, 0))
             for i in range(4) :
                 if i % 2 == 0 :
-                    treads_coords.append(treads_coords[i] + vec(tread_metal_thickness, tread_metal_thickness, 0))
+                    treads_verts.append(treads_verts[i] + vec(tread_metal_thickness, tread_metal_thickness, 0))
                 else :
-                    treads_coords.append(treads_coords[i] + vec(- tread_metal_thickness, tread_metal_thickness, 0))
+                    treads_verts.append(treads_verts[i] + vec(- tread_metal_thickness, tread_metal_thickness, 0))
                 #end if
             #end for
             for i in range(4) :
-                treads_coords.append(treads_coords[i] + vec(0, tread_width + tread_side_overhang, 0))
+                treads_verts.append(treads_verts[i] + vec(0, tread_width + tread_side_overhang, 0))
             #end for
             for i in range(4) :
-                treads_coords.append(treads_coords[i + 4] + vec(0, tread_width + tread_side_overhang - 2 * tread_metal_thickness, 0))
+                treads_verts.append(treads_verts[i + 4] + vec(0, tread_width + tread_side_overhang - 2 * tread_metal_thickness, 0))
             #end for
             # Tread sections:
             if tread_type == TREADTYPE.BAR_1 :
@@ -1134,25 +1134,25 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
                 topset = tread_height - tread_section_offset
                 tread_section_spacing = ((mm.run + tread_toe - 2 * tread_metal_thickness) - (tread_section_offset * nr_tread_sections + topset)) / (nr_tread_sections + 1)
                 baseX = - tread_toe + tread_section_spacing + tread_metal_thickness
-                bars_coords.append(vec(baseX, tread_metal_thickness - tread_side_overhang, tread_section_offset - tread_height))
-                bars_coords.append(vec(baseX + tread_section_offset, tread_metal_thickness - tread_side_overhang, - tread_height))
+                bars_verts.append(vec(baseX, tread_metal_thickness - tread_side_overhang, tread_section_offset - tread_height))
+                bars_verts.append(vec(baseX + tread_section_offset, tread_metal_thickness - tread_side_overhang, - tread_height))
                 for i in range(2) :
-                    bars_coords.append(bars_coords[i] + vec(topset, 0, topset))
+                    bars_verts.append(bars_verts[i] + vec(topset, 0, topset))
                 #end for
                 for i in range(4) :
-                    bars_coords.append(bars_coords[i] + vec(0, (tread_width + tread_side_overhang) - 2 * tread_metal_thickness, 0))
+                    bars_verts.append(bars_verts[i] + vec(0, (tread_width + tread_side_overhang) - 2 * tread_metal_thickness, 0))
                 #end for
             elif tread_type in [TREADTYPE.BAR_2, TREADTYPE.BAR_3] :
                 tread_section_offset = ((mm.run + tread_toe) * tread_section_spacing) / (nr_tread_sections + 1)
                 topset = ((mm.run + tread_toe) * (1 - tread_section_spacing) - 2 * tread_metal_thickness) / nr_tread_sections
                 baseX = - tread_toe + tread_metal_thickness + tread_section_offset
                 baseY = tread_width + tread_side_overhang - 2 * tread_metal_thickness
-                bars_coords.append(vec(baseX, - tread_side_overhang + tread_metal_thickness, - tread_height / 2))
-                bars_coords.append(vec(baseX + topset, - tread_side_overhang + tread_metal_thickness, - tread_height / 2))
-                bars_coords.append(vec(baseX, - tread_side_overhang + tread_metal_thickness, 0))
-                bars_coords.append(vec(baseX + topset, - tread_side_overhang + tread_metal_thickness, 0))
+                bars_verts.append(vec(baseX, - tread_side_overhang + tread_metal_thickness, - tread_height / 2))
+                bars_verts.append(vec(baseX + topset, - tread_side_overhang + tread_metal_thickness, - tread_height / 2))
+                bars_verts.append(vec(baseX, - tread_side_overhang + tread_metal_thickness, 0))
+                bars_verts.append(vec(baseX + topset, - tread_side_overhang + tread_metal_thickness, 0))
                 for i in range(4) :
-                    bars_coords.append(bars_coords[i] + vec(0, baseY, 0))
+                    bars_verts.append(bars_verts[i] + vec(0, baseY, 0))
                 #end for
             #end if
             # Tread cross-sections:
@@ -1167,15 +1167,15 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
                 height = - tread_height / 2
             #end if
             baseY = - tread_side_overhang + tread_metal_thickness + cross
-            crosses_coords.append(vec(- tread_toe + tread_metal_thickness, baseY, - tread_height))
-            crosses_coords.append(vec(mm.run - tread_metal_thickness, baseY, - tread_height))
-            crosses_coords.append(vec(- tread_toe + tread_metal_thickness, baseY, height))
-            crosses_coords.append(vec(mm.run - tread_metal_thickness, baseY, height))
+            crosses_verts.append(vec(- tread_toe + tread_metal_thickness, baseY, - tread_height))
+            crosses_verts.append(vec(mm.run - tread_metal_thickness, baseY, - tread_height))
+            crosses_verts.append(vec(- tread_toe + tread_metal_thickness, baseY, height))
+            crosses_verts.append(vec(mm.run - tread_metal_thickness, baseY, height))
             for i in range(4) :
-                crosses_coords.append(crosses_coords[i] + vec(0, cW, 0))
+                crosses_verts.append(crosses_verts[i] + vec(0, cW, 0))
             #end for
         #end if
-    #end make_treads_coords
+    #end make_treads_verts
 
     def make_treads() :
         # actually creates the objects for the tread components.
@@ -1225,10 +1225,10 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
             ]
         for i in range(mm.nr_treads) :
             if tread_type == TREADTYPE.CLASSIC :
-                mm.make_ppd_mesh(treads_coords, 'treads')
+                mm.make_ppd_mesh(treads_verts, 'treads')
             elif tread_type == TREADTYPE.BASIC_STEEL :
                 temp = []
-                for j in treads_coords :
+                for j in treads_verts :
                     temp.append(copy(j))
                 #end for
                 for j in range(nr_tread_sections) :
@@ -1238,9 +1238,9 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
                     #end for
                 #end for
             elif tread_type in [TREADTYPE.BAR_1, TREADTYPE.BAR_2, TREADTYPE.BAR_3] :
-                mm.make_mesh(treads_coords, bar_faces, 'treads')
+                mm.make_mesh(treads_verts, bar_faces, 'treads')
                 temp = []
-                for j in bars_coords :
+                for j in bars_verts :
                     temp.append(copy(j))
                 #end for
                 for j in range(nr_tread_sections) :
@@ -1249,11 +1249,11 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
                         k += vec(tread_section_offset + tread_section_spacing, 0, 0)
                     #end for
                 #end for
-                for j in bars_coords :
+                for j in bars_verts :
                     j += vec(mm.run, 0, mm.rise)
                 #end for
                 temp = []
-                for j in crosses_coords :
+                for j in crosses_verts :
                     temp.append(copy(j))
                 #end for
                 for j in range(nr_cross_sections) :
@@ -1262,18 +1262,18 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
                         k += vec(0, cW + cross, 0)
                     #end for
                 #end for
-                for j in crosses_coords :
+                for j in crosses_verts :
                     j += vec(mm.run, 0, mm.rise)
                 #end for
             #end if
-            for j in treads_coords :
+            for j in treads_verts :
                 j += vec(mm.run, 0, mm.rise)
             #end for
         #end for
     #end make_treads
 
 #begin treads
-    make_treads_coords()
+    make_treads_verts()
     make_treads()
 #end treads
 
@@ -1288,15 +1288,15 @@ def treads_circular(mm, tread_type, outer_radius, tread_height, tread_toe, inner
         ]
     tread_arc = mm.rotation / mm.nr_treads
     for i in range(mm.nr_treads) :
-        coords = []
+        verts = []
         # Base faces.  Should be able to append more sections:
         faces = [[0, 1, 3, 2]]
         t_inner = z_rotation(- tread_toe / inner_radius + tread_arc * i)
-        coords.append(t_inner * start[0] + vec(0, 0, mm.rise * i))
-        coords.append(t_inner * start[1] + vec(0, 0, mm.rise * i))
+        verts.append(t_inner * start[0] + vec(0, 0, mm.rise * i))
+        verts.append(t_inner * start[1] + vec(0, 0, mm.rise * i))
         t_outer = z_rotation(- tread_toe / outer_radius + tread_arc * i)
-        coords.append(t_outer * start[2] + vec(0, 0, mm.rise * i))
-        coords.append(t_outer * start[3] + vec(0, 0, mm.rise * i))
+        verts.append(t_outer * start[2] + vec(0, 0, mm.rise * i))
+        verts.append(t_outer * start[3] + vec(0, 0, mm.rise * i))
         for j in range(mm.sections_per_slice + 1) :
             k = j * 4 + 4
             faces.append([k, k - 4, k - 3, k + 1])
@@ -1305,11 +1305,11 @@ def treads_circular(mm, tread_type, outer_radius, tread_height, tread_toe, inner
             faces.append([k, k - 4, k - 2, k + 2])
             rot = z_rotation(tread_arc * j / mm.sections_per_slice + tread_arc * i)
             for v in start :
-                coords.append(rot * v + vec(0, 0, mm.rise * i))
+                verts.append(rot * v + vec(0, 0, mm.rise * i))
             #end for
         #end for
         faces.append([k, k + 1, k + 3, k + 2])
-        mm.make_mesh(coords, faces, 'treads')
+        mm.make_mesh(verts, faces, 'treads')
     #end for
 #end treads_circular
 
@@ -1319,15 +1319,15 @@ def central_pillar(mm, rail_height, inner_radius) :
     tread_arc = mm.rotation / mm.nr_treads
     nr_sections = math.ceil(mm.sections_per_slice * circle / tread_arc)
     radius = inner_radius * 0.5 # make this adjustable?
-    coords = []
+    verts = []
     faces = []
     bottom_face = []
     top_face = []
     for i in range(nr_sections) :
         orient = z_rotation(circle * i / nr_sections)
-        bottom_face.append(len(coords))
-        top_face.append(len(coords) + 1)
-        coords.extend \
+        bottom_face.append(len(verts))
+        top_face.append(len(verts) + 1)
+        verts.extend \
           (
             [
                 orient * vec(0, radius, 0),
@@ -1340,7 +1340,7 @@ def central_pillar(mm, rail_height, inner_radius) :
     bottom_face.reverse() # get normal the right way
     faces.append(bottom_face)
     faces.append(top_face)
-    mm.make_mesh(coords, faces, "central pillar")
+    mm.make_mesh(verts, faces, "central pillar")
 #end central_pillar
 
 #+
