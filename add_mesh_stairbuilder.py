@@ -680,155 +680,152 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
         front = - tread_toe - stringer_flange_thickness
         outer = - tread_overhang - stringer_web_thickness - flange_y
         verts = []
-        if stringer_flange_taper > 0 :
-            # Upper-Outer flange:
-            verts.append(vec(front, outer, - mm.rise))
-            verts.append(vec(- tread_toe, outer, - mm.rise))
-            verts.append(vec(- tread_toe, outer, 0))
-            verts.append(vec(
-                    mm.run * (mm.nr_treads - 1) - tread_toe,
-                    outer,
-                    mm.rise * (mm.nr_treads - 1)
-                ))
-            verts.append(vec(
-                    mm.run * mm.nr_treads,
-                    outer,
-                    mm.rise * (mm.nr_treads - 1)
-                ))
-            verts.append(vec(
-                    mm.run * mm.nr_treads,
-                    outer,
-                    mm.rise * (mm.nr_treads - 1) + stringer_flange_thickness
-                ))
-            verts.append(vec(
-                    mm.run * (mm.nr_treads - 1) - tread_toe,
-                    outer,
-                    mm.rise * (mm.nr_treads - 1) + stringer_flange_thickness
-                ))
-            verts.append(vec(front, outer, stringer_flange_thickness - vDelta_1))
-            # Lower-Outer flange:
-            verts.append(verts[0] + vec(stringer_flange_thickness + webHeight, 0, 0))
-            verts.append(verts[1] + vec(stringer_flange_thickness + webHeight, 0, 0))
-            verts.append \
+        # Upper-Outer flange:
+        verts.append(vec(front, outer, - mm.rise))
+        verts.append(vec(- tread_toe, outer, - mm.rise))
+        verts.append(vec(- tread_toe, outer, 0))
+        verts.append(vec(
+                mm.run * (mm.nr_treads - 1) - tread_toe,
+                outer,
+                mm.rise * (mm.nr_treads - 1)
+            ))
+        verts.append(vec(
+                mm.run * mm.nr_treads,
+                outer,
+                mm.rise * (mm.nr_treads - 1)
+            ))
+        verts.append(vec(
+                mm.run * mm.nr_treads,
+                outer,
+                mm.rise * (mm.nr_treads - 1) + stringer_flange_thickness
+            ))
+        verts.append(vec(
+                mm.run * (mm.nr_treads - 1) - tread_toe,
+                outer,
+                mm.rise * (mm.nr_treads - 1) + stringer_flange_thickness
+            ))
+        verts.append(vec(front, outer, stringer_flange_thickness - vDelta_1))
+        # Lower-Outer flange:
+        verts.append(verts[0] + vec(stringer_flange_thickness + webHeight, 0, 0))
+        verts.append(verts[1] + vec(stringer_flange_thickness + webHeight, 0, 0))
+        verts.append \
+          (
+            intersect_line_line
               (
-                intersect_line_line
-                  (
-                    verts[9],
-                    verts[9] - vec(0, 0, 1),
-                    vec(mm.run, 0, - tread_height - stringer_flange_thickness),
-                    vec(mm.run * 2, 0, mm.rise - tread_height - stringer_flange_thickness)
-                 )[0]
-              )
-            verts.append(vec(
-                    mm.run * mm.nr_treads - (webHeight - tread_height) / mm.slope,
-                    outer,
-                    vDelta_2
-                ))
-            verts.append(verts[4] - vec(0, 0, stringer_flange_thickness + webHeight))
-            verts.append(verts[5] - vec(0, 0, stringer_flange_thickness + webHeight))
-            verts.append(verts[11] + vec(0, 0, stringer_flange_thickness))
-            verts.append \
-              (
-                  intersect_line_line
-                    (
-                      verts[8],
-                      verts[8] - vec(0, 0, 1),
-                      vec(mm.run, 0, - tread_height),
-                      vec(mm.run * 2, 0, mm.rise - tread_height)
-                    )[0]
-              )
-            # Outer web:
-            for i in [1, 8, 15, 14, 13, 4, 3, 2] :
-                verts.append(verts[i] + vec(0, flange_y, 0))
-            #end for
-            # Upper-Inner flange and lower-inner flange:
-            for i in range(16) :
-                verts.append(verts[i] + vec(0, stringer_width, 0))
-            #end for
-            # Inner web:
-            for i in range(8) :
-                verts.append(verts[i + 16] + vec(0, stringer_web_thickness, 0))
-            #end for
-            # Mid nodes to so faces will be quads:
-            for i in [0, 7, 6, 5, 9, 10, 11, 12] :
-                verts.append(verts[i] + vec(0, flange_y, 0))
-            #end for
-            for i in range(8) :
-                verts.append(verts[i + 48] + vec(0, stringer_web_thickness, 0))
-            #end for
-            faces = \
-                [
-                    [0, 1, 2, 7],
-                    [2, 3, 6, 7],
-                    [3, 4, 5, 6],
-                    [1, 2, 23, 16],
-                    [2, 3, 22, 23],
-                    [3, 4, 21, 22],
-                    [16, 17, 18, 23],
-                    [18, 19, 22, 23],
-                    [19, 20, 21, 22],
-                    [17, 8, 15, 18],
-                    [18, 15, 14, 19],
-                    [19, 14, 13, 20],
-                    [8, 9, 10, 15],
-                    [10, 11, 14, 15],
-                    [11, 12, 13, 14],
-                    [9, 10, 53, 52],
-                    [10, 11, 54, 53],
-                    [11, 12, 55, 54],
-                    [52, 53, 61, 60],
-                    [53, 54, 62, 61],
-                    [54, 55, 63, 62],
-                    [60, 61, 34, 33],
-                    [61, 62, 35, 34],
-                    [62, 63, 36, 35],
-                    [32, 33, 34, 39],
-                    [34, 35, 38, 39],
-                    [35, 36, 37, 38],
-                    [41, 32, 39, 42],
-                    [42, 39, 38, 43],
-                    [43, 38, 37, 44],
-                    [40, 41, 42, 47],
-                    [42, 43, 46, 47],
-                    [43, 44, 45, 46],
-                    [25, 26, 47, 40],
-                    [26, 27, 46, 47],
-                    [27, 28, 45, 46],
-                    [24, 25, 26, 31],
-                    [26, 27, 30, 31],
-                    [27, 28, 29, 30],
-                    [24, 31, 57, 56],
-                    [31, 30, 58, 57],
-                    [30, 29, 59, 58],
-                    [48, 49, 57, 56],
-                    [49, 50, 58, 57],
-                    [50, 51, 59, 58],
-                    [0, 7, 49, 48],
-                    [7, 6, 50, 49],
-                    [6, 5, 51, 50],
-                    [0, 1, 16, 48],
-                    [16, 40, 56, 48],
-                    [24, 25, 40, 56],
-                    [16, 17, 41, 40],
-                    [8, 9, 52, 17],
-                    [17, 52, 60, 41],
-                    [32, 33, 60, 41],
-                    [12, 13, 20, 55],
-                    [20, 44, 63, 55],
-                    [37, 44, 63, 36],
-                    [20, 21, 45, 44],
-                    [28, 29, 51, 21],
-                    [21, 51, 59, 45],
-                    [28, 45, 59, 29],
-                    [4, 5, 51, 21],
-                ]
-            mm.make_mesh(verts, faces, 'stringer')
-            for i in verts :
-                i += vec(0, tread_width + stringer_web_thickness, 0)
-            #end for
-            mm.make_mesh(verts, faces, 'stringer')
-        #end if
-        # @TODO Taper = 100%
+                verts[9],
+                verts[9] - vec(0, 0, 1),
+                vec(mm.run, 0, - tread_height - stringer_flange_thickness),
+                vec(mm.run * 2, 0, mm.rise - tread_height - stringer_flange_thickness)
+             )[0]
+          )
+        verts.append(vec(
+                mm.run * mm.nr_treads - (webHeight - tread_height) / mm.slope,
+                outer,
+                vDelta_2
+            ))
+        verts.append(verts[4] - vec(0, 0, stringer_flange_thickness + webHeight))
+        verts.append(verts[5] - vec(0, 0, stringer_flange_thickness + webHeight))
+        verts.append(verts[11] + vec(0, 0, stringer_flange_thickness))
+        verts.append \
+          (
+              intersect_line_line
+                (
+                  verts[8],
+                  verts[8] - vec(0, 0, 1),
+                  vec(mm.run, 0, - tread_height),
+                  vec(mm.run * 2, 0, mm.rise - tread_height)
+                )[0]
+          )
+        # Outer web:
+        for i in [1, 8, 15, 14, 13, 4, 3, 2] :
+            verts.append(verts[i] + vec(0, flange_y, 0))
+        #end for
+        # Upper-Inner flange and lower-inner flange:
+        for i in range(16) :
+            verts.append(verts[i] + vec(0, stringer_width, 0))
+        #end for
+        # Inner web:
+        for i in range(8) :
+            verts.append(verts[i + 16] + vec(0, stringer_web_thickness, 0))
+        #end for
+        # Mid nodes to so faces will be quads:
+        for i in [0, 7, 6, 5, 9, 10, 11, 12] :
+            verts.append(verts[i] + vec(0, flange_y, 0))
+        #end for
+        for i in range(8) :
+            verts.append(verts[i + 48] + vec(0, stringer_web_thickness, 0))
+        #end for
+        faces = \
+            [
+                [0, 1, 2, 7],
+                [2, 3, 6, 7],
+                [3, 4, 5, 6],
+                [1, 2, 23, 16],
+                [2, 3, 22, 23],
+                [3, 4, 21, 22],
+                [16, 17, 18, 23],
+                [18, 19, 22, 23],
+                [19, 20, 21, 22],
+                [17, 8, 15, 18],
+                [18, 15, 14, 19],
+                [19, 14, 13, 20],
+                [8, 9, 10, 15],
+                [10, 11, 14, 15],
+                [11, 12, 13, 14],
+                [9, 10, 53, 52],
+                [10, 11, 54, 53],
+                [11, 12, 55, 54],
+                [52, 53, 61, 60],
+                [53, 54, 62, 61],
+                [54, 55, 63, 62],
+                [60, 61, 34, 33],
+                [61, 62, 35, 34],
+                [62, 63, 36, 35],
+                [32, 33, 34, 39],
+                [34, 35, 38, 39],
+                [35, 36, 37, 38],
+                [41, 32, 39, 42],
+                [42, 39, 38, 43],
+                [43, 38, 37, 44],
+                [40, 41, 42, 47],
+                [42, 43, 46, 47],
+                [43, 44, 45, 46],
+                [25, 26, 47, 40],
+                [26, 27, 46, 47],
+                [27, 28, 45, 46],
+                [24, 25, 26, 31],
+                [26, 27, 30, 31],
+                [27, 28, 29, 30],
+                [24, 31, 57, 56],
+                [31, 30, 58, 57],
+                [30, 29, 59, 58],
+                [48, 49, 57, 56],
+                [49, 50, 58, 57],
+                [50, 51, 59, 58],
+                [0, 7, 49, 48],
+                [7, 6, 50, 49],
+                [6, 5, 51, 50],
+                [0, 1, 16, 48],
+                [16, 40, 56, 48],
+                [24, 25, 40, 56],
+                [16, 17, 41, 40],
+                [8, 9, 52, 17],
+                [17, 52, 60, 41],
+                [32, 33, 60, 41],
+                [12, 13, 20, 55],
+                [20, 44, 63, 55],
+                [37, 44, 63, 36],
+                [20, 21, 45, 44],
+                [28, 29, 51, 21],
+                [21, 51, 59, 45],
+                [28, 45, 59, 29],
+                [4, 5, 51, 21],
+            ]
+        mm.make_mesh(verts, faces, 'stringer')
+        for i in verts :
+            i += vec(0, tread_width + stringer_web_thickness, 0)
+        #end for
+        mm.make_mesh(verts, faces, 'stringer')
     #end housed_i_beam
 
     def housed_c_beam() :
@@ -840,116 +837,114 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
         front = - tread_toe - stringer_flange_thickness
         outer = - tread_overhang - stringer_web_thickness - flange_y
         verts = []
-        if stringer_flange_taper > 0 :
-            # Upper-Outer flange:
-            verts.append(vec(front, outer, - mm.rise))
-            verts.append(vec(- tread_toe, outer, - mm.rise))
-            verts.append(vec(- tread_toe, outer, 0))
-            verts.append(vec(
-                    mm.run * (mm.nr_treads - 1) - tread_toe,
-                    outer,
-                    mm.rise * (mm.nr_treads - 1)
-                ))
-            verts.append(vec(
-                    mm.run * mm.nr_treads,
-                    outer,
-                    mm.rise * (mm.nr_treads - 1)
-                ))
-            verts.append(vec(
-                    mm.run * mm.nr_treads,
-                    outer,
-                    mm.rise * (mm.nr_treads - 1) + stringer_flange_thickness
-                ))
-            verts.append(vec(
-                    mm.run * (mm.nr_treads - 1) - tread_toe,
-                    outer,
-                    mm.rise * (mm.nr_treads - 1) + stringer_flange_thickness
-                ))
-            verts.append(vec(front, outer, stringer_flange_thickness - vDelta_1))
-            # Lower-Outer flange:
-            verts.append(verts[0] + vec(stringer_flange_thickness + webHeight, 0, 0))
-            verts.append(verts[1] + vec(stringer_flange_thickness + webHeight, 0, 0))
-            verts.append \
+        # Upper-Outer flange:
+        verts.append(vec(front, outer, - mm.rise))
+        verts.append(vec(- tread_toe, outer, - mm.rise))
+        verts.append(vec(- tread_toe, outer, 0))
+        verts.append(vec(
+                mm.run * (mm.nr_treads - 1) - tread_toe,
+                outer,
+                mm.rise * (mm.nr_treads - 1)
+            ))
+        verts.append(vec(
+                mm.run * mm.nr_treads,
+                outer,
+                mm.rise * (mm.nr_treads - 1)
+            ))
+        verts.append(vec(
+                mm.run * mm.nr_treads,
+                outer,
+                mm.rise * (mm.nr_treads - 1) + stringer_flange_thickness
+            ))
+        verts.append(vec(
+                mm.run * (mm.nr_treads - 1) - tread_toe,
+                outer,
+                mm.rise * (mm.nr_treads - 1) + stringer_flange_thickness
+            ))
+        verts.append(vec(front, outer, stringer_flange_thickness - vDelta_1))
+        # Lower-Outer flange:
+        verts.append(verts[0] + vec(stringer_flange_thickness + webHeight, 0, 0))
+        verts.append(verts[1] + vec(stringer_flange_thickness + webHeight, 0, 0))
+        verts.append \
+          (
+            intersect_line_line
               (
-                intersect_line_line
-                  (
-                    verts[9],
-                    verts[9] - vec(0, 0, 1),
-                    vec(mm.run, 0, - tread_height - stringer_flange_thickness),
-                    vec(mm.run * 2, 0, mm.rise - tread_height - stringer_flange_thickness)
-                )[0]
-              )
-            verts.append(vec(
-                    mm.run * mm.nr_treads - (webHeight - tread_height) / mm.slope,
-                    outer,
-                    vDelta_2
-                ))
-            verts.append(verts[4] - vec(0, 0, stringer_flange_thickness + webHeight))
-            verts.append(verts[5] - vec(0, 0, stringer_flange_thickness + webHeight))
-            verts.append(verts[11] + vec(0, 0, stringer_flange_thickness))
-            verts.append \
+                verts[9],
+                verts[9] - vec(0, 0, 1),
+                vec(mm.run, 0, - tread_height - stringer_flange_thickness),
+                vec(mm.run * 2, 0, mm.rise - tread_height - stringer_flange_thickness)
+            )[0]
+          )
+        verts.append(vec(
+                mm.run * mm.nr_treads - (webHeight - tread_height) / mm.slope,
+                outer,
+                vDelta_2
+            ))
+        verts.append(verts[4] - vec(0, 0, stringer_flange_thickness + webHeight))
+        verts.append(verts[5] - vec(0, 0, stringer_flange_thickness + webHeight))
+        verts.append(verts[11] + vec(0, 0, stringer_flange_thickness))
+        verts.append \
+          (
+            intersect_line_line
               (
-                intersect_line_line
-                  (
-                    verts[8],
-                    verts[8] - vec(0, 0, 1),
-                    vec(mm.run, 0, - tread_height),
-                    vec(mm.run * 2, 0, mm.rise - tread_height)
-                  )[0]
-              )
-            # Outer web:
-            for i in [1, 8, 15, 14, 13, 4, 3, 2] :
-                verts.append(verts[i] + vec(0, flange_y, 0))
-            #end for
-            # Outer corner nodes:
-            for i in [0, 7, 6, 5, 12, 11, 10, 9] :
-                verts.append(verts[i] + vec(0, flange_y + stringer_web_thickness, 0))
-            #end for
-            faces = \
-                [
-                    [0, 1, 2, 7],
-                    [2, 3, 6, 7],
-                    [3, 4, 5, 6],
-                    [1, 2, 23, 16],
-                    [2, 3, 22, 23],
-                    [3, 4, 21, 22],
-                    [16, 17, 18, 23],
-                    [18, 19, 22, 23],
-                    [19, 20, 21, 22],
-                    [17, 8, 15, 18],
-                    [18, 15, 14, 19],
-                    [19, 14, 13, 20],
-                    [8, 9, 10, 15],
-                    [10, 11, 14, 15],
-                    [11, 12, 13, 14],
-                    [0, 24, 25, 7],
-                    [7, 25, 26, 6],
-                    [6, 26, 27, 5],
-                    [9, 31, 30, 10],
-                    [10, 30, 29, 11],
-                    [11, 29, 28, 12],
-                    [24, 25, 30, 31],
-                    [25, 26, 29, 30],
-                    [26, 27, 28, 29],
-                    [0, 1, 16, 24],
-                    [16, 24, 31, 17],
-                    [8, 9, 31, 17],
-                    [4, 5, 27, 21],
-                    [20, 21, 27, 28],
-                    [12, 13, 20, 28],
-                ]
-            mm.make_mesh(verts, faces, 'stringer')
-            for i in range(16) :
-                verts[i] += vec(0, - outer * 2, 0)
-            #end for
-            for i in range(8) :
-                verts[i + 16] += vec(0, (- outer - flange_y) * 2, 0)
-            #end for
-            for i in verts :
-                i += vec(0, tread_overhang * 2 + tread_width, 0)
-            #end for
-            mm.make_mesh(verts, faces, 'stringer')
-        #end if
+                verts[8],
+                verts[8] - vec(0, 0, 1),
+                vec(mm.run, 0, - tread_height),
+                vec(mm.run * 2, 0, mm.rise - tread_height)
+              )[0]
+          )
+        # Outer web:
+        for i in [1, 8, 15, 14, 13, 4, 3, 2] :
+            verts.append(verts[i] + vec(0, flange_y, 0))
+        #end for
+        # Outer corner nodes:
+        for i in [0, 7, 6, 5, 12, 11, 10, 9] :
+            verts.append(verts[i] + vec(0, flange_y + stringer_web_thickness, 0))
+        #end for
+        faces = \
+            [
+                [0, 1, 2, 7],
+                [2, 3, 6, 7],
+                [3, 4, 5, 6],
+                [1, 2, 23, 16],
+                [2, 3, 22, 23],
+                [3, 4, 21, 22],
+                [16, 17, 18, 23],
+                [18, 19, 22, 23],
+                [19, 20, 21, 22],
+                [17, 8, 15, 18],
+                [18, 15, 14, 19],
+                [19, 14, 13, 20],
+                [8, 9, 10, 15],
+                [10, 11, 14, 15],
+                [11, 12, 13, 14],
+                [0, 24, 25, 7],
+                [7, 25, 26, 6],
+                [6, 26, 27, 5],
+                [9, 31, 30, 10],
+                [10, 30, 29, 11],
+                [11, 29, 28, 12],
+                [24, 25, 30, 31],
+                [25, 26, 29, 30],
+                [26, 27, 28, 29],
+                [0, 1, 16, 24],
+                [16, 24, 31, 17],
+                [8, 9, 31, 17],
+                [4, 5, 27, 21],
+                [20, 21, 27, 28],
+                [12, 13, 20, 28],
+            ]
+        mm.make_mesh(verts, faces, 'stringer')
+        for i in range(16) :
+            verts[i] += vec(0, - outer * 2, 0)
+        #end for
+        for i in range(8) :
+            verts[i + 16] += vec(0, (- outer - flange_y) * 2, 0)
+        #end for
+        for i in verts :
+            i += vec(0, tread_overhang * 2 + tread_width, 0)
+        #end for
+        mm.make_mesh(verts, faces, 'stringer')
     #end housed_c_beam
 
     def box() :
