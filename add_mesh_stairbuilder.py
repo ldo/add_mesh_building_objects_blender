@@ -477,13 +477,15 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
             ]
         for i in range(nr_stringers) :
             for j in range(mm.nr_treads) :
-                verts = []
-                verts.append(vec(0, offset, - mm.rise))
-                verts.append(vec(mm.run, offset, - mm.rise))
-                verts.append(vec(0, offset, - tread_height))
-                verts.append(vec(mm.run, offset, - tread_height))
-                verts.append(vec(mm.run, offset, 0))
-                verts.append(vec(mm.run * 2, offset, 0))
+                verts = \
+                    [
+                        vec(0, offset, - mm.rise),
+                        vec(mm.run, offset, - mm.rise),
+                        vec(0, offset, - tread_height),
+                        vec(mm.run, offset, - tread_height),
+                        vec(mm.run, offset, 0),
+                        vec(mm.run * 2, offset, 0),
+                    ]
                 for k in range(6) :
                     verts.append(verts[k] + vec(0, stringer_width, 0))
                 #end for
