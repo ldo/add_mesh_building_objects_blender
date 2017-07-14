@@ -148,11 +148,11 @@ class MeshMaker :
         # identical quads for all objects which are parallelepipeds (except stringers and treads)
         self.ppd_faces = \
             [
-                [0, 1, 3, 2],
+                [1, 0, 2, 3],
                 [0, 1, 5, 4],
-                [0, 2, 6, 4],
+                [2, 0, 4, 6],
                 [4, 5, 7, 6],
-                [2, 3, 7, 6],
+                [3, 2, 6, 7],
                 [1, 3, 7, 5],
             ]
         self.made_objects = []
