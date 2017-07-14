@@ -335,19 +335,24 @@ def railings(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width,
     #end if
 #end railings
 
-def railings_circular(mm, rail_width, rail_thickness, rail_height, tread_toe, post_width, post_depth, tread_width, inner_radius, outer_radius) :
-    start = vec(0, 0, rail_height - rail_thickness) # rail bottom start
+def railings_circular(mm, rail_width, rail_thickness, adjust_thickness, rail_height, tread_toe, post_width, post_depth, tread_width, inner_radius, outer_radius) :
     nr_sections = mm.sections_per_slice * mm.nr_treads
-    section_verts = \
-        [
-            start + vec(0, - rail_width / 2, 0),
-            start + vec(0, rail_width / 2, 0),
-            start + vec(0, - rail_width / 2, rail_thickness),
-            start + vec(0, rail_width / 2, rail_thickness),
-        ]
     offset_angle = - math.pi # so railings end up on same side as treads
     for radius, do_side in ((outer_radius, mm.do_right_side), (inner_radius, mm.do_left_side)) :
         if do_side :
+            if adjust_thickness :
+                slope_adjust = 1 / math.cos(math.atan(mm.rise * mm.nr_treads / (radius * mm.rotation)))
+            else :
+                slope_adjust = 1
+            #end if
+            start = vec(0, 0, rail_height - rail_thickness * slope_adjust) # rail bottom start
+            section_verts = \
+                [
+                    start + vec(0, - rail_width / 2, 0),
+                    start + vec(0, rail_width / 2, 0),
+                    start + vec(0, - rail_width / 2, rail_thickness * slope_adjust),
+                    start + vec(0, rail_width / 2, rail_thickness * slope_adjust),
+                ]
             angle_adjust = tread_toe / radius
             total_rise = mm.rise * mm.nr_treads * (1 + 2 * angle_adjust / mm.rotation)
             rise_adjust = mm.rise * mm.nr_treads * angle_adjust / mm.rotation
@@ -1623,6 +1628,12 @@ class Stairs(bpy.types.Operator) :
         max = 10.0,
         default = 0.03
       )
+    adjust_rail_thickness = BoolProperty \
+      (
+        name = "Adjust Thickness",
+        description = "Compensate for different slopes on inner and outer railings",
+        default = True
+      )
     rail_h = FloatProperty \
       (
         name = "Railings Height",
@@ -1840,6 +1851,9 @@ class Stairs(bpy.types.Operator) :
         if self.make_railings :
             box.prop(self, 'rail_w')
             box.prop(self, 'rail_t')
+            if self.stair_type == STAIRTYPE.CIRCULAR.name :
+                box.prop(self, "adjust_rail_thickness")
+            #end if
         #end if
         box.prop(self, 'rail_h') # affects placement of posts and retainers too
         # Retainers
@@ -1975,6 +1989,7 @@ class Stairs(bpy.types.Operator) :
                         mm = mm,
                         rail_width = self.rail_w,
                         rail_thickness = self.rail_t,
+                        adjust_thickness = self.adjust_rail_thickness,
                         rail_height = self.rail_h,
                         tread_toe = self.tread_t,
                         post_width = self.post_w,
