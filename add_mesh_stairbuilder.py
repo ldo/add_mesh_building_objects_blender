@@ -1324,21 +1324,18 @@ def central_pillar(mm, rail_height, inner_radius) :
     bottom_face = []
     top_face = []
     for i in range(nr_sections) :
-        orient1 = z_rotation(circle * i / nr_sections)
-        orient2 = z_rotation(circle * (i + 1) / nr_sections)
+        orient = z_rotation(circle * i / nr_sections)
         bottom_face.append(len(coords))
-        top_face.append(len(coords) + 2)
+        top_face.append(len(coords) + 1)
         coords.extend \
           (
             [
-                orient1 * vec(0, radius, 0),
-                orient2 * vec(0, radius, 0),
-                orient1 * vec(0, radius, height),
-                orient2 * vec(0, radius, height),
+                orient * vec(0, radius, 0),
+                orient * vec(0, radius, height),
             ]
           )
-        k = i * 4
-        faces.append([k, k + 1, k + 3, k + 2])
+        k = i * 2
+        faces.append(list(k % (2 * nr_sections) for k in [k + 1, k, k + 2, k + 3]))
     #end for
     bottom_face.reverse() # get normal the right way
     faces.append(bottom_face)
