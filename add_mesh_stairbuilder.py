@@ -998,10 +998,15 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                 #end for
                 for j in range(mm.sections_per_slice) :
                     k = j * 4 + 4
-                    faces.append([k, k - 4, k - 3, k + 1])
-                    faces.append([k - 2, k - 1, k + 3, k + 2])
-                    faces.append([k + 1, k - 3, k - 1, k + 3])
-                    faces.append([k, k - 4, k - 2, k + 2])
+                    faces.extend \
+                      (
+                        [
+                            [k, k + 1, k - 3, k - 4],
+                            [k + 1, k + 3, k - 1, k - 3],
+                            [k - 2, k - 1, k + 3, k + 2],
+                            [k, k - 4, k - 2, k + 2],
+                        ]
+                      )
                     rot = z_rotation(tread_arc * (j + 1) / mm.sections_per_slice + tread_arc * i)
                     for v in start :
                         verts.append(rot * v + vec(0, 0, mm.rise * i))
@@ -1011,10 +1016,15 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                     # part that overlaps stringer for next tread
                     for j in range(mm.sections_per_slice) :
                         k = (j + mm.sections_per_slice) * 4 + 4
-                        faces.append([k, k - 4, k - 3, k + 1])
-                        faces.append([k - 2, k - 1, k + 3, k + 2])
-                        faces.append([k + 1, k - 3, k - 1, k + 3])
-                        faces.append([k, k - 4, k - 2, k + 2])
+                        faces.extend \
+                          (
+                            [
+                                [k, k + 1, k - 3, k - 4],
+                                [k + 1, k + 3, k - 1, k - 3],
+                                [k - 2, k - 1, k + 3, k + 2],
+                                [k, k - 4, k - 2, k + 2],
+                            ]
+                          )
                         rot = z_rotation \
                           (
                                 tread_arc * (j + mm.sections_per_slice + 1) / mm.sections_per_slice
