@@ -503,21 +503,25 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
     #end freestanding_classic
 
     def housed_open_classic() :
-        verts = []
-        verts.append(vec(- tread_toe, - stringer_width, - mm.rise))
-        verts.append(vec(tread_height / mm.slope, - stringer_width, - mm.rise))
-        verts.append(vec(- tread_toe, - stringer_width, 0))
-        verts.append(vec(
-                mm.nr_treads * mm.run,
-                - stringer_width,
-                (mm.nr_treads - 1) * mm.rise - tread_height
-            ))
-        verts.append(vec(mm.nr_treads * mm.run, - stringer_width, mm.nr_treads * mm.rise))
-        verts.append(vec(
-                mm.nr_treads * mm.run - tread_toe,
-                - stringer_width,
-                mm.nr_treads * mm.rise
-            ))
+        verts = \
+            [
+                vec(- tread_toe, - stringer_width, - mm.rise),
+                vec(tread_height / mm.slope, - stringer_width, - mm.rise),
+                vec(- tread_toe, - stringer_width, 0),
+                vec
+                  (
+                    mm.nr_treads * mm.run,
+                    - stringer_width,
+                    (mm.nr_treads - 1) * mm.rise - tread_height
+                  ),
+                vec(mm.nr_treads * mm.run, - stringer_width, mm.nr_treads * mm.rise),
+                vec
+                  (
+                    mm.nr_treads * mm.run - tread_toe,
+                    - stringer_width,
+                    mm.nr_treads * mm.rise
+                  ),
+            ]
         for i in range(6) :
             verts.append(verts[i] + vec(0, stringer_width, 0))
         #end for
