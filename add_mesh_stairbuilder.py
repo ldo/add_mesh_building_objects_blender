@@ -958,10 +958,10 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
         h = - tread_height #height of top section
         for i in range(mm.nr_treads) :
             verts = []
-            verts.append(vec(i * mm.run, 0, - mm.rise))
             verts.append(vec((i + 1) * mm.run, 0, - mm.rise))
-            verts.append(vec(i * mm.run, 0, h + i * mm.rise))
+            verts.append(vec(i * mm.run, 0, - mm.rise))
             verts.append(vec((i + 1) * mm.run, 0, h + i * mm.rise))
+            verts.append(vec(i * mm.run, 0, h + i * mm.rise))
             for j in range(4) :
                 verts.append(verts[j] + vec(0, tread_width, 0))
             #end for
