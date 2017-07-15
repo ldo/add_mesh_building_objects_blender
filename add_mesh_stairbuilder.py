@@ -1129,10 +1129,15 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
         # calculates coordinates for the pieces of the treads.
         nonlocal tread_section_spacing, tread_section_offset, cross, cW, depth, height
         if tread_type == TREADTYPE.CLASSIC :
-            treads_verts.append(vec(- tread_toe, - tread_side_overhang, 0))
-            treads_verts.append(vec(mm.run, - tread_side_overhang, 0))
-            treads_verts.append(vec(- tread_toe, tread_width + tread_side_overhang, 0))
-            treads_verts.append(vec(mm.run, tread_width + tread_side_overhang, 0))
+            treads_verts.extend \
+              (
+                [
+                    vec(mm.run, - tread_side_overhang, 0),
+                    vec(- tread_toe, - tread_side_overhang, 0),
+                    vec(mm.run, tread_width + tread_side_overhang, 0),
+                    vec(- tread_toe, tread_width + tread_side_overhang, 0),
+                ]
+              )
             for i in range(4) :
                 treads_verts.append(treads_verts[i] + vec(0, 0, - tread_height))
             #end for
