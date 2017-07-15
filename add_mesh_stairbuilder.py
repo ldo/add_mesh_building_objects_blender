@@ -546,14 +546,15 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
     def i_beam() :
         mid = stringer_width / 2
         web = stringer_web_thickness / 2
+        tread_step = tread_width / (nr_stringers + 1)
         # Bottom of the stringer:
-        baseZ = - mm.rise - tread_height - stringer_height
-        # Top of the strigner:
-        topZ = - mm.rise - tread_height
+        base_z = - mm.rise - tread_height - stringer_height
+        # Top of the stringer:
+        top_z = - mm.rise - tread_height
         # Vertical taper amount:
         taper = stringer_flange_thickness * stringer_flange_taper
         if distributed_stringers or nr_stringers == 1 :
-            offset = tread_width / (nr_stringers + 1) - mid
+            offset = tread_step - mid
         else :
             offset = 0
         #end if
@@ -593,25 +594,27 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                     [23, 24, 25, 26],
                 ]
             for i in range(nr_stringers) :
-                verts = []
-                verts.append(vec(0, offset,                baseZ))
-                verts.append(vec(0, offset,                baseZ + taper))
-                verts.append(vec(0, offset + (mid - web),  baseZ + stringer_flange_thickness))
-                verts.append(vec(0, offset + (mid - web),  topZ - stringer_flange_thickness))
-                verts.append(vec(0, offset,                topZ - taper))
-                verts.append(vec(0, offset,                topZ))
-                verts.append(vec(0, offset + (mid - web),  topZ))
-                verts.append(vec(0, offset + (mid + web),  topZ))
-                verts.append(vec(0, offset + stringer_width,       topZ))
-                verts.append(vec(0, offset + stringer_width,       topZ - taper))
-                verts.append(vec(0, offset + (mid + web),  topZ - stringer_flange_thickness))
-                verts.append(vec(0, offset + (mid + web),  baseZ + stringer_flange_thickness))
-                verts.append(vec(0, offset + stringer_width,       baseZ + taper))
-                verts.append(vec(0, offset + stringer_width,       baseZ))
-                verts.append(vec(0, offset + (mid + web),  baseZ))
-                verts.append(vec(0, offset + (mid - web),  baseZ))
+                verts = \
+                    [
+                        vec(0, offset, base_z),
+                        vec(0, offset, base_z + taper),
+                        vec(0, offset + (mid - web), base_z + stringer_flange_thickness),
+                        vec(0, offset + (mid - web), top_z - stringer_flange_thickness),
+                        vec(0, offset, top_z - taper),
+                        vec(0, offset, top_z),
+                        vec(0, offset + (mid - web), top_z),
+                        vec(0, offset + (mid + web), top_z),
+                        vec(0, offset + stringer_width, top_z),
+                        vec(0, offset + stringer_width, top_z - taper),
+                        vec(0, offset + (mid + web), top_z - stringer_flange_thickness),
+                        vec(0, offset + (mid + web), base_z + stringer_flange_thickness),
+                        vec(0, offset + stringer_width, base_z + taper),
+                        vec(0, offset + stringer_width, base_z),
+                        vec(0, offset + (mid + web), base_z),
+                        vec(0, offset + (mid - web), base_z),
+                    ]
                 for j in range(16) :
-                    verts.append(verts[j]+vec(mm.run * mm.nr_treads, 0, mm.rise * mm.nr_treads))
+                    verts.append(verts[j] + vec(mm.run * mm.nr_treads, 0, mm.rise * mm.nr_treads))
                 #end for
                 # If the bottom meets the ground:
                 #   Bottom be flat with the xy plane, but shifted down.
@@ -623,14 +626,14 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                           (
                             verts[j],
                             verts[j + 16],
-                            vec(0, 0, topZ),
+                            vec(0, 0, top_z),
                             vec(0, 0, 1)
                           )
                     #end for
                 #end if
                 mm.make_mesh(verts, faces, 'stringer')
                 if distributed_stringers or nr_stringers == 1 :
-                    offset += tread_width / (nr_stringers + 1)
+                    offset += tread_step
                 else :
                     offset += (tread_width - stringer_width) / (nr_stringers - 1)
                 #end if
@@ -655,20 +658,22 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                     [10, 11, 12, 13],
                 ]
             for i in range(nr_stringers) :
-                verts = []
-                verts.append(vec(0, offset,                baseZ))
-                verts.append(vec(0, offset + (mid - web),  baseZ + stringer_flange_thickness))
-                verts.append(vec(0, offset + (mid - web),  topZ - stringer_flange_thickness))
-                verts.append(vec(0, offset,                topZ))
-                verts.append(vec(0, offset + stringer_width,       topZ))
-                verts.append(vec(0, offset + (mid + web),  topZ - stringer_flange_thickness))
-                verts.append(vec(0, offset + (mid + web),  baseZ + stringer_flange_thickness))
-                verts.append(vec(0, offset + stringer_width,       baseZ))
+                verts = \
+                    [
+                        vec(0, offset, base_z),
+                        vec(0, offset + (mid - web), base_z + stringer_flange_thickness),
+                        vec(0, offset + (mid - web), top_z - stringer_flange_thickness),
+                        vec(0, offset, top_z),
+                        vec(0, offset + stringer_width, top_z),
+                        vec(0, offset + (mid + web), top_z - stringer_flange_thickness),
+                        vec(0, offset + (mid + web), base_z + stringer_flange_thickness),
+                        vec(0, offset + stringer_width, base_z),
+                    ]
                 for j in range(8) :
                     verts.append(verts[j] + vec(mm.run * mm.nr_treads, 0, mm.rise * mm.nr_treads))
                 #end for
                 mm.make_mesh(verts, faces, 'stringer')
-                offset += tread_width / (nr_stringers + 1)
+                offset += tread_step
             #end for
         #end if
     #end i_beam
