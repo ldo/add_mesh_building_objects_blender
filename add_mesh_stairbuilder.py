@@ -527,18 +527,18 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
         #end for
         faces = \
             [
-                [0, 1, 7, 6],
-                [1, 3, 9, 7],
-                [3, 4, 10, 9],
+                [1, 0, 6, 7],
+                [3, 1, 7, 9],
+                [4, 3, 9, 10],
                 [4, 10, 11, 5],
                 [5, 11, 8, 2],
                 [2, 8, 6, 0],
                 [0, 1, 2],
-                [1, 2, 5, 3],
+                [2, 1, 3, 5],
                 [3, 4, 5],
-                [6, 7, 8],
+                [7, 6, 8],
                 [7, 8, 11, 9],
-                [9, 10, 11],
+                [10, 9, 11],
             ]
         mm.make_mesh(verts, faces, 'stringer')
         for i in verts :
