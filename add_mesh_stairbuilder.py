@@ -1367,66 +1367,66 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
 
     def make_treads() :
         # actually creates the objects for the tread components.
-        basic_steel_faces = \
-            [
-                [0, 1, 2, 3],
-                [0, 3, 4, 5],
-                [4, 5, 6, 7],
-                [6, 7, 8, 9],
-                [8, 9, 10, 11],
-                [12, 13, 14, 15],
-                [12, 15, 16, 17],
-                [16, 17, 18, 19],
-                [18, 19, 20, 21],
-                [20, 21, 22, 23],
-                [0, 1, 13, 12],
-                [1, 2, 14, 13],
-                [2, 3, 15, 14],
-                [3, 4, 16, 15],
-                [4, 7, 19, 16],
-                [7, 8, 20, 19],
-                [8, 11, 23, 20],
-                [11, 10, 22, 23],
-                [10, 9, 21, 22],
-                [9, 6, 18, 21],
-                [6, 5, 17, 18],
-                [5, 0, 12, 17],
-            ]
-        bar_faces = \
-            [
-                [0, 2, 3, 1],
-                [0, 2, 10, 8],
-                [9, 11, 3, 1],
-                [9, 11, 10, 8],
-                [2, 6, 7, 3],
-                [2, 6, 14, 10],
-                [11, 15, 7, 3],
-                [11, 15, 14, 10],
-                [0, 4, 5, 1],
-                [0, 4, 12, 8],
-                [9, 13, 5, 1],
-                [9, 13, 12, 8],
-                [4, 6, 7, 5],
-                [4, 6, 14, 12],
-                [13, 15, 14, 12],
-                [13, 15, 7, 5],
-            ]
         for i in range(mm.nr_treads) :
             if tread_type == TREADTYPE.CLASSIC :
                 mm.make_ppd_mesh(treads_verts, 'treads')
             elif tread_type == TREADTYPE.BASIC_STEEL :
+                faces = \
+                    [
+                        [0, 1, 2],
+                        [0, 2, 3, 4, 5],
+                        [5, 4, 7, 6],
+                        [6, 7, 8, 11, 9],
+                        [11, 10, 9],
+                        [14, 13, 12],
+                        [17, 16, 15, 14, 12],
+                        [16, 17, 18, 19],
+                        [21, 23, 20, 19, 18],
+                        [21, 22, 23],
+                        [1, 0, 12, 13],
+                        [2, 1, 13, 14],
+                        [3, 2, 14, 15],
+                        [4, 3, 15, 16],
+                        [7, 4, 16, 19],
+                        [8, 7, 19, 20],
+                        [11, 8, 20, 23],
+                        [10, 11, 23, 22],
+                        [9, 10, 22, 21],
+                        [6, 9, 21, 18],
+                        [5, 6, 18, 17],
+                        [0, 5, 17, 12],
+                    ]
                 temp = []
                 for j in treads_verts :
                     temp.append(copy(j))
                 #end for
                 for j in range(nr_tread_sections) :
-                    mm.make_mesh(temp, basic_steel_faces, 'treads')
+                    mm.make_mesh(temp, faces, 'treads')
                     for k in temp :
                         k += vec(section_depth + section_spacing, 0, 0)
                     #end for
                 #end for
             elif tread_type in [TREADTYPE.BAR_1, TREADTYPE.BAR_2, TREADTYPE.BAR_3] :
-                mm.make_mesh(treads_verts, bar_faces, 'treads')
+                faces = \
+                    [
+                        [0, 2, 3, 1],
+                        [0, 2, 10, 8],
+                        [9, 11, 3, 1],
+                        [9, 11, 10, 8],
+                        [2, 6, 7, 3],
+                        [2, 6, 14, 10],
+                        [11, 15, 7, 3],
+                        [11, 15, 14, 10],
+                        [0, 4, 5, 1],
+                        [0, 4, 12, 8],
+                        [9, 13, 5, 1],
+                        [9, 13, 12, 8],
+                        [4, 6, 7, 5],
+                        [4, 6, 14, 12],
+                        [13, 15, 14, 12],
+                        [13, 15, 7, 5],
+                    ]
+                mm.make_mesh(treads_verts, faces, 'treads')
                 temp = []
                 for j in bars_verts :
                     temp.append(copy(j))
