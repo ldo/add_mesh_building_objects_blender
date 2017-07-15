@@ -1014,7 +1014,7 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                 #end for
                 if i + 1 < mm.nr_treads :
                     # part that overlaps stringer for next tread
-                    for j in range(mm.sections_per_slice) :
+                    for j in range(mm.sections_per_slice - 1) :
                         k = (j + mm.sections_per_slice) * 4 + 4
                         faces.extend \
                           (
@@ -1040,6 +1040,31 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                             #end if
                         #end for
                     #end for
+                    # pointy end
+                    j = mm.sections_per_slice - 1
+                    k = (j + mm.sections_per_slice) * 4 + 4
+                    faces.extend \
+                      (
+                        [
+                            [k, k - 3, k - 4],
+                            [k, k + 1, k - 1, k - 3],
+                            [k - 2, k - 1, k + 1],
+                            [k, k - 4, k - 2, k + 1],
+                        ]
+                      )
+                    rot = z_rotation \
+                      (
+                            tread_arc * (j + mm.sections_per_slice + 1) / mm.sections_per_slice
+                        +
+                            tread_arc * i
+                      )
+                    verts.extend \
+                      (
+                        [
+                            rot * start[0] + vec(0, 0, mm.rise * i),
+                            rot * start[2] + vec(0, 0, mm.rise * i),
+                        ]
+                      )
                 else :
                     # close off end
                     k = mm.sections_per_slice * 4 + 4
