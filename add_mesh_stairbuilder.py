@@ -1150,6 +1150,14 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
                 )
             inset = section_depth / 4 # of inner faces
             end_x = section_depth - tread_toe # end of first section
+            # Positions of following vertices:
+            # 5                            6
+            #
+            #          4        7
+            #
+            #      2   3        8   11
+            #
+            # 0    1                10    9
             treads_verts.extend \
               (
                 [
