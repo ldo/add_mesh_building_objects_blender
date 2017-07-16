@@ -1381,11 +1381,11 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
             elif tread_type == TREADTYPE.BASIC_STEEL :
                 faces = \
                     [
-                        [0, 1, 2],
-                        [0, 2, 3, 4, 5],
+                        [0, 1, 2, 5],
+                        [2, 3, 4, 5],
                         [5, 4, 7, 6],
-                        [6, 7, 8, 11, 9],
-                        [11, 10, 9],
+                        [6, 7, 8, 11],
+                        [11, 10, 9, 6],
                         [14, 13, 12],
                         [17, 16, 15, 14, 12],
                         [16, 17, 18, 19],
