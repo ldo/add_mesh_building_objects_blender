@@ -19,7 +19,6 @@
 #   - Add wall railing type as an option for left/right
 #   - Add different rail styles (profiles).  Select with enum.
 #   - Would like to add additional staircase types.
-#       - Spiral staircase
 #       - "L" staircase
 #       - "T" staircase
 #
