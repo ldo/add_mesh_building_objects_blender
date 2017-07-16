@@ -1148,64 +1148,47 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
                     /
                         nr_tread_sections
                 )
-            inset = section_depth / 4 # of inner faces
             end_x = section_depth - tread_toe # end of first section
             # Positions of following vertices:
-            # 5                            6
+            # 7                   6
             #
-            #          4        7
+            #      2        3
             #
-            #      2   3        8   11
-            #
-            # 0    1                10    9
+            # 0    1        4     5
             treads_verts.extend \
               (
                 [
                     vec(- tread_toe, - tread_side_overhang, - tread_height),
-                    vec(inset - tread_toe, - tread_side_overhang, - tread_height),
-                    vec
-                      (
-                        inset - tread_toe,
-                        - tread_side_overhang,
-                        - tread_height + tread_metal_thickness
-                      ),
                     vec
                       (
                         tread_metal_thickness - tread_toe,
                         - tread_side_overhang,
-                        - tread_height + tread_metal_thickness
+                        - tread_height
                       ),
-                    vec # fixme: might coincide with previous vert if tread_height = 2 * metal_thickness
+                    vec
                       (
                         tread_metal_thickness - tread_toe,
                         - tread_side_overhang,
                         - tread_metal_thickness
                       ),
-                    vec(- tread_toe, - tread_side_overhang, 0),
-                    vec(end_x, - tread_side_overhang, 0),
                     vec
                       (
                         end_x - tread_metal_thickness,
                         - tread_side_overhang,
                         - tread_metal_thickness
                       ),
-                    vec # fixme: might coincide with previous vert if tread_height = 2 * metal_thickness
+                    vec
                       (
                         end_x - tread_metal_thickness,
                         - tread_side_overhang,
-                        tread_metal_thickness - tread_height
+                        - tread_height
                       ),
                     vec(end_x, - tread_side_overhang, - tread_height),
-                    vec(end_x - inset, - tread_side_overhang, - tread_height),
-                    vec
-                      (
-                        end_x - inset,
-                        - tread_side_overhang,
-                        - tread_height + tread_metal_thickness
-                      ),
+                    vec(end_x, - tread_side_overhang, 0),
+                    vec(- tread_toe, - tread_side_overhang, 0),
                 ]
               )
-            for i in range(12) :
+            for i in range(8) :
                 treads_verts.append \
                   (
                     treads_verts[i] + vec(0, tread_width + 2 * tread_side_overhang, 0)
@@ -1381,28 +1364,32 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
             elif tread_type == TREADTYPE.BASIC_STEEL :
                 faces = \
                     [
-                        [0, 1, 2, 5],
-                        [2, 3, 4, 5],
-                        [5, 4, 7, 6],
-                        [6, 7, 8, 11],
-                        [11, 10, 9, 6],
-                        [14, 13, 12],
-                        [17, 16, 15, 14, 12],
-                        [16, 17, 18, 19],
-                        [21, 23, 20, 19, 18],
-                        [21, 22, 23],
-                        [1, 0, 12, 13],
-                        [2, 1, 13, 14],
-                        [3, 2, 14, 15],
-                        [4, 3, 15, 16],
-                        [7, 4, 16, 19],
-                        [8, 7, 19, 20],
-                        [11, 8, 20, 23],
-                        [10, 11, 23, 22],
-                        [9, 10, 22, 21],
-                        [6, 9, 21, 18],
-                        [5, 6, 18, 17],
-                        [0, 5, 17, 12],
+                        # Positions of following vertices:
+                        # 7                   6
+                        #
+                        #      2        3
+                        #
+                        # 0    1        4     5
+                      # near-end faces:
+                        [0, 1, 2, 7],
+                        [7, 2, 3, 6],
+                        [3, 4, 5, 6],
+                      # bottom faces:
+                        [1, 0, 8, 9],
+                        [5, 4, 12, 13],
+                      # inner faces:
+                        [2, 1, 9, 10],
+                        [3, 2, 10, 11],
+                        [4, 3, 11, 12],
+                      # side faces:
+                        [0, 7, 15, 8],
+                        [6, 5, 13, 14],
+                      # top face:
+                        [7, 6, 14, 15],
+                      # far-end faces:
+                        [9, 8, 15, 10],
+                        [10, 15, 14, 11],
+                        [14, 13, 12, 11],
                     ]
                 temp = []
                 for j in treads_verts :
