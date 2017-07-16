@@ -1195,22 +1195,45 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
                   )
             #end for
         elif tread_type in [TREADTYPE.BAR_1, TREADTYPE.BAR_2, TREADTYPE.BAR_3] :
+            # These ones have crossbars
             # Frame:
-            treads_verts.append(vec(- tread_toe, - tread_side_overhang, - tread_height))
-            treads_verts.append(vec(mm.run, - tread_side_overhang, - tread_height))
-            treads_verts.append(vec(- tread_toe, - tread_side_overhang, 0))
-            treads_verts.append(vec(mm.run, - tread_side_overhang, 0))
+            # Positions of following vertices:
+            # at right edge:
+            # 2             3
+            # 0             1
+            # inset by tread_metal_thickness:
+            #    6       7
+            #    4       5
+            # (relative positions flipped on other side.)
+            treads_verts.extend \
+              ( # outer right edge of frame
+                [
+                    vec(- tread_toe, - tread_side_overhang, - tread_height),
+                    vec(mm.run, - tread_side_overhang, - tread_height),
+                    vec(- tread_toe, - tread_side_overhang, 0),
+                    vec(mm.run, - tread_side_overhang, 0),
+                ]
+              )
             for i in range(4) :
+                # inset right edge of frame
                 if i % 2 == 0 :
-                    treads_verts.append(treads_verts[i] + vec(tread_metal_thickness, tread_metal_thickness, 0))
+                    treads_verts.append \
+                      (
+                        treads_verts[i] + vec(tread_metal_thickness, tread_metal_thickness, 0)
+                      )
                 else :
-                    treads_verts.append(treads_verts[i] + vec(- tread_metal_thickness, tread_metal_thickness, 0))
+                    treads_verts.append \
+                      (
+                        treads_verts[i] + vec(- tread_metal_thickness, tread_metal_thickness, 0)
+                      )
                 #end if
             #end for
             for i in range(4) :
+                # outer left edge of frame
                 treads_verts.append(treads_verts[i] + vec(0, tread_width + tread_side_overhang, 0))
             #end for
             for i in range(4) :
+                # inset left edge of frame
                 treads_verts.append \
                   (
                         treads_verts[i + 4]
@@ -1234,7 +1257,7 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
                     )
                 base_x = - tread_toe + section_spacing + tread_metal_thickness
                 bars_verts.extend \
-                  (
+                  ( # left face of tread bar
                     [
                         vec
                           (
@@ -1254,7 +1277,17 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
                     bars_verts.append(bars_verts[i] + vec(topset, 0, topset))
                 #end for
                 for i in range(4) :
-                    bars_verts.append(bars_verts[i] + vec(0, (tread_width + tread_side_overhang) - 2 * tread_metal_thickness, 0))
+                    bars_verts.append \
+                      (
+                            bars_verts[i]
+                        +
+                            vec
+                              (
+                                0,
+                                (tread_width + tread_side_overhang) - 2 * tread_metal_thickness,
+                                0
+                              )
+                      )
                 #end for
             elif tread_type in [TREADTYPE.BAR_2, TREADTYPE.BAR_3] :
                 section_offset = \
@@ -1276,7 +1309,7 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
                 base_x = - tread_toe + tread_metal_thickness + section_offset
                 base_y = tread_width + tread_side_overhang - 2 * tread_metal_thickness
                 bars_verts.extend \
-                  (
+                  ( # left face of tread bar
                     [
                         vec
                           (
@@ -1295,6 +1328,7 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
                     ]
                   )
                 for i in range(4) :
+                    # right face of tread bar
                     bars_verts.append(bars_verts[i] + vec(0, base_y, 0))
                 #end for
             #end if
@@ -1342,7 +1376,7 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
             #end if
             base_y = - tread_side_overhang + tread_metal_thickness + cross_spacing
             crosses_verts.extend \
-              (
+              ( # left face of cross piece
                 [
                     vec(- tread_toe + tread_metal_thickness, base_y, - tread_height),
                     vec(mm.run - tread_metal_thickness, base_y, - tread_height),
@@ -1351,6 +1385,7 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
                 ]
               )
             for i in range(4) :
+                # right face of cross piece
                 crosses_verts.append(crosses_verts[i] + vec(0, cross_width, 0))
             #end for
         #end if
