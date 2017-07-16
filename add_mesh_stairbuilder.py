@@ -1261,15 +1261,15 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
                     [
                         vec
                           (
-                            base_x,
-                            tread_metal_thickness - tread_side_overhang,
-                            section_offset - tread_height
-                          ),
-                        vec
-                          (
                             base_x + section_offset,
                             tread_metal_thickness - tread_side_overhang,
                             - tread_height
+                          ),
+                        vec
+                          (
+                            base_x,
+                            tread_metal_thickness - tread_side_overhang,
+                            section_offset - tread_height
                           ),
                     ]
                   )
@@ -1313,18 +1313,18 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
                     [
                         vec
                           (
-                            base_x,
+                            base_x + topset,
                             - tread_side_overhang + tread_metal_thickness,
                             - tread_height / 2
                           ),
                         vec
                           (
-                            base_x + topset,
+                            base_x,
                             - tread_side_overhang + tread_metal_thickness,
                             - tread_height / 2
                           ),
-                        vec(base_x, - tread_side_overhang + tread_metal_thickness, 0),
                         vec(base_x + topset, - tread_side_overhang + tread_metal_thickness, 0),
+                        vec(base_x, - tread_side_overhang + tread_metal_thickness, 0),
                     ]
                   )
                 for i in range(4) :
@@ -1378,10 +1378,10 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
             crosses_verts.extend \
               ( # left face of cross piece
                 [
-                    vec(- tread_toe + tread_metal_thickness, base_y, - tread_height),
                     vec(mm.run - tread_metal_thickness, base_y, - tread_height),
-                    vec(- tread_toe + tread_metal_thickness, base_y, cross_height),
+                    vec(- tread_toe + tread_metal_thickness, base_y, - tread_height),
                     vec(mm.run - tread_metal_thickness, base_y, cross_height),
+                    vec(- tread_toe + tread_metal_thickness, base_y, cross_height),
                 ]
               )
             for i in range(4) :
@@ -1439,22 +1439,29 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
             elif tread_type in [TREADTYPE.BAR_1, TREADTYPE.BAR_2, TREADTYPE.BAR_3] :
                 faces = \
                     [
-                        [0, 2, 3, 1],
+                        # right side of frame
+                        [2, 0, 1, 3],
+                        [2, 3, 7, 6],
+                        [1, 0, 4, 5],
+                        [5, 4, 6, 7],
+
+                        # width of frame -- outside
                         [0, 2, 10, 8],
                         [9, 11, 3, 1],
-                        [9, 11, 10, 8],
-                        [2, 6, 7, 3],
                         [2, 6, 14, 10],
-                        [11, 15, 7, 3],
-                        [11, 15, 14, 10],
-                        [0, 4, 5, 1],
-                        [0, 4, 12, 8],
-                        [9, 13, 5, 1],
-                        [9, 13, 12, 8],
-                        [4, 6, 7, 5],
-                        [4, 6, 14, 12],
-                        [13, 15, 14, 12],
-                        [13, 15, 7, 5],
+                        [7, 3, 11, 15],
+                        [4, 0, 8, 12],
+                        [1, 5, 13, 9],
+
+                        # width of frame -- inside
+                        [6, 4, 12, 14],
+                        [5, 7, 15, 13],
+
+                        # left side of frame
+                        [8, 10, 11, 9],
+                        [11, 10, 14, 15],
+                        [8, 9, 13, 12],
+                        [12, 13, 15, 14],
                     ]
                 mm.make_mesh(treads_verts, faces, 'treads')
                 temp = []
@@ -1462,7 +1469,7 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
                     temp.append(copy(j))
                 #end for
                 for j in range(nr_tread_sections) :
-                    mm.make_ppd_mesh(temp, 'bars')
+                    mm.make_ppd_mesh(temp, 'tread_bars')
                     for k in temp :
                         k += vec(section_offset + section_spacing, 0, 0)
                     #end for
@@ -1475,7 +1482,7 @@ def treads(mm, stair_type, tread_type, tread_width, tread_height, tread_toe, tre
                     temp.append(copy(j))
                 #end for
                 for j in range(nr_cross_sections) :
-                    mm.make_ppd_mesh(temp, 'crosses')
+                    mm.make_ppd_mesh(temp, 'tread_crosses')
                     for k in temp :
                         k += vec(0, cross_width + cross_spacing, 0)
                     #end for
