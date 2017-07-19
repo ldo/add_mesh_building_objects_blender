@@ -681,171 +681,15 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
         #end if
     #end i_beam
 
-    def housed_i_beam() :
-        webOrth = vec(mm.rise, 0, - mm.run).normalized()
-        webHeight = vec(mm.run + tread_toe, 0, - tread_height).project(webOrth).length
-        vDelta_1 = stringer_flange_thickness * mm.slope
-        vDelta_2 = mm.rise * (mm.nr_treads - 1) - (webHeight + stringer_flange_thickness)
-        flange_y = (stringer_width - stringer_web_thickness) / 2
-        front = - tread_toe - stringer_flange_thickness
-        outer = - tread_overhang - stringer_web_thickness - flange_y
+    def housed_beam_common(i_beam) :
+        # common mesh construction for both housed_i_beam and housed_c_beam
         verts = []
-        # Upper-Outer flange:
-        verts.append(vec(front, outer, - mm.rise))
-        verts.append(vec(- tread_toe, outer, - mm.rise))
-        verts.append(vec(- tread_toe, outer, 0))
-        verts.append(vec(
-                mm.run * (mm.nr_treads - 1) - tread_toe,
-                outer,
-                mm.rise * (mm.nr_treads - 1)
-            ))
-        verts.append(vec(
-                mm.run * mm.nr_treads,
-                outer,
-                mm.rise * (mm.nr_treads - 1)
-            ))
-        verts.append(vec(
-                mm.run * mm.nr_treads,
-                outer,
-                mm.rise * (mm.nr_treads - 1) + stringer_flange_thickness
-            ))
-        verts.append(vec(
-                mm.run * (mm.nr_treads - 1) - tread_toe,
-                outer,
-                mm.rise * (mm.nr_treads - 1) + stringer_flange_thickness
-            ))
-        verts.append(vec(front, outer, stringer_flange_thickness - vDelta_1))
-        # Lower-Outer flange:
-        verts.append(verts[0] + vec(stringer_flange_thickness + webHeight, 0, 0))
-        verts.append(verts[1] + vec(stringer_flange_thickness + webHeight, 0, 0))
-        verts.append \
-          (
-            intersect_line_line
-              (
-                verts[9],
-                verts[9] - vec(0, 0, 1),
-                vec(mm.run, 0, - tread_height - stringer_flange_thickness),
-                vec(mm.run * 2, 0, mm.rise - tread_height - stringer_flange_thickness)
-             )[0]
-          )
-        verts.append(vec(
-                mm.run * mm.nr_treads - (webHeight - tread_height) / mm.slope,
-                outer,
-                vDelta_2
-            ))
-        verts.append(verts[4] - vec(0, 0, stringer_flange_thickness + webHeight))
-        verts.append(verts[5] - vec(0, 0, stringer_flange_thickness + webHeight))
-        verts.append(verts[11] + vec(0, 0, stringer_flange_thickness))
-        verts.append \
-          (
-              intersect_line_line
-                (
-                  verts[8],
-                  verts[8] - vec(0, 0, 1),
-                  vec(mm.run, 0, - tread_height),
-                  vec(mm.run * 2, 0, mm.rise - tread_height)
-                )[0]
-          )
-        # Outer web:
-        for i in [1, 8, 15, 14, 13, 4, 3, 2] :
-            verts.append(verts[i] + vec(0, flange_y, 0))
-        #end for
-        # Upper-Inner flange and lower-inner flange:
-        for i in range(16) :
-            verts.append(verts[i] + vec(0, stringer_width, 0))
-        #end for
-        # Inner web:
-        for i in range(8) :
-            verts.append(verts[i + 16] + vec(0, stringer_web_thickness, 0))
-        #end for
-        # Mid nodes to so faces will be quads:
-        for i in [0, 7, 6, 5, 9, 10, 11, 12] :
-            verts.append(verts[i] + vec(0, flange_y, 0))
-        #end for
-        for i in range(8) :
-            verts.append(verts[i + 48] + vec(0, stringer_web_thickness, 0))
-        #end for
-        faces = \
-            [
-                [0, 1, 2, 7],
-                [2, 3, 6, 7],
-                [3, 4, 5, 6],
-                [1, 2, 23, 16],
-                [2, 3, 22, 23],
-                [3, 4, 21, 22],
-                [16, 17, 18, 23],
-                [18, 19, 22, 23],
-                [19, 20, 21, 22],
-                [17, 8, 15, 18],
-                [18, 15, 14, 19],
-                [19, 14, 13, 20],
-                [8, 9, 10, 15],
-                [10, 11, 14, 15],
-                [11, 12, 13, 14],
-                [9, 10, 53, 52],
-                [10, 11, 54, 53],
-                [11, 12, 55, 54],
-                [52, 53, 61, 60],
-                [53, 54, 62, 61],
-                [54, 55, 63, 62],
-                [60, 61, 34, 33],
-                [61, 62, 35, 34],
-                [62, 63, 36, 35],
-                [32, 33, 34, 39],
-                [34, 35, 38, 39],
-                [35, 36, 37, 38],
-                [41, 32, 39, 42],
-                [42, 39, 38, 43],
-                [43, 38, 37, 44],
-                [40, 41, 42, 47],
-                [42, 43, 46, 47],
-                [43, 44, 45, 46],
-                [25, 26, 47, 40],
-                [26, 27, 46, 47],
-                [27, 28, 45, 46],
-                [24, 25, 26, 31],
-                [26, 27, 30, 31],
-                [27, 28, 29, 30],
-                [24, 31, 57, 56],
-                [31, 30, 58, 57],
-                [30, 29, 59, 58],
-                [48, 49, 57, 56],
-                [49, 50, 58, 57],
-                [50, 51, 59, 58],
-                [0, 7, 49, 48],
-                [7, 6, 50, 49],
-                [6, 5, 51, 50],
-                [0, 1, 16, 48],
-                [16, 40, 56, 48],
-                [24, 25, 40, 56],
-                [16, 17, 41, 40],
-                [8, 9, 52, 17],
-                [17, 52, 60, 41],
-                [32, 33, 60, 41],
-                [12, 13, 20, 55],
-                [20, 44, 63, 55],
-                [37, 44, 63, 36],
-                [20, 21, 45, 44],
-                [28, 29, 51, 21],
-                [21, 51, 59, 45],
-                [28, 45, 59, 29],
-                [4, 5, 51, 21],
-            ]
-        mm.make_mesh(verts, faces, 'stringer')
-        for i in verts :
-            i += vec(0, tread_width + stringer_web_thickness, 0)
-        #end for
-        mm.make_mesh(verts, faces, 'stringer')
-    #end housed_i_beam
-
-    def housed_c_beam() :
         web_normal = vec(mm.rise, 0, - mm.run).normalized() # perpendicular to slope of beam
         web_height = vec(mm.run + tread_toe, 0, - tread_height).project(web_normal).length
         flange_y = (stringer_width - stringer_web_thickness) / 2
           # depth of flange
         outer = - tread_overhang - stringer_web_thickness - flange_y
           # outer side of left beam
-        verts = []
         # Upper-Outer flange:
         # positions of following vertices (outer part of flange):
         #                            6   5
@@ -855,11 +699,11 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
         #
         #                           14  13
         #
-        #                           11  12
+        # 7                         11  12
+        #    2
         #
-        #
-        # 7         15
-        #    2          10
+        #           15
+        #               10
         #
         # 0  1       8   9
         verts.extend \
@@ -964,8 +808,62 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
         for i in [1, 8, 15, 14, 13, 4, 3, 2] :
             verts.append(verts[i] + vec(0, flange_y, 0))
         #end for
+        if i_beam :
+            # Upper-Inner flange and lower-inner flange:
+            # Positions of following vertices (outer part of flange):
+            #                            30  29
+            #
+            #                            27  28
+            #
+            #
+            #                            38  37
+            #
+            # 31                         35  36
+            #     26
+            #
+            #            39
+            #                34
+            #
+            # 24  25     32  33
+            for i in range(16) :
+                verts.append(verts[i] + vec(0, stringer_width, 0))
+            #end for
+            # Inner web:
+            # Positions of following vertices:
+            #
+            #
+            #                          46  45
+            #
+            #
+            #                          43  44
+            #
+            #
+            #
+            #
+            #
+            #    47
+            #            42
+            #
+            #    40      41
+            for i in range(8) :
+                verts.append(verts[i + 16] + vec(0, stringer_web_thickness, 0))
+            #end for
+        #end if
         # Outer corner nodes:
-        # Positions of following vertices:
+        # Positions of following vertices (housed I-beam):
+        #                          50  51
+        #
+        #
+        #
+        #
+        #                          54  55
+        #
+        # 49
+        #              53
+        #
+        # 48           52
+        #
+        # or (housed C-beam):
         #                          26  27
         #
         #
@@ -977,9 +875,31 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
         #              30
         #
         # 24           31
-        for i in [0, 7, 6, 5, 12, 11, 10, 9] :
-            verts.append(verts[i] + vec(0, flange_y + stringer_web_thickness, 0))
-        #end for
+        if i_beam :
+            for i in [0, 7, 6, 5, 9, 10, 11, 12] :
+                verts.append(verts[i] + vec(0, flange_y + (stringer_web_thickness, 0)[i_beam], 0))
+            #end for
+            # Outer corner nodes again:
+            # Positions of following vertices:
+            #                          58  59
+            #
+            #
+            #
+            #
+            #                          62  63
+            #
+            # 57
+            #              61
+            #
+            # 56           60
+            for i in range(8) :
+                verts.append(verts[i + 48] + vec(0, stringer_web_thickness, 0))
+            #end for
+        else :
+            for i in [0, 7, 6, 5, 12, 11, 10, 9] :
+                verts.append(verts[i] + vec(0, flange_y + (stringer_web_thickness, 0)[i_beam], 0))
+            #end for
+        #end if
         faces = \
             [
                 [1, 0, 7, 2],
@@ -997,23 +917,103 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
                 [9, 8, 15, 10],
                 [11, 10, 15, 14],
                 [12, 11, 14, 13],
-                [0, 24, 25, 7],
-                [7, 25, 26, 6],
-                [6, 26, 27, 5],
-                [31, 9, 10, 30],
-                [30, 10, 11, 29],
-                [29, 11, 12, 28],
-                [25, 24, 31, 30],
-                [26, 25, 30, 29],
-                [27, 26, 29, 28],
-                [0, 1, 16, 24],
-                [24, 16, 17, 31],
-                [8, 9, 31, 17],
-                [4, 5, 27, 21],
-                [20, 21, 27, 28],
-                [12, 13, 20, 28],
             ]
+        if i_beam :
+            faces.extend \
+              (
+                [
+                    [9, 10, 53, 52],
+                    [10, 11, 54, 53],
+                    [11, 12, 55, 54],
+                    [52, 53, 61, 60],
+                    [53, 54, 62, 61],
+                    [54, 55, 63, 62],
+                    [60, 61, 34, 33],
+                    [61, 62, 35, 34],
+                    [62, 63, 36, 35],
+                    [32, 33, 34, 39],
+                    [34, 35, 38, 39],
+                    [35, 36, 37, 38],
+                    [41, 32, 39, 42],
+                    [42, 39, 38, 43],
+                    [43, 38, 37, 44],
+                    [40, 41, 42, 47],
+                    [42, 43, 46, 47],
+                    [43, 44, 45, 46],
+                    [25, 26, 47, 40],
+                    [26, 27, 46, 47],
+                    [27, 28, 45, 46],
+                    [24, 25, 26, 31],
+                    [26, 27, 30, 31],
+                    [27, 28, 29, 30],
+                    [24, 31, 57, 56],
+                    [31, 30, 58, 57],
+                    [30, 29, 59, 58],
+                    [48, 49, 57, 56],
+                    [49, 50, 58, 57],
+                    [50, 51, 59, 58],
+
+                    [0, 7, 49, 48],
+                    [7, 6, 50, 49],
+                    [6, 5, 51, 50],
+
+                    [16, 40, 56, 48],
+                    [24, 25, 40, 56],
+                    [16, 17, 41, 40],
+                    [8, 9, 52, 17],
+                    [17, 52, 60, 41],
+                    [32, 33, 60, 41],
+                    [12, 13, 20, 55],
+                    [20, 44, 63, 55],
+                    [37, 44, 63, 36],
+                    [0, 1, 16, 48],
+                    [20, 21, 45, 44],
+                    [28, 29, 51, 21],
+                    [21, 51, 59, 45],
+                    [28, 45, 59, 29],
+                    [4, 5, 51, 21],
+                ]
+              )
+        else :
+            faces.extend \
+              (
+                [
+                    [0, 24, 25, 7],
+                    [7, 25, 26, 6],
+                    [6, 26, 27, 5],
+
+                    [31, 9, 10, 30],
+                    [30, 10, 11, 29],
+                    [29, 11, 12, 28],
+                    [25, 24, 31, 30],
+                    [26, 25, 30, 29],
+                    [27, 26, 29, 28],
+                    [0, 1, 16, 24],
+                    [24, 16, 17, 31],
+                    [8, 9, 31, 17],
+                    [4, 5, 27, 21],
+                    [20, 21, 27, 28],
+                    [12, 13, 20, 28],
+                ]
+              )
+        #end if
+        return \
+            verts, faces, outer, flange_y
+    #end housed_beam_common
+
+    def housed_i_beam() :
+        verts, faces = housed_beam_common(True)[:2]
         mm.make_mesh(verts, list(list(reversed(f)) for f in faces), 'stringer')
+        for i in verts :
+            i += vec(0, tread_width + stringer_web_thickness, 0)
+        #end for
+        mm.make_mesh(verts, faces, 'stringer')
+    #end housed_i_beam
+
+    def housed_c_beam() :
+        verts, faces, outer, flange_y = housed_beam_common(False)
+        mm.make_mesh(verts, list(list(reversed(f)) for f in faces), 'stringer')
+        # flip the flange around
         for i in range(16) :
             verts[i] += vec(0, - outer * 2, 0)
         #end for
