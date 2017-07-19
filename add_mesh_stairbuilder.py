@@ -2028,8 +2028,6 @@ class Stairs(bpy.types.Operator) :
             box.prop(self, 'rad1')
             box.prop(self, 'rad2')
             box.prop(self, 'central_pillar')
-        #end if
-        if self.stair_type == STAIRTYPE.CIRCULAR.name :
             box.prop(self, "sections_per_slice") # affects resolution of treads, railings, retainers and stringers
         #end if
         if self.stair_type in [STAIRTYPE.FREESTANDING.name, STAIRTYPE.CIRCULAR.name] :
