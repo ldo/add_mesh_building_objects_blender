@@ -157,10 +157,15 @@ class MeshMaker :
         self.made_objects = []
     #end __init__
 
-    def make_mesh(self, verts, faces, name) :
+    def make_mesh(self, verts, faces, name, flip = False) :
         # MeshMaker, MeshMaker, make me a mesh...
         mesh = bpy.data.meshes.new(name)
-        mesh.from_pydata(verts, [], faces)
+        mesh.from_pydata \
+          (
+            verts,
+            [],
+            (lambda : faces, lambda : list(list(reversed(f)) for f in faces))[flip]()
+          )
         mesh.use_auto_smooth = True
         mesh.update()
         mesh_obj = bpy.data.objects.new(name = name, object_data = mesh)
@@ -1003,16 +1008,16 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
 
     def housed_i_beam() :
         verts, faces = housed_beam_common(True)[:2]
-        mm.make_mesh(verts, list(list(reversed(f)) for f in faces), 'stringer')
+        mm.make_mesh(verts, faces, 'stringer', flip = True)
         for i in verts :
             i += vec(0, tread_width + stringer_web_thickness, 0)
         #end for
-        mm.make_mesh(verts, list(list(reversed(f)) for f in faces), 'stringer')
+        mm.make_mesh(verts, faces, 'stringer', flip = True)
     #end housed_i_beam
 
     def housed_c_beam() :
         verts, faces, outer, flange_y = housed_beam_common(False)
-        mm.make_mesh(verts, list(list(reversed(f)) for f in faces), 'stringer')
+        mm.make_mesh(verts, faces, 'stringer', flip = True)
         # flip the flange around
         for i in range(16) :
             verts[i] += vec(0, - outer * 2, 0)
@@ -1023,7 +1028,7 @@ def stringer(mm, stair_type, stringer_type, w, stringer_height, tread_height, tr
         for i in verts :
             i += vec(0, tread_overhang * 2 + tread_width, 0)
         #end for
-        mm.make_mesh(verts, faces, 'stringer')
+        mm.make_mesh(verts, faces, 'stringer', flip = False)
     #end housed_c_beam
 
     def box() :
