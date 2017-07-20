@@ -1597,16 +1597,16 @@ def treads_circular(mm, tread_type, outer_radius, tread_height, tread_toe, inner
         verts.append(t_outer * start[3] + vec(0, 0, mm.rise * i))
         for j in range(mm.sections_per_slice + 1) :
             k = j * 4 + 4
-            faces.append([k, k - 4, k - 3, k + 1])
+            faces.append([k - 4, k, k + 1, k - 3])
             faces.append([k - 2, k - 1, k + 3, k + 2])
-            faces.append([k + 1, k - 3, k - 1, k + 3])
+            faces.append([k - 3, k + 1, k + 3, k - 1])
             faces.append([k, k - 4, k - 2, k + 2])
             rot = z_rotation(tread_arc * j / mm.sections_per_slice + tread_arc * i)
             for v in start :
                 verts.append(rot * v + vec(0, 0, mm.rise * i))
             #end for
         #end for
-        faces.append([k, k + 1, k + 3, k + 2])
+        faces.append([k + 1, k, k + 2, k + 3])
         mm.make_mesh(verts, faces, 'treads')
     #end for
 #end treads_circular

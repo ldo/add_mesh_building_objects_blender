@@ -22,7 +22,7 @@ bl_info = \
     {
         "name" : "Building Objects",
         "author" : "Multiple Authors",
-        "version" : (0, 4, 3),
+        "version" : (0, 4, 4),
         "blender" : (2, 78, 0),
         "location" : "View3D > Add > Mesh > Building Objects",
         "description" : "Add building object types",
