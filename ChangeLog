@@ -1,0 +1,51 @@
+2017 Jul 20, version 0.4.4:
+  * Fix normals for circular treads
+
+2017 Jul 19, version 0.4.3:
+  * Fix normals for housed I-beam stringers
+
+2017 Jul 17:
+  * Fix normals for housed C-beam stringers
+
+2017 Jul 16:
+  * Simplify overcomplicated basic-steel tread shape. A simple
+    C-section should be enough.
+  * Fix normals for tread bar types
+
+2017 Jul 15:
+  * Fix normals for all parallelepiped components and stringers,
+    and classic and basic-steel tread types
+
+2017 Jul 14:
+  * Fix bar-2 tread type sections overflowing allocated area as number
+    of sections is increased
+  * Option to adjust circular rail thickness; the chosen value can now
+    be applied to its vertical extent, regardless of differing slopes
+    for inner and outer rails.
+  * Taper is not actually supported for housed-open stringers
+
+2017 Jul 13:
+  * Add distributed option for circular stringers
+  * Always allow setting of railing height even if not making them, since
+    this affects posts and retainers too
+  * Make proper posts, railings and retainers for circular stairs
+  * Implement option for central pillar for circular stairs (checkbox
+    was there before but didn’t do anything)
+  * Fix normals for section meshes
+
+2017 Jul 12, version 0.4:
+  * Generated staircase components are now parented to an Empty
+    for easier manipulation
+  * Use appropriate property subtypes so percentages and angles are
+    properly shown to user
+  * Hide stringer options that are irrelevant to chosen stair type
+  * Don’t hide properties that are relevant to circular stair type:
+    number of stringers, use-original
+  * Cut off protruding part of circular stringer at edge of topmost tread
+
+2017 Jul 7:
+  * remove functions available elsewhere (i.e. standard addons: Archimesh,
+    Extra Objects)
+
+2017 Jul 6, version 0.2:
+  * initial rescue of code from dustbin of blender-addons-contrib repo
